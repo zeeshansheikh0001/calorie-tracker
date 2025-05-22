@@ -11,6 +11,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 25% 25%;
     --primary: 245 76% 58%; /* Vibrant Blue-Purple */
+    --primary-hsl: 245, 76%, 58%; /* For direct HSL use, e.g. hsla(var(--primary-hsl), 0.1) */
     --primary-foreground: 0 0% 100%; /* White */
     --secondary: 220 50% 90%; /* Lighter blue-gray for secondary elements */
     --secondary-foreground: 230 40% 40%; /* Darker blue for text on secondary */
@@ -30,10 +31,17 @@
     --gradient-end-rgb: 79, 70, 229;   /* Approx 243, 70%, 59% */
 
     /* Specific icon/text colors from image */
-    --text-kcal: 350 80% 60%;
-    --text-carbs: 40 90% 60%;
-    --text-protein: 180 60% 50%;
-    --text-fat: 260 60% 70%;
+    /* Storing raw HSL values for direct use where 'color: hsl(var(--text-kcal-raw))' is needed */
+    --text-kcal-raw: 350, 80%, 60%;
+    --text-carbs-raw: 40, 90%, 60%;
+    --text-protein-raw: 180, 60%, 50%;
+    --text-fat-raw: 260, 60%, 70%;
+    
+    --text-kcal: hsl(var(--text-kcal-raw));
+    --text-carbs: hsl(var(--text-carbs-raw));
+    --text-protein: hsl(var(--text-protein-raw));
+    --text-fat: hsl(var(--text-fat-raw));
+    
     --add-button-bg: 170 70% 45%; /* Tealish for + Add */
 
 
@@ -46,6 +54,13 @@
     --sidebar-accent-foreground: hsl(var(--secondary-foreground));
     --sidebar-border: hsl(var(--border));
     --sidebar-ring: hsl(var(--ring));
+
+    /* Chart colors */
+    --chart-1: 245 76% 58%; /* primary */
+    --chart-2: 45 100% 58%; /* accent */
+    --chart-3: 170 70% 45%; /* add-button-bg */
+    --chart-4: 350 80% 60%; /* text-kcal */
+    --chart-5: 180 60% 50%; /* text-protein */
   }
 
   .dark {
@@ -56,6 +71,7 @@
     --popover: 220 15% 15%;
     --popover-foreground: 220 25% 90%;
     --primary: 245 70% 65%; /* Lighter vibrant Blue-Purple */
+    --primary-hsl: 245, 70%, 65%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 20% 25%; /* Darker secondary */
     --secondary-foreground: 220 30% 80%;
@@ -73,10 +89,16 @@
     --gradient-end-rgb: 99, 102, 241;   /* Lighter blue for dark mode gradient */
 
     /* Specific icon/text colors for dark mode - adjust if needed */
-    --text-kcal: 350 80% 70%;
-    --text-carbs: 40 90% 70%;
-    --text-protein: 180 60% 60%;
-    --text-fat: 260 60% 75%;
+    --text-kcal-raw: 350, 80%, 70%;
+    --text-carbs-raw: 40, 90%, 70%;
+    --text-protein-raw: 180, 60%, 60%;
+    --text-fat-raw: 260, 60%, 75%;
+
+    --text-kcal: hsl(var(--text-kcal-raw));
+    --text-carbs: hsl(var(--text-carbs-raw));
+    --text-protein: hsl(var(--text-protein-raw));
+    --text-fat: hsl(var(--text-fat-raw));
+    
     --add-button-bg: 170 70% 55%;
 
     /* Sidebar specific colors for dark mode */
@@ -88,6 +110,13 @@
     --sidebar-accent-foreground: hsl(var(--secondary-foreground));
     --sidebar-border: hsl(var(--border));
     --sidebar-ring: hsl(var(--ring));
+
+    /* Chart colors for dark mode */
+    --chart-1: 245 70% 65%; 
+    --chart-2: 45 100% 65%;
+    --chart-3: 170 70% 55%;
+    --chart-4: 350 80% 70%;
+    --chart-5: 180 60% 60%;
   }
 }
 

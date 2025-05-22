@@ -24,7 +24,7 @@ export default function LogFoodByBarcodePage() {
             alt="Barcode scanning illustration" 
             width={300} 
             height={200} 
-            className="mx-auto rounded-lg shadow-md"
+            className="mx-auto rounded-lg shadow-md w-full max-w-[300px] h-auto"
             data-ai-hint="barcode scanner" 
           />
           <p className="text-muted-foreground">

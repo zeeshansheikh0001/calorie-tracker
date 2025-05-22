@@ -64,7 +64,7 @@ interface SummaryCardProps {
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
  <Card className="shadow-md hover:shadow-lg transition-shadow flex-1">
     <CardContent className="pt-4 pb-3 text-center">
-      <div className={`p-2 rounded-full inline-block mb-1`} style={{ backgroundColor: `hsl(${iconColor}, 0.2)`}}>
+      <div className={`p-2 rounded-full inline-block mb-1`} style={{ backgroundColor: `hsla(${iconColor}, 0.2)`}}> {/* Updated for hsla */}
          <Icon className="h-5 w-5" style={{ color: `hsl(${iconColor})` }}/>
       </div>
       <p className="text-lg font-bold" style={{ color: `hsl(${iconColor})` }}>{value}</p>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {(isLoadingLog || isLoadingGoals) ? (
             <>
                 <Card className="shadow-lg"><CardContent className="pt-6 text-center"><div className="animate-pulse bg-muted-foreground/20 h-16 w-full rounded-md"></div></CardContent></Card>
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
             <CardContent className="pt-6 flex flex-col items-center justify-center">
-              <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsl(var(--primary), 0.1)'}}>
+              <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}> {/* Assuming --primary-hsl is defined or use specific HSL */}
                 <Camera className="h-6 w-6 text-primary" />
               </div>
               <p className="text-sm font-medium">Snap</p>
@@ -158,7 +158,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-         <Link href="/log-food/barcode" passHref> {/* Assuming manual entry is part of barcode or future page */}
+         <Link href="/log-food/barcode" passHref> 
           <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
             <CardContent className="pt-6 flex flex-col items-center justify-center">
               <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsl(340, 82%, 92%)'}}>
@@ -181,20 +181,20 @@ export default function DashboardPage() {
             <span>{currentDate}</span>
           </div>
         </div>
-        <div className="flex gap-3 justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 justify-between">
          {(isLoadingLog || isLoadingGoals) ? (
             <>
-              <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal)" />
-              <SummaryCard icon={Wheat} value="..." label="Carbs" iconColor="var(--text-carbs)" />
-              <SummaryCard icon={Drumstick} value="..." label="Protein" iconColor="var(--text-protein)" />
-              <SummaryCard icon={CakeSlice} value="..." label="Fat" iconColor="var(--text-fat)" />
+              <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" /> {/* Using raw HSL values for iconColor */}
+              <SummaryCard icon={Wheat} value="..." label="Carbs" iconColor="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value="..." label="Protein" iconColor="var(--text-protein-raw)" />
+              <SummaryCard icon={CakeSlice} value="..." label="Fat" iconColor="var(--text-fat-raw)" />
             </>
           ) : (
             <>
-              <SummaryCard icon={Flame} value={`${todayCalories}`} label="kcal" iconColor="var(--text-kcal)" />
-              <SummaryCard icon={Wheat} value={`${todayCarbs}g`} label="Carbs" iconColor="var(--text-carbs)" />
-              <SummaryCard icon={Drumstick} value={`${todayProtein}g`} label="Protein" iconColor="var(--text-protein)" />
-              <SummaryCard icon={CakeSlice} value={`${todayFat}g`} label="Fat" iconColor="var(--text-fat)" />
+              <SummaryCard icon={Flame} value={`${todayCalories}`} label="kcal" iconColor="var(--text-kcal-raw)" />
+              <SummaryCard icon={Wheat} value={`${todayCarbs}g`} label="Carbs" iconColor="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value={`${todayProtein}g`} label="Protein" iconColor="var(--text-protein-raw)" />
+              <SummaryCard icon={CakeSlice} value={`${todayFat}g`} label="Fat" iconColor="var(--text-fat-raw)" />
             </>
           )}
         </div>
