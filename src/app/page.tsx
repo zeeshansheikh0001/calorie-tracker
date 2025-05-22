@@ -27,7 +27,7 @@ import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
-import { useUserProfile } from "@/hooks/use-user-profile"; // Import the new hook
+import { useUserProfile } from "@/hooks/use-user-profile"; 
 import { format, isToday } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
@@ -56,7 +56,7 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
     >
       <Trash2 className="h-4 w-4" />
     </Button>
-    <CardContent className="p-4 space-y-3 mr-8"> {/* Added mr-8 for delete button spacing */}
+    <CardContent className="p-4 space-y-3 mr-8"> 
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
         <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
@@ -92,7 +92,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
- <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
     <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(${iconColorVariable})` }} />
     <p className="text-lg font-bold" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
     <p className="text-xs text-muted-foreground">{label}</p>
@@ -121,7 +121,7 @@ const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) =>
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
-  const { userProfile, isLoading: isLoadingProfile } = useUserProfile(); // Use the profile hook
+  const { userProfile, isLoading: isLoadingProfile } = useUserProfile(); 
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
 
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             </>
           )}
         </div>
-        <Link href="/reminders" passHref asChild>
+        <Link href="/reminders" asChild>
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </Button>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Make sure to replace this with your actual image path in public folder
+                backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -213,7 +213,7 @@ export default function DashboardPage() {
           ) : (
             <div 
               style={{ 
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Make sure to replace this with your actual image path in public folder
+                backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -222,7 +222,7 @@ export default function DashboardPage() {
               data-ai-hint="health fitness abstract"
               className="min-h-[220px] sm:min-h-[240px]"
             >
-              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay for text legibility */}
+              <div className="absolute inset-0 bg-black/30 z-0"></div> 
               <div className="relative z-10 flex flex-col h-full"> 
                 <CardHeader className="pb-2 pt-4 px-4">
                   <CardTitle className="text-lg font-semibold flex items-center justify-between">
@@ -351,7 +351,7 @@ export default function DashboardPage() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-4 gap-3">
          {isDataLoading ? ( 
             <>
               {[1, 2, 3, 4].map(i => (
@@ -468,8 +468,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
-    
-
-      
