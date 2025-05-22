@@ -55,17 +55,19 @@ interface SummaryCardProps {
   icon: React.ElementType;
   value: string;
   label: string;
-  iconColor: string;
+  iconColor: string; // HSL raw string like 'var(--text-kcal-raw)'
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
- <Card className="shadow-md hover:shadow-lg transition-shadow flex-1">
-    <CardContent className="pt-4 pb-3 text-center">
-      <div className={`p-2 rounded-full inline-block mb-1`} style={{ backgroundColor: `hsla(${iconColor}, 0.2)`}}>
-         <Icon className="h-5 w-5" style={{ color: `hsl(${iconColor})` }}/>
+ <Card className="shadow-md hover:shadow-lg transition-shadow flex-1 min-w-[150px] sm:min-w-0">
+    <CardContent className="p-4 flex items-center space-x-3">
+      <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.15)`}}>
+         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColor})` }}/>
       </div>
-      <p className="text-lg font-bold" style={{ color: `hsl(${iconColor})` }}>{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <div className="flex flex-col">
+        <p className="text-2xl font-bold" style={{ color: `hsl(${iconColor})` }}>{value}</p>
+        <p className="text-sm text-muted-foreground -mt-1">{label}</p>
+      </div>
     </CardContent>
   </Card>
 );
@@ -118,11 +120,16 @@ export default function DashboardPage() {
       </Card>
 
       {/* Action Buttons */}
-       <div className="grid grid-cols-3 gap-3"> {/* Always 3 columns, reduced gap */}
-        {(isLoadingLog || isLoadingGoals) ? ( // Simplified check for loading state for actions
+       <div className="grid grid-cols-3 gap-3">
+        {(isLoadingLog || isLoadingGoals) ? ( 
             <>
                 {[1,2,3].map(i => (
-                  <Card key={`skel-action-${i}`} className="shadow-lg h-full"><CardContent className="p-4 flex flex-row items-center gap-3"><Skeleton className="h-6 w-6 rounded-full" /><Skeleton className="h-4 w-12" /></CardContent></Card>
+                  <Card key={`skel-action-${i}`} className="shadow-lg h-full">
+                    <CardContent className="p-4 flex flex-row items-center gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                      <Skeleton className="h-4 w-12" />
+                    </CardContent>
+                  </Card>
                 ))}
             </>
         ) : (
