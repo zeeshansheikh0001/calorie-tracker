@@ -27,14 +27,14 @@ const AnalyzeFoodPhotoOutputSchema = z.object({
     .describe('Indicates if the image is determined to be a food item.'),
   calorieEstimate: z
     .number()
-    .describe('Highly accurate estimated calorie count of the meal. Set to 0 if not a food item.'),
+    .describe('Highly accurate estimated calorie count of the meal. Strive for the highest possible precision. Set to 0 if not a food item.'),
   proteinEstimate: z
     .number()
-    .describe('Highly accurate estimated protein content of the meal, in grams. Set to 0 if not a food item.'),
-  fatEstimate: z.number().describe('Highly accurate estimated fat content of the meal, in grams. Set to 0 if not a food item.'),
+    .describe('Highly accurate estimated protein content of the meal, in grams. Strive for the highest possible precision. Set to 0 if not a food item.'),
+  fatEstimate: z.number().describe('Highly accurate estimated fat content of the meal, in grams. Strive for the highest possible precision. Set to 0 if not a food item.'),
   carbEstimate: z
     .number()
-    .describe('Highly accurate estimated carbohydrate content of the meal, in grams. Set to 0 if not a food item.'),
+    .describe('Highly accurate estimated carbohydrate content of the meal, in grams. Strive for the highest possible precision. Set to 0 if not a food item.'),
   ingredients: z // This field will now store dish names
     .string()
     .array()
@@ -50,7 +50,7 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodPhotoPrompt',
   input: {schema: AnalyzeFoodPhotoInputSchema},
   output: {schema: AnalyzeFoodPhotoOutputSchema},
-  prompt: `You are an expert nutritionist. Analyze the provided image with high precision.
+  prompt: `You are an expert nutritionist. Analyze the provided image with high precision. Strive for the highest possible precision in your nutritional estimations.
 First, determine if the image contains a food item.
 
 If the image IS a food item:

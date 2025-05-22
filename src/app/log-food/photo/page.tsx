@@ -13,113 +13,13 @@ import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInp
 import NutritionDisplay from "@/components/food/nutrition-display";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
-import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-
-
-function centerAspectCrop(
-  mediaWidth: number,
-  mediaHeight: number,
-  aspect: number
-): Crop {
-  return centerCrop(
-    makeAspectCrop(
-      {
-        unit: '%',
-        width: 90,
-      },
-      aspect,
-      mediaWidth,
-      mediaHeight
-    ),
-    mediaWidth,
-    mediaHeight
-  );
-}
-
-async function getCroppedImg(
-  imageSrc: string,
-  pixelCrop: PixelCrop,
-  rotation = 0
-): Promise<string | null> {
-  const image = new window.Image();
-  image.src = imageSrc;
-  await new Promise((resolve, reject) => {
-    image.onload = resolve;
-    image.onerror = reject;
-  });
-
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    return null;
-  }
-
-  const scaleX = image.naturalWidth / image.width;
-  const scaleY = image.naturalHeight / image.height;
-  
-  const BORDER_COLOR = 'rgba(0,0,0,0)'; // Transparent border
-  const cropX = pixelCrop.x * scaleX;
-  const cropY = pixelCrop.y * scaleY;
-  const cropWidth = pixelCrop.width * scaleX;
-  const cropHeight = pixelCrop.height * scaleY;
-
-  const rotRad = rotation * Math.PI / 180;
-  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(cropWidth, cropHeight, rotRad);
-
-  canvas.width = bBoxWidth;
-  canvas.height = bBoxHeight;
-
-  ctx.fillStyle = BORDER_COLOR;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
-  ctx.rotate(rotRad);
-  ctx.translate(-cropWidth / 2, -cropHeight / 2);
-  
-  ctx.drawImage(
-    image,
-    cropX,
-    cropY,
-    cropWidth,
-    cropHeight,
-    0,
-    0,
-    cropWidth,
-    cropHeight
-  );
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error('Canvas is empty');
-        resolve(null);
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(blob);
-    }, 'image/jpeg');
-  });
-}
-
-function rotateSize(width: number, height: number, rotation: number) {
-  const rotRad = rotation * Math.PI / 180;
-  return {
-    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
-    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
-  };
-}
+// import { Label } from "@/components/ui/label"; // Label might not be needed if crop controls are removed
 
 
 export default function LogFoodByPhotoPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // Also used for captured image data URI for crop
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeFoodPhotoOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +29,7 @@ export default function LogFoodByPhotoPage() {
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
   const [isCameraLoading, setIsCameraLoading] = useState(false);
-  const [capturedDataUriForAnalysis, setCapturedDataUriForAnalysis] = useState<string | null>(null); // Stores non-cropped captured for re-analysis
+  const [capturedDataUriForAnalysis, setCapturedDataUriForAnalysis] = useState<string | null>(null);
   const [isStreamActive, setIsStreamActive] = useState(false);
   const [attemptId, setAttemptId] = useState(0);
   const [videoTrack, setVideoTrack] = useState<MediaStreamTrack | null>(null);
@@ -141,11 +41,7 @@ export default function LogFoodByPhotoPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  const [crop, setCrop] = useState<Crop>();
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
-  const aspect = 1; // 1:1 aspect ratio, can be undefined for freeform
+  // const imgRef = useRef<HTMLImageElement>(null); // No longer needed for crop
 
 
   useEffect(() => {
@@ -212,9 +108,8 @@ export default function LogFoodByPhotoPage() {
         if (!videoNode) return;
         console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
         if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
-          // Dimensions are valid, now check for playing or call onplaying if it exists
           if (videoNode.onplaying) videoNode.onplaying(new Event('playing'));
-          else if(videoNode.paused === false) { // if onplaying is not set but video is playing
+          else if(videoNode.paused === false) { 
              if (readinessTimeout) clearTimeout(readinessTimeout);
              console.log("Camera: Video ready and playing (metadata).");
              setIsStreamActive(true);
@@ -248,16 +143,15 @@ export default function LogFoodByPhotoPage() {
       };
   
       try {
-        if (stream || (videoRef.current && videoRef.current.srcObject)) { // Check existing stream from ref too
-          console.log("Camera: Existing stream found, stopping tracks.");
-          performCleanup(); // Perform full cleanup before getting new stream
+        if (stream || (videoRef.current && videoRef.current.srcObject)) {
+          performCleanup();
         }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         console.log("Camera: Permission granted.");
         setHasCameraPermission(true);
   
         videoNode.srcObject = stream;
-        cleanupVideoEventListeners(); // Remove any old listeners
+        cleanupVideoEventListeners(); 
         videoNode.onloadedmetadata = onMetadataLoaded;
         videoNode.onplaying = onPlaying;
         videoNode.onerror = onVideoError;
@@ -267,11 +161,11 @@ export default function LogFoodByPhotoPage() {
 
         if (currentTrack && 'getCapabilities' in currentTrack) {
           const capabilities = currentTrack.getCapabilities();
-          // @ts-ignore // torch is a valid capability
+          // @ts-ignore 
           if (capabilities.torch) {
             setHasFlash(true);
           }
-          // @ts-ignore // zoom is a valid capability
+          // @ts-ignore 
           if (capabilities.zoom) {
             // @ts-ignore
             setZoomCapabilities({ min: capabilities.zoom.min, max: capabilities.zoom.max, step: capabilities.zoom.step });
@@ -304,16 +198,16 @@ export default function LogFoodByPhotoPage() {
           description: errorMessage,
         });
         setIsCameraLoading(false);
-        performCleanup(); // Ensure cleanup on error
+        performCleanup(); 
       }
     };
   
     if (tabMode === 'camera' && !previewUrl) {
       startCameraTimeoutId = setTimeout(() => {
-        if (tabMode === 'camera' && !previewUrl) {
+        if (tabMode === 'camera' && !previewUrl) { // Re-check conditions inside timeout
           startCamera();
         }
-      }, 0);
+      }, 0); 
     } else {
       performCleanup();
     }
@@ -326,8 +220,6 @@ export default function LogFoodByPhotoPage() {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      setCrop(undefined); // Reset crop
-      setCompletedCrop(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -360,10 +252,8 @@ export default function LogFoodByPhotoPage() {
         context.drawImage(videoNode, 0, 0, canvasNode.width, canvasNode.height);
         console.log("Image drawn to canvas");
         const dataUri = canvasNode.toDataURL('image/jpeg');
-        setCrop(undefined); // Reset crop
-        setCompletedCrop(null);
-        setPreviewUrl(dataUri); // This will be used by ReactCrop
-        setCapturedDataUriForAnalysis(dataUri); // Save original captured for re-analysis without crop
+        setPreviewUrl(dataUri); 
+        setCapturedDataUriForAnalysis(dataUri);
         setSelectedFile(null);
         setAnalysisResult(null);
         setError(null);
@@ -390,17 +280,9 @@ export default function LogFoodByPhotoPage() {
     setAnalysisResult(null);
     let photoDataUriToAnalyze: string | null = null;
 
-    if (previewUrl && completedCrop && imgRef.current) {
-      photoDataUriToAnalyze = await getCroppedImg(previewUrl, completedCrop);
-      if (!photoDataUriToAnalyze) {
-        setError("Failed to crop image.");
-        setIsLoading(false);
-        toast({ variant: 'destructive', title: 'Crop Error', description: 'Could not process the cropped image.'});
-        return;
-      }
-    } else if (capturedDataUriForAnalysis) { // Use original captured if no crop
+    if (capturedDataUriForAnalysis) { 
       photoDataUriToAnalyze = capturedDataUriForAnalysis;
-    } else if (selectedFile) { // Use uploaded file if no capture (and no crop)
+    } else if (selectedFile) { 
       if (previewUrl && previewUrl.startsWith('data:')) {
          photoDataUriToAnalyze = previewUrl;
       } else {
@@ -422,7 +304,7 @@ export default function LogFoodByPhotoPage() {
 
 
     if (!photoDataUriToAnalyze) {
-      setError("Please select, capture, or crop a photo to analyze.");
+      setError("Please select or capture a photo to analyze.");
       setIsLoading(false);
       return;
     }
@@ -475,11 +357,10 @@ export default function LogFoodByPhotoPage() {
     }
 
     let mealName = "Unnamed Meal";
-    // Use the new 'ingredients' field which should now contain dish names
     if (analysisResult.ingredients && analysisResult.ingredients.length > 0) {
       mealName = analysisResult.ingredients.join(", ");
     } else if (analysisResult.isFoodItem) {
-      mealName = "AI Analyzed Meal"; // Fallback if dish name array is empty but it's food
+      mealName = "AI Analyzed Meal";
     }
 
 
@@ -497,26 +378,20 @@ export default function LogFoodByPhotoPage() {
       variant: "default",
       action: <CheckCircle className="text-green-500" />,
     });
-    resetPreviewAndCrop();
+    resetPhotoState();
   };
 
-  const resetPreviewAndCrop = () => {
+  const resetPhotoState = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
     setCapturedDataUriForAnalysis(null);
     setAnalysisResult(null);
     setError(null);
-    setCrop(undefined);
-    setCompletedCrop(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }
 
-  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    const { width, height } = e.currentTarget;
-    setCrop(centerAspectCrop(width, height, aspect));
-  }
 
   const toggleFlash = async () => {
     if (videoTrack && hasFlash) {
@@ -552,16 +427,16 @@ export default function LogFoodByPhotoPage() {
             Log Food with Photo AI
           </CardTitle>
           <CardDescription>
-            Upload, capture, or crop a photo. Our AI will estimate its nutritional content.
+            Upload or capture a photo. Our AI will estimate its nutritional content.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs value={tabMode} onValueChange={(value) => {
             const newTabMode = value as 'upload' | 'camera';
             setTabMode(newTabMode);
-            if (previewUrl) resetPreviewAndCrop(); // Reset if switching tabs with a preview
+            if (previewUrl) resetPhotoState(); 
             if (newTabMode === 'camera' && !previewUrl) {
-                 setAttemptId(prev => prev + 1); // Trigger camera start
+                 setAttemptId(prev => prev + 1); 
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -626,7 +501,6 @@ export default function LogFoodByPhotoPage() {
                           </div>
                       )}
                     </div>
-                     {/* Camera Controls */}
                     {isStreamActive && hasCameraPermission && (
                       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 my-2">
                         {hasFlash && (
@@ -671,32 +545,19 @@ export default function LogFoodByPhotoPage() {
 
           {previewUrl && (
             <div className="mt-6 border-t border-border pt-6">
-                 <h3 className="text-lg font-medium text-center mb-2">Photo Preview & Crop</h3>
+                 <h3 className="text-lg font-medium text-center mb-2">Photo Preview</h3>
                  <div className="flex justify-center">
-                    <ReactCrop
-                        crop={crop}
-                        onChange={(_, percentCrop) => setCrop(percentCrop)}
-                        onComplete={(c) => setCompletedCrop(c)}
-                        aspect={aspect}
-                        minWidth={50}
-                        minHeight={50}
-                        className="max-w-full h-auto max-h-[400px]"
-                    >
-                        <Image
-                            ref={imgRef}
-                            src={previewUrl}
-                            alt="Meal preview for cropping"
-                            width={0} // Set to 0 as react-image-crop handles dimensions
-                            height={0}
-                            sizes="100vw"
-                            style={{ width: 'auto', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
-                            onLoad={onImageLoad}
-                            data-ai-hint="food meal"
-                        />
-                    </ReactCrop>
+                    <Image
+                        src={previewUrl}
+                        alt="Meal preview"
+                        width={400} 
+                        height={300}
+                        className="max-w-full h-auto max-h-[400px] rounded-md object-contain"
+                        data-ai-hint="food meal"
+                    />
                  </div>
                   <div className="text-center mt-4">
-                    <Button variant="outline" size="sm" onClick={resetPreviewAndCrop}>
+                    <Button variant="outline" size="sm" onClick={resetPhotoState}>
                         {capturedDataUriForAnalysis ? "Retake or Upload New" : "Clear Photo"}
                     </Button>
                   </div>
@@ -739,7 +600,7 @@ export default function LogFoodByPhotoPage() {
             ) : (
               <Pizza className="mr-2 h-4 w-4" />
             )}
-            {analysisResult ? 'Re-analyze' : (completedCrop ? 'Analyze Cropped Meal' : 'Analyze Meal')}
+            {analysisResult ? 'Re-analyze' : 'Analyze Meal'}
           </Button>
         </CardFooter>
       </Card>
