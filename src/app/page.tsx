@@ -140,8 +140,8 @@ export default function DashboardPage() {
         <>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
-            <CardContent className="pt-6 flex flex-col items-center justify-center">
-              <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}> {/* Assuming --primary-hsl is defined or use specific HSL */}
+            <CardContent className="p-4 flex flex-row items-center gap-3">
+              <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}>
                 <Camera className="h-6 w-6 text-primary" />
               </div>
               <p className="text-sm font-medium">Snap</p>
@@ -150,8 +150,8 @@ export default function DashboardPage() {
         </Link>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
-            <CardContent className="pt-6 flex flex-col items-center justify-center">
-               <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsl(145, 63%, 90%)'}}>
+            <CardContent className="p-4 flex flex-row items-center gap-3">
+               <div className="p-2 rounded-full" style={{backgroundColor: 'hsl(145, 63%, 90%)'}}>
                 <UploadCloud className="h-6 w-6" style={{color: 'hsl(145, 58%, 40%)'}} />
               </div>
               <p className="text-sm font-medium">Upload</p>
@@ -160,8 +160,8 @@ export default function DashboardPage() {
         </Link>
          <Link href="/log-food/barcode" passHref> 
           <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
-            <CardContent className="pt-6 flex flex-col items-center justify-center">
-              <div className="p-3 rounded-full mb-2" style={{backgroundColor: 'hsl(340, 82%, 92%)'}}>
+            <CardContent className="p-4 flex flex-row items-center gap-3">
+              <div className="p-2 rounded-full" style={{backgroundColor: 'hsl(340, 82%, 92%)'}}>
                 <FilePenLine className="h-6 w-6" style={{color: 'hsl(340, 72%, 62%)'}} />
               </div>
               <p className="text-sm font-medium">Manual</p>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
          {(isLoadingLog || isLoadingGoals) ? (
             <>
-              <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" /> {/* Using raw HSL values for iconColor */}
+              <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" />
               <SummaryCard icon={Wheat} value="..." label="Carbs" iconColor="var(--text-carbs-raw)" />
               <SummaryCard icon={Drumstick} value="..." label="Protein" iconColor="var(--text-protein-raw)" />
               <SummaryCard icon={CakeSlice} value="..." label="Fat" iconColor="var(--text-fat-raw)" />
