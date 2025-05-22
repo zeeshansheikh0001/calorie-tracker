@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Bell,
   Camera,
@@ -14,12 +15,8 @@ import {
   Flame,
   Wheat,
   Drumstick,
-  CakeSlice, // Using CakeSlice for Fat icon as per image
+  CakeSlice, 
   PlusCircle,
-  Coffee,
-  Salad, // Using Salad for Lunch
-  Soup,   // Using Soup for Dinner
-  Apple,
   Lightbulb,
   TrendingUp,
   Utensils,
@@ -48,7 +45,7 @@ const MealCard: React.FC<MealCardProps> = ({ icon: Icon, title, description, cal
         </div>
         <h3 className="text-md font-semibold">{title}</h3>
       </div>
-      <p className="text-xs text-muted-foreground mb-1">{description}</p>
+      <p className="text-xs text-muted-foreground mb-1 truncate" title={description}>{description}</p>
       <p className="text-sm font-medium" style={{color: 'hsl(var(--primary))'}}>{calories}</p>
     </CardContent>
   </Card>
@@ -64,7 +61,7 @@ interface SummaryCardProps {
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
  <Card className="shadow-md hover:shadow-lg transition-shadow flex-1">
     <CardContent className="pt-4 pb-3 text-center">
-      <div className={`p-2 rounded-full inline-block mb-1`} style={{ backgroundColor: `hsla(${iconColor}, 0.2)`}}> {/* Updated for hsla */}
+      <div className={`p-2 rounded-full inline-block mb-1`} style={{ backgroundColor: `hsla(${iconColor}, 0.2)`}}>
          <Icon className="h-5 w-5" style={{ color: `hsl(${iconColor})` }}/>
       </div>
       <p className="text-lg font-bold" style={{ color: `hsl(${iconColor})` }}>{value}</p>
@@ -75,7 +72,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, ico
 
 
 export default function DashboardPage() {
-  const { dailyLog, isLoading: isLoadingLog } = useDailyLog();
+  const { dailyLog, foodEntries, isLoading: isLoadingLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const [currentDate, setCurrentDate] = useState("");
 
@@ -87,14 +84,6 @@ export default function DashboardPage() {
   const todayCarbs = dailyLog?.carbs ?? 0;
   const todayProtein = dailyLog?.protein ?? 0;
   const todayFat = dailyLog?.fat ?? 0;
-
-  // Placeholder meal data
-  const meals = [
-    { icon: Coffee, title: "Breakfast", description: "Oatmeal, Banana", calories: "320 kcal", iconColor: "text-yellow-600", bgColor: "bg-yellow-100" },
-    { icon: Salad, title: "Lunch", description: "Grilled Chicken, Rice", calories: "620 kcal", iconColor: "text-purple-600", bgColor: "bg-purple-100" },
-    { icon: Soup, title: "Dinner", description: "Salmon, Veggies", calories: "310 kcal", iconColor: "text-green-600", bgColor: "bg-green-100" },
-    { icon: Apple, title: "Snacks", description: "Apple, Yogurt", calories: "150 kcal", iconColor: "text-red-600", bgColor: "bg-red-100" },
-  ];
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
@@ -129,12 +118,12 @@ export default function DashboardPage() {
       </Card>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-3 gap-4">
+       <div className="grid grid-cols-3 gap-3"> {/* Always 3 columns, reduced gap */}
         {(isLoadingLog || isLoadingGoals) ? (
             <>
-                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
-                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
-                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
+                {[1,2,3].map(i => (
+                  <Card key={`skel-action-${i}`} className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><Skeleton className="h-6 w-6 rounded-full" /><Skeleton className="h-4 w-12" /></CardContent></Card>
+                ))}
             </>
         ) : (
         <>
@@ -148,7 +137,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/log-food/photo" passHref>
+        <Link href="/log-food/photo" passHref> {/* Assuming upload is also part of photo log page */}
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
                <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
@@ -204,16 +193,49 @@ export default function DashboardPage() {
       <div className="space-y-3">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Meal Log</h2>
-          <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'hsl(var(--add-button-bg))' }}>
-            <PlusCircle className="mr-1 h-4 w-4" />
-            Add
-          </Button>
+          <Link href="/log-food/photo" passHref>
+            <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'hsl(var(--add-button-bg))' }}>
+              <PlusCircle className="mr-1 h-4 w-4" />
+              Add Meal
+            </Button>
+          </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {meals.map((meal, index) => (
-            <MealCard key={index} {...meal} />
-          ))}
-        </div>
+        {isLoadingLog ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[1, 2].map(i => ( 
+              <Card key={`skel-meal-${i}`} className="shadow-lg">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-5 w-3/4" />
+                  </div>
+                  <Skeleton className="h-3 w-full mb-1" /> 
+                  <Skeleton className="h-4 w-1/4" /> 
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : foodEntries.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {foodEntries.map((entry) => (
+              <MealCard
+                key={entry.id}
+                icon={Utensils} 
+                title={entry.name}
+                description={`P: ${entry.protein}g, C: ${entry.carbs}g, F: ${entry.fat}g`}
+                calories={`${entry.calories} kcal`}
+                iconColor="text-green-600" 
+                bgColor="bg-green-100"
+              />
+            ))}
+          </div>
+        ) : (
+          <Card className="shadow-lg">
+            <CardContent className="pt-6 text-center text-muted-foreground">
+              No meals logged for today yet. Use the "Add Meal" button to log your first meal!
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Smart Insights */}
@@ -237,5 +259,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-
-    
+}

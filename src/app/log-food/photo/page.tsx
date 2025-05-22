@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent, useEffect, useRef, useCallback } from "react";
+import { useState, type ChangeEvent, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import Image from "next/image";
 import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInput } from "@/ai/flows/analyze-food-photo";
 import NutritionDisplay from "@/components/food/nutrition-display";
 import { useToast } from "@/hooks/use-toast";
+import { useDailyLog } from "@/hooks/use-daily-log";
 
 export default function LogFoodByPhotoPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -20,13 +21,14 @@ export default function LogFoodByPhotoPage() {
   const [analysisResult, setAnalysisResult] = useState<AnalyzeFoodPhotoOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { addFoodEntry } = useDailyLog();
 
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
   const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [capturedDataUri, setCapturedDataUri] = useState<string | null>(null);
   const [isStreamActive, setIsStreamActive] = useState(false);
-  const [attemptId, setAttemptId] = useState(0); // For explicit retry
+  const [attemptId, setAttemptId] = useState(0); 
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,11 +36,10 @@ export default function LogFoodByPhotoPage() {
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    // const videoNode = videoRef.current; // Removed: Access videoRef.current directly in helper functions
     let readinessTimeout: NodeJS.Timeout | null = null;
 
     const cleanupVideoEventListeners = () => {
-      const videoNode = videoRef.current; // Access current ref value
+      const videoNode = videoRef.current; 
       if (videoNode) {
         videoNode.onloadedmetadata = null;
         videoNode.onplaying = null;
@@ -47,16 +48,16 @@ export default function LogFoodByPhotoPage() {
     };
 
     const performCleanup = () => {
-      const videoNode = videoRef.current; // Access current ref value
+      const videoNode = videoRef.current; 
       console.log("Camera: Full cleanup called");
       if (readinessTimeout) clearTimeout(readinessTimeout);
       cleanupVideoEventListeners();
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         console.log("Camera: Stream tracks stopped");
-        stream = null; // Clear the stream variable
+        stream = null; 
       }
-      if (videoNode && videoNode.srcObject) { // Check srcObject before setting to null
+      if (videoNode && videoNode.srcObject) { 
         videoNode.srcObject = null;
         console.log("Camera: videoNode srcObject cleared");
       }
@@ -64,7 +65,7 @@ export default function LogFoodByPhotoPage() {
     };
 
     const startCamera = async () => {
-      const videoNode = videoRef.current; // Access current ref value
+      const videoNode = videoRef.current; 
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
         toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
@@ -78,11 +79,11 @@ export default function LogFoodByPhotoPage() {
       setHasCameraPermission(undefined); 
       setIsStreamActive(false); 
 
-      // Define event handlers specific to this startCamera attempt
       const onMetadataLoaded = () => {
         if (!videoNode) return;
         console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
         if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
+          // If onplaying is defined, call it manually. Otherwise videoNode.play() should trigger it.
           if (videoNode.onplaying) videoNode.onplaying(new Event('playing')); 
         } else {
           console.warn("Camera: onloadedmetadata - video dimensions are zero.");
@@ -94,7 +95,6 @@ export default function LogFoodByPhotoPage() {
         console.log("Camera: onplaying.");
         if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
           if (readinessTimeout) clearTimeout(readinessTimeout);
-          // Listeners will be cleaned by performCleanup on effect teardown
           console.log("Camera: Video ready and playing.");
           setIsStreamActive(true);
           setIsCameraLoading(false);
@@ -105,13 +105,12 @@ export default function LogFoodByPhotoPage() {
         console.error("Camera: videoNode.onerror:", e);
         if (readinessTimeout) clearTimeout(readinessTimeout);
         toast({ variant: "destructive", title: "Camera Error", description: "The camera stream encountered an error." });
-        performCleanup(); // Use the main cleanup
+        performCleanup(); 
         setHasCameraPermission(false);
         setIsCameraLoading(false);
       };
       
       try {
-        // Ensure any old stream is stopped before starting a new one
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
         }
@@ -177,34 +176,32 @@ export default function LogFoodByPhotoPage() {
   };
 
   const handleCapturePhoto = () => {
-    console.log("Attempting to capture photo. Stream active:", isStreamActive, "Video Ref:", videoRef.current);
-    if (videoRef.current && canvasRef.current && videoRef.current.srcObject && isStreamActive) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        console.error("Capture failed: Video dimensions are zero.", { w: video.videoWidth, h: video.videoHeight });
+    const videoNode = videoRef.current;
+    const canvasNode = canvasRef.current;
+    console.log("Attempting to capture photo. Stream active:", isStreamActive, "Video Ref:", videoNode);
+    if (videoNode && canvasNode && videoNode.srcObject && isStreamActive) {
+      if (videoNode.videoWidth === 0 || videoNode.videoHeight === 0) {
+        console.error("Capture failed: Video dimensions are zero.", { w: videoNode.videoWidth, h: videoNode.videoHeight });
         setError("Camera reported zero dimensions. Cannot capture. Try reopening camera tab or re-granting permission.");
         toast({ variant: "destructive", title: "Camera Error", description: "Video dimensions are zero. Please ensure the camera has started correctly." });
         return;
       }
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      console.log(`Canvas dimensions set to: ${canvas.width}x${canvas.height}`);
+      canvasNode.width = videoNode.videoWidth;
+      canvasNode.height = videoNode.videoHeight;
+      console.log(`Canvas dimensions set to: ${canvasNode.width}x${canvasNode.height}`);
 
-      const context = canvas.getContext('2d');
+      const context = canvasNode.getContext('2d');
       if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.drawImage(videoNode, 0, 0, canvasNode.width, canvasNode.height);
         console.log("Image drawn to canvas");
-        const dataUri = canvas.toDataURL('image/jpeg');
+        const dataUri = canvasNode.toDataURL('image/jpeg');
 
         setPreviewUrl(dataUri); 
         setCapturedDataUri(dataUri);
         setSelectedFile(null);
         setAnalysisResult(null);
         setError(null);
-        // setIsStreamActive(false); // Let useEffect handle stream stop via previewUrl change
       } else {
         console.error("Could not get 2D context from canvas.");
         setError("Could not get canvas context to capture photo.");
@@ -212,11 +209,11 @@ export default function LogFoodByPhotoPage() {
       }
     } else {
       let logMessage = "Capture prerequisites not met: ";
-      if (!videoRef.current) logMessage += "videoRef is null. ";
-      if (!canvasRef.current) logMessage += "canvasRef is null. ";
-      if (videoRef.current && !videoRef.current.srcObject) logMessage += "video srcObject is null. ";
+      if (!videoNode) logMessage += "videoRef is null. ";
+      if (!canvasNode) logMessage += "canvasRef is null. ";
+      if (videoNode && !videoNode.srcObject) logMessage += "video srcObject is null. ";
       if (!isStreamActive) logMessage += "Stream is not marked as active. ";
-      console.error(logMessage, { videoSrcObj: videoRef.current?.srcObject, isStreamActiveVal: isStreamActive });
+      console.error(logMessage, { videoSrcObj: videoNode?.srcObject, isStreamActiveVal: isStreamActive });
       setError("Camera or canvas not available, or stream not active for capture.");
       toast({ variant: "destructive", title: "Camera Not Ready", description: "Camera not ready to capture. Please try reopening the camera tab or check permissions." });
     }
@@ -292,12 +289,38 @@ export default function LogFoodByPhotoPage() {
   };
 
   const handleAddToLog = () => {
-    if (!analysisResult || !analysisResult.isFoodItem) return; // Only log if it's a food item
-    // Here you would typically call a hook or service to add the entry to a persistent log
+    if (!analysisResult) return; 
+
+    if (!analysisResult.isFoodItem) {
+        toast({
+            title: "Cannot Log",
+            description: "This item was not identified as food and cannot be added to the log.",
+            variant: "destructive",
+        });
+        return;
+    }
+    
+    let mealName = "Unnamed Meal";
+    if (analysisResult.ingredients && analysisResult.ingredients.length > 0) {
+      mealName = analysisResult.ingredients.slice(0, 3).join(", "); 
+      if (analysisResult.ingredients.length > 3) mealName += "...";
+    } else if (analysisResult.isFoodItem) {
+      mealName = "AI Analyzed Meal";
+    }
+
+    addFoodEntry({
+      name: mealName,
+      calories: analysisResult.calorieEstimate,
+      protein: analysisResult.proteinEstimate,
+      fat: analysisResult.fatEstimate,
+      carbs: analysisResult.carbEstimate,
+    });
+
     toast({
-      title: "Meal Logged (Simulated)",
-      description: `${analysisResult.calorieEstimate} kcal added to your log.`,
+      title: "Meal Logged!",
+      description: `${mealName} (${analysisResult.calorieEstimate} kcal) added to your daily log.`,
       variant: "default",
+      action: <CheckCircle className="text-green-500" />,
     });
     resetPreview();
   };
@@ -329,9 +352,9 @@ export default function LogFoodByPhotoPage() {
           <Tabs value={tabMode} onValueChange={(value) => {
             const newTabMode = value as 'upload' | 'camera';
             setTabMode(newTabMode);
-            if (previewUrl) resetPreview(); // Reset preview when switching tabs
-            if (newTabMode === 'camera' && !previewUrl) { // If switching to camera and no preview
-                 setAttemptId(prev => prev + 1); // Force useEffect to re-run for camera start
+            if (previewUrl) resetPreview(); 
+            if (newTabMode === 'camera' && !previewUrl) { 
+                 setAttemptId(prev => prev + 1); 
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
