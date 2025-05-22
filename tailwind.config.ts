@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -86,13 +87,26 @@ export default {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+        ping: {
+          '75%, 100%': {
+            transform: 'scale(1.5)', // Adjusted for a more contained ping
+            opacity: '0',
+          },
+        },
+        pulse: { // Keep existing pulse if needed, or refine
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '.5' },
+        },
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-slow': 'pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'ping-once': 'ping 1s cubic-bezier(0, 0, 0.2, 1) 1', // Use custom or default ping
   		}
   	}
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+

@@ -1,12 +1,25 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, type FC } from "react";
 import { Html5QrcodeScanner, Html5QrcodeScanType, type Html5QrcodeResult, Html5QrcodeScannerState } from "html5-qrcode";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ScanLine, PackageSearch, PlusCircle, CheckCircle, AlertCircle, Loader2, RefreshCcw } from "lucide-react";
+import { 
+  ScanLine, 
+  PackageSearch, 
+  PlusCircle, 
+  CheckCircle, 
+  AlertCircle, 
+  Loader2, 
+  RefreshCcw,
+  XCircle,
+  Flame,
+  Drumstick,
+  Droplets,
+  Wheat 
+} from "lucide-react";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useToast } from "@/hooks/use-toast";
 import type { FoodEntry } from "@/types";
@@ -22,6 +35,26 @@ interface ScannedProductInfo {
 }
 
 const qrcodeRegionId = "html5qr-code-full-region";
+
+interface NutritionInfoItemProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  color?: string;
+}
+
+const NutritionInfoItem: FC<NutritionInfoItemProps> = ({ icon: Icon, label, value, color = "text-foreground" }) => (
+  <div className={`flex items-center space-x-2 p-2.5 rounded-lg bg-secondary/30 shadow-sm transition-all hover:shadow-md`}>
+    <div className={`p-1.5 rounded-md bg-background/70 ${color}`}>
+      <Icon className={`h-5 w-5 flex-shrink-0`} />
+    </div>
+    <div>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className={`font-semibold text-sm ${color}`}>{value}</p>
+    </div>
+  </div>
+);
+
 
 export default function LogFoodByBarcodePage() {
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
@@ -79,7 +112,6 @@ export default function LogFoodByBarcodePage() {
         setIsScanning(false); 
         setScannedBarcode(decodedText);
         
-        // Async IIFE for product lookup
         (async () => {
           setIsLoadingProduct(true);
           setProductInfo(null);
@@ -220,7 +252,9 @@ export default function LogFoodByBarcodePage() {
         }
       }
     };
-  }, [isScanning, toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isScanning]); // toast dependency removed as it can cause re-renders affecting scanner
+
 
   const handleStartScan = () => {
     console.log("Barcode Scanner: handleStartScan called.");
@@ -229,12 +263,12 @@ export default function LogFoodByBarcodePage() {
     setScanError(null);
     setHasLogged(false);
 
-    if (isScanning) {
-      console.log("Barcode Scanner: handleStartScan - Already scanning, forcing re-initialization.");
+    if (isScanning && scannerRef.current) {
+      console.log("Barcode Scanner: handleStartScan - Already scanning, attempting to force re-initialization.");
       setIsScanning(false); 
       setTimeout(() => {
         setIsScanning(true); 
-      }, 100); 
+      }, 150); // Increased delay slightly
     } else {
       setIsScanning(true);
     }
@@ -269,55 +303,60 @@ export default function LogFoodByBarcodePage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-lg mx-auto shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold flex items-center">
-            <ScanLine className="mr-2 h-6 w-6 text-primary" />
-            Scan Barcode
-          </CardTitle>
+    <div className="container mx-auto py-8 px-4 flex flex-col items-center">
+      <Card className="w-full max-w-md mx-auto shadow-xl overflow-hidden">
+        <CardHeader className="text-center p-6 bg-gradient-to-br from-primary/10 to-background">
+          <ScanLine className="mx-auto h-10 w-10 text-primary mb-2" />
+          <CardTitle className="text-2xl font-bold">Scan Product Barcode</CardTitle>
           <CardDescription>
-            Use your device's camera to scan a product barcode. Fetches data from Open Food Facts.
+            Use your device camera to scan a barcode. Data from Open Food Facts.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div 
-            id={qrcodeRegionId} 
-            className={cn(
-              "w-full aspect-video bg-muted rounded-md border border-dashed", 
-              { "min-h-[300px]": isScanning || (!isScanning && !productInfo && !scannedBarcode && !scanError && !hasLogged) }
+
+        <CardContent className="space-y-6 p-4 md:p-6">
+          <div className="relative w-full aspect-[4/3] bg-muted/50 rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden shadow-inner">
+            {isScanning ? (
+              <div id={qrcodeRegionId} className="w-full h-full" />
+            ) : (
+              <div className="text-center text-muted-foreground p-4 opacity-75">
+                <ScanLine className="mx-auto h-12 w-12 mb-3" />
+                <p className="font-medium">Camera Disconnected</p>
+                <p className="text-xs">Click "Start Scanning" to activate.</p>
+              </div>
             )}
-          />
+          </div>
 
           {scanError && !isScanning && !isLoadingProduct && !productInfo && ( 
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Scan Error</AlertTitle>
               <AlertDescription>{scanError}</AlertDescription>
             </Alert>
           )}
 
-          {!isScanning && !productInfo && !isLoadingProduct && !hasLogged && (
-             <Button onClick={handleStartScan} size="lg" className="w-full">
-              <ScanLine className="mr-2 h-5 w-5" /> Start Scanning
-            </Button>
-          )}
-          
-          {isScanning && (
-             <Button onClick={handleCancelScan} variant="outline" className="w-full">
-              Cancel Scan
-            </Button>
-          )}
+          <div className="space-y-3">
+            {!isScanning && !productInfo && !isLoadingProduct && !hasLogged && (
+              <Button onClick={handleStartScan} size="lg" className="w-full group transition-transform hover:scale-105 active:scale-95">
+                <ScanLine className="mr-2 h-5 w-5 group-hover:animate-ping-once" /> Start Scanning
+              </Button>
+            )}
+            {isScanning && (
+              <Button onClick={handleCancelScan} variant="outline" className="w-full">
+                <XCircle className="mr-2 h-5 w-5" /> Cancel Scan
+              </Button>
+            )}
+          </div>
 
           {isLoadingProduct && (
-            <div className="flex items-center justify-center p-6 bg-secondary/50 rounded-md mt-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-3 text-foreground">Looking up product...</p>
+            <div className="flex flex-col items-center justify-center p-6 space-y-3 text-center rounded-lg bg-secondary/30 animate-in fade-in-0 zoom-in-95 duration-500">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="text-lg font-semibold text-foreground">Fetching Product Data...</p>
+              {scannedBarcode && <p className="text-sm text-muted-foreground">Scanned: {scannedBarcode}</p>}
             </div>
           )}
-
+          
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && scanError && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Product Lookup Failed</AlertTitle>
               <AlertDescription>
@@ -330,11 +369,11 @@ export default function LogFoodByBarcodePage() {
           )}
           
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && !scanError && (
-             <Alert>
+             <Alert className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <PackageSearch className="h-4 w-4" />
               <AlertTitle>Barcode Scanned</AlertTitle>
               <AlertDescription>
-                Scanned: {scannedBarcode}. Waiting for product details or an error occurred silently.
+                Scanned: {scannedBarcode}. No product details found or an error occurred.
               </AlertDescription>
                <Button onClick={handleScanAnother} variant="outline" className="w-full mt-4">
                   <RefreshCcw className="mr-2 h-4 w-4" /> Scan Another Item
@@ -342,31 +381,38 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
 
-
           {productInfo && (
-            <Card className="mt-4 bg-background shadow-md">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <PackageSearch className="mr-2 h-5 w-5 text-primary" /> {productInfo.name}
-                </CardTitle>
-                <CardDescription>Scanned Barcode: {productInfo.id} (Data per 100g/ml)</CardDescription>
+            <Card className="mt-4 bg-card shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-5 duration-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                     <PackageSearch className="h-7 w-7 text-primary flex-shrink-0" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold leading-tight">{productInfo.name}</CardTitle>
+                    <CardDescription className="text-xs">Barcode: {productInfo.id} (Nutritional data per 100g/ml)</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div><strong>Calories:</strong> {productInfo.calories} kcal</div>
-                <div><strong>Protein:</strong> {productInfo.protein} g</div>
-                <div><strong>Fat:</strong> {productInfo.fat} g</div>
-                <div><strong>Carbs:</strong> {productInfo.carbs} g</div>
+              <CardContent className="space-y-3 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <NutritionInfoItem icon={Flame} label="Calories" value={`${productInfo.calories.toFixed(0)} kcal`} color="text-red-500" />
+                  <NutritionInfoItem icon={Drumstick} label="Protein" value={`${productInfo.protein.toFixed(1)} g`} color="text-sky-500" />
+                  <NutritionInfoItem icon={Droplets} label="Fat" value={`${productInfo.fat.toFixed(1)} g`} color="text-amber-500" />
+                  <NutritionInfoItem icon={Wheat} label="Carbs" value={`${productInfo.carbs.toFixed(1)} g`} color="text-emerald-500" />
+                </div>
               </CardContent>
-              <CardFooter className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={handleAddToLog} disabled={hasLogged} className="w-full sm:w-auto">
+              <CardFooter className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                <Button onClick={handleAddToLog} disabled={hasLogged} className="w-full sm:flex-1 bg-green-600 hover:bg-green-700 text-white transition-transform hover:scale-105 active:scale-95">
                   <PlusCircle className="mr-2 h-4 w-4" /> {hasLogged ? "Logged" : "Add to Daily Log"}
                 </Button>
-                 <Button onClick={handleScanAnother} variant="outline" className="w-full sm:w-auto">
+                 <Button onClick={handleScanAnother} variant="outline" className="w-full sm:flex-1">
                   <RefreshCcw className="mr-2 h-4 w-4" /> Scan Another Item
                 </Button>
               </CardFooter>
             </Card>
           )}
+
            {hasLogged && !isScanning && !productInfo && ( 
              <Button onClick={handleScanAnother} size="lg" className="w-full mt-4">
                 <RefreshCcw className="mr-2 h-5 w-5" /> Scan Another Item
