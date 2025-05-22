@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -21,20 +22,23 @@ const AnalyzeFoodPhotoInputSchema = z.object({
 export type AnalyzeFoodPhotoInput = z.infer<typeof AnalyzeFoodPhotoInputSchema>;
 
 const AnalyzeFoodPhotoOutputSchema = z.object({
+  isFoodItem: z
+    .boolean()
+    .describe('Indicates if the image is determined to be a food item.'),
   calorieEstimate: z
     .number()
-    .describe('Estimated calorie count of the meal.'),
+    .describe('Estimated calorie count of the meal. Set to 0 if not a food item.'),
   proteinEstimate: z
     .number()
-    .describe('Estimated protein content of the meal, in grams.'),
-  fatEstimate: z.number().describe('Estimated fat content of the meal, in grams.'),
+    .describe('Estimated protein content of the meal, in grams. Set to 0 if not a food item.'),
+  fatEstimate: z.number().describe('Estimated fat content of the meal, in grams. Set to 0 if not a food item.'),
   carbEstimate: z
     .number()
-    .describe('Estimated carbohydrate content of the meal, in grams.'),
+    .describe('Estimated carbohydrate content of the meal, in grams. Set to 0 if not a food item.'),
   ingredients: z
     .string()
     .array()
-    .describe('List of ingredients identified in the meal.'),
+    .describe('List of ingredients identified in the meal. Empty array if not a food item.'),
 });
 export type AnalyzeFoodPhotoOutput = z.infer<typeof AnalyzeFoodPhotoOutputSchema>;
 
@@ -46,14 +50,24 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodPhotoPrompt',
   input: {schema: AnalyzeFoodPhotoInputSchema},
   output: {schema: AnalyzeFoodPhotoOutputSchema},
-  prompt: `You are a nutrition expert. Analyze the provided image of a meal and estimate its nutritional information.
+  prompt: `You are a nutrition expert. Analyze the provided image.
+First, determine if the image contains a food item.
+
+If the image IS a food item:
+- Set 'isFoodItem' to true.
+- Estimate its nutritional information (calorie count, protein, fat, carbohydrates in grams).
+- Identify the ingredients in the meal.
+
+If the image IS NOT a food item:
+- Set 'isFoodItem' to false.
+- Set 'calorieEstimate', 'proteinEstimate', 'fatEstimate', and 'carbEstimate' to 0.
+- Set 'ingredients' to an empty array.
 
 Analyze the following photo: {{media url=photoDataUri}}
 
-Output a JSON object containing the estimated calorie count, protein content (in grams), fat content (in grams), carbohydrate content (in grams), and a list of ingredients identified in the meal.
-
 Format your response as a JSON object:
 {
+  "isFoodItem": boolean,
   "calorieEstimate": number,
   "proteinEstimate": number,
   "fatEstimate": number,
@@ -73,3 +87,4 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
     return output!;
   }
 );
+
