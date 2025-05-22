@@ -92,7 +92,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
-  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+ <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
     <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(${iconColorVariable})` }} />
     <p className="text-lg font-bold" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
     <p className="text-xs text-muted-foreground">{label}</p>
@@ -178,9 +178,11 @@ export default function DashboardPage() {
             </>
           )}
         </div>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-        </Button>
+        <Link href="/reminders" passHref asChild>
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </Link>
       </div>
 
       {/* Smart Calorie Tracker Card with Donut Chart */}
@@ -191,7 +193,7 @@ export default function DashboardPage() {
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`,
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Make sure to replace this with your actual image path in public folder
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -211,7 +213,7 @@ export default function DashboardPage() {
           ) : (
             <div 
               style={{ 
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`,
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Make sure to replace this with your actual image path in public folder
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -336,7 +338,7 @@ export default function DashboardPage() {
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
                 mode="single"
-                selected={currentSelectedDate}
+                selected={currentSelectedDate || undefined}
                 onSelect={(newDate) => {
                   if (newDate) {
                     selectDateForLog(newDate);
@@ -469,3 +471,5 @@ export default function DashboardPage() {
 
 
     
+
+      
