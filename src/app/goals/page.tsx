@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
@@ -6,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Target, Save, CheckCircle } from "lucide-react";
+import { Target, Save, CheckCircle, Flame, Drumstick, Droplets, Wheat } from "lucide-react";
 import type { Goal } from "@/types";
 
 const initialGoals: Goal = {
@@ -54,7 +55,7 @@ export default function GoalsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-xl mx-auto shadow-xl">
+      <Card className="max-w-xl mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center">
             <Target className="mr-2 h-6 w-6 text-primary" />
@@ -68,7 +69,9 @@ export default function GoalsPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="calories" className="text-sm font-medium">Daily Calories (kcal)</Label>
+                <Label htmlFor="calories" className="text-sm font-medium flex items-center">
+                  <Flame className="mr-2 h-4 w-4 text-red-500" /> Daily Calories (kcal)
+                </Label>
                 <Input
                   id="calories"
                   name="calories"
@@ -81,7 +84,9 @@ export default function GoalsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="protein" className="text-sm font-medium">Daily Protein (g)</Label>
+                <Label htmlFor="protein" className="text-sm font-medium flex items-center">
+                  <Drumstick className="mr-2 h-4 w-4 text-sky-500" /> Daily Protein (g)
+                </Label>
                 <Input
                   id="protein"
                   name="protein"
@@ -94,7 +99,9 @@ export default function GoalsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="fat" className="text-sm font-medium">Daily Fat (g)</Label>
+                <Label htmlFor="fat" className="text-sm font-medium flex items-center">
+                  <Droplets className="mr-2 h-4 w-4 text-amber-500" /> Daily Fat (g)
+                </Label>
                 <Input
                   id="fat"
                   name="fat"
@@ -107,7 +114,9 @@ export default function GoalsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="carbs" className="text-sm font-medium">Daily Carbohydrates (g)</Label>
+                <Label htmlFor="carbs" className="text-sm font-medium flex items-center">
+                  <Wheat className="mr-2 h-4 w-4 text-emerald-500" /> Daily Carbohydrates (g)
+                </Label>
                 <Input
                   id="carbs"
                   name="carbs"
@@ -122,7 +131,11 @@ export default function GoalsPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
+            <Button 
+              type="submit" 
+              disabled={isLoading} 
+              className="w-full sm:w-auto transition-transform hover:scale-105 active:scale-95"
+            >
               {isLoading ? (
                 <Save className="mr-2 h-4 w-4 animate-pulse" />
               ) : (
