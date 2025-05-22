@@ -34,44 +34,11 @@ export default function LogFoodByPhotoPage() {
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    const videoNode = videoRef.current;
+    // const videoNode = videoRef.current; // Removed: Access videoRef.current directly in helper functions
     let readinessTimeout: NodeJS.Timeout | null = null;
 
-    // Define event handlers with cleanup capabilities
-    const onMetadataLoaded = () => {
-      if (!videoNode) return;
-      console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
-      if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
-        // Consider metadata loaded only if dimensions are valid
-        if (videoNode.onplaying) videoNode.onplaying(new Event('playing')); // Manually trigger check if already playing
-      } else {
-        console.warn("Camera: onloadedmetadata - video dimensions are zero.");
-      }
-    };
-
-    const onPlaying = () => {
-      if (!videoNode) return;
-      console.log("Camera: onplaying.");
-      // Check if metadata is also valid
-      if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
-        if (readinessTimeout) clearTimeout(readinessTimeout);
-        cleanupVideoEventListeners();
-        console.log("Camera: Video ready and playing.");
-        setIsStreamActive(true);
-        setIsCameraLoading(false);
-      }
-    };
-
-    const onVideoError = (e: Event | string) => {
-      console.error("Camera: videoNode.onerror:", e);
-      if (readinessTimeout) clearTimeout(readinessTimeout);
-      toast({ variant: "destructive", title: "Camera Error", description: "The camera stream encountered an error." });
-      performCleanup();
-      setHasCameraPermission(false);
-      setIsCameraLoading(false);
-    };
-    
     const cleanupVideoEventListeners = () => {
+      const videoNode = videoRef.current; // Access current ref value
       if (videoNode) {
         videoNode.onloadedmetadata = null;
         videoNode.onplaying = null;
@@ -80,14 +47,16 @@ export default function LogFoodByPhotoPage() {
     };
 
     const performCleanup = () => {
+      const videoNode = videoRef.current; // Access current ref value
       console.log("Camera: Full cleanup called");
       if (readinessTimeout) clearTimeout(readinessTimeout);
       cleanupVideoEventListeners();
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         console.log("Camera: Stream tracks stopped");
+        stream = null; // Clear the stream variable
       }
-      if (videoNode) {
+      if (videoNode && videoNode.srcObject) { // Check srcObject before setting to null
         videoNode.srcObject = null;
         console.log("Camera: videoNode srcObject cleared");
       }
@@ -95,6 +64,7 @@ export default function LogFoodByPhotoPage() {
     };
 
     const startCamera = async () => {
+      const videoNode = videoRef.current; // Access current ref value
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
         toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
@@ -105,16 +75,52 @@ export default function LogFoodByPhotoPage() {
 
       console.log("Camera: Attempting to start...");
       setIsCameraLoading(true);
-      setHasCameraPermission(undefined); // Reset permission status
-      setIsStreamActive(false); // Reset stream status
+      setHasCameraPermission(undefined); 
+      setIsStreamActive(false); 
 
+      // Define event handlers specific to this startCamera attempt
+      const onMetadataLoaded = () => {
+        if (!videoNode) return;
+        console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
+        if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
+          if (videoNode.onplaying) videoNode.onplaying(new Event('playing')); 
+        } else {
+          console.warn("Camera: onloadedmetadata - video dimensions are zero.");
+        }
+      };
+
+      const onPlaying = () => {
+        if (!videoNode) return;
+        console.log("Camera: onplaying.");
+        if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
+          if (readinessTimeout) clearTimeout(readinessTimeout);
+          // Listeners will be cleaned by performCleanup on effect teardown
+          console.log("Camera: Video ready and playing.");
+          setIsStreamActive(true);
+          setIsCameraLoading(false);
+        }
+      };
+
+      const onVideoError = (e: Event | string) => {
+        console.error("Camera: videoNode.onerror:", e);
+        if (readinessTimeout) clearTimeout(readinessTimeout);
+        toast({ variant: "destructive", title: "Camera Error", description: "The camera stream encountered an error." });
+        performCleanup(); // Use the main cleanup
+        setHasCameraPermission(false);
+        setIsCameraLoading(false);
+      };
+      
       try {
+        // Ensure any old stream is stopped before starting a new one
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         console.log("Camera: Permission granted.");
         setHasCameraPermission(true);
 
         videoNode.srcObject = stream;
-        cleanupVideoEventListeners(); // Remove any old listeners first
+        cleanupVideoEventListeners(); 
         videoNode.onloadedmetadata = onMetadataLoaded;
         videoNode.onplaying = onPlaying;
         videoNode.onerror = onVideoError;
@@ -141,7 +147,7 @@ export default function LogFoodByPhotoPage() {
           description: errorMessage,
         });
         setIsCameraLoading(false);
-        if (stream) stream.getTracks().forEach(track => track.stop()); // Ensure stream is stopped if getUserMedia succeeded but subsequent steps failed
+        if (stream) stream.getTracks().forEach(track => track.stop()); 
       }
     };
 
@@ -151,8 +157,8 @@ export default function LogFoodByPhotoPage() {
       performCleanup();
     }
 
-    return performCleanup; // This is the main cleanup for the useEffect hook
-  }, [tabMode, previewUrl, toast, attemptId]); // attemptId is crucial for retries
+    return performCleanup; 
+  }, [tabMode, previewUrl, toast, attemptId]); 
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -193,11 +199,12 @@ export default function LogFoodByPhotoPage() {
         console.log("Image drawn to canvas");
         const dataUri = canvas.toDataURL('image/jpeg');
 
-        setPreviewUrl(dataUri); // This will trigger useEffect to stop the stream
+        setPreviewUrl(dataUri); 
         setCapturedDataUri(dataUri);
         setSelectedFile(null);
         setAnalysisResult(null);
         setError(null);
+        // setIsStreamActive(false); // Let useEffect handle stream stop via previewUrl change
       } else {
         console.error("Could not get 2D context from canvas.");
         setError("Could not get canvas context to capture photo.");
@@ -285,7 +292,8 @@ export default function LogFoodByPhotoPage() {
   };
 
   const handleAddToLog = () => {
-    if (!analysisResult) return;
+    if (!analysisResult || !analysisResult.isFoodItem) return; // Only log if it's a food item
+    // Here you would typically call a hook or service to add the entry to a persistent log
     toast({
       title: "Meal Logged (Simulated)",
       description: `${analysisResult.calorieEstimate} kcal added to your log.`,
@@ -303,7 +311,6 @@ export default function LogFoodByPhotoPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-    // Setting previewUrl to null will trigger useEffect to potentially restart camera if in camera tab.
   }
 
   return (
@@ -322,9 +329,10 @@ export default function LogFoodByPhotoPage() {
           <Tabs value={tabMode} onValueChange={(value) => {
             const newTabMode = value as 'upload' | 'camera';
             setTabMode(newTabMode);
-            if (previewUrl) resetPreview();
-            // If switching to camera and no preview, useEffect will handle camera start.
-            // If switching away, useEffect will handle cleanup.
+            if (previewUrl) resetPreview(); // Reset preview when switching tabs
+            if (newTabMode === 'camera' && !previewUrl) { // If switching to camera and no preview
+                 setAttemptId(prev => prev + 1); // Force useEffect to re-run for camera start
+            }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload"><UploadCloud className="mr-2 h-4 w-4" />Upload Photo</TabsTrigger>
@@ -353,7 +361,6 @@ export default function LogFoodByPhotoPage() {
             </TabsContent>
             <TabsContent value="camera">
               <div className="mt-4 space-y-4 text-center">
-                {/* Video element is always rendered in camera tab if no preview, overlays handle state */}
                 {tabMode === 'camera' && !previewUrl && (
                   <div className="w-full aspect-video rounded-md bg-muted border border-border overflow-hidden relative">
                     <video
@@ -362,7 +369,6 @@ export default function LogFoodByPhotoPage() {
                       autoPlay
                       playsInline
                       muted
-                      // Event handlers are now mostly managed in useEffect
                     />
                     {isCameraLoading && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4">
