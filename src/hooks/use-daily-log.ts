@@ -8,30 +8,31 @@ import { useToast } from "@/hooks/use-toast";
 
 const LOCAL_STORAGE_KEY_PREFIX = 'dailyLog_';
 
-function getTodayStorageKey(): string {
-  return `${LOCAL_STORAGE_KEY_PREFIX}${format(new Date(), 'yyyy-MM-dd')}`;
+function getStorageKeyForDate(date: Date): string {
+  return `${LOCAL_STORAGE_KEY_PREFIX}${format(date, 'yyyy-MM-dd')}`;
 }
 
 export function useDailyLog() {
+  const [currentSelectedDate, setCurrentSelectedDateInternal] = useState<Date>(new Date());
   const [dailyLog, setDailyLog] = useState<DailyLogEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const loadTodaysLog = useCallback(() => {
+  const loadLogForDate = useCallback((dateToLoad: Date) => {
     setIsLoading(true);
     try {
-      const storageKey = getTodayStorageKey();
+      const storageKey = getStorageKeyForDate(dateToLoad);
       const storedLog = localStorage.getItem(storageKey);
       if (storedLog) {
         const parsedLog: { summary: DailyLogEntry; entries: FoodEntry[] } = JSON.parse(storedLog);
         setDailyLog(parsedLog.summary);
         setFoodEntries(parsedLog.entries);
       } else {
-        // Initialize new log for today
-        const todayDate = format(new Date(), 'yyyy-MM-dd');
+        // Initialize new log for the selected date
+        const formattedDate = format(dateToLoad, 'yyyy-MM-dd');
         const newLogSummary: DailyLogEntry = {
-          date: todayDate,
+          date: formattedDate,
           calories: 0,
           protein: 0,
           fat: 0,
@@ -42,10 +43,9 @@ export function useDailyLog() {
         localStorage.setItem(storageKey, JSON.stringify({ summary: newLogSummary, entries: [] }));
       }
     } catch (error) {
-      console.error("Failed to load daily log from localStorage", error);
-      // Fallback to empty log
-      const todayDate = format(new Date(), 'yyyy-MM-dd');
-      setDailyLog({ date: todayDate, calories: 0, protein: 0, fat: 0, carbs: 0 });
+      console.error("Failed to load daily log from localStorage for date:", format(dateToLoad, 'yyyy-MM-dd'), error);
+      const formattedDate = format(dateToLoad, 'yyyy-MM-dd');
+      setDailyLog({ date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 });
       setFoodEntries([]);
     } finally {
       setIsLoading(false);
@@ -53,8 +53,12 @@ export function useDailyLog() {
   }, []);
 
   useEffect(() => {
-    loadTodaysLog();
-  }, [loadTodaysLog]);
+    loadLogForDate(currentSelectedDate);
+  }, [currentSelectedDate, loadLogForDate]);
+
+  const selectDateForLog = useCallback((newDate: Date) => {
+    setCurrentSelectedDateInternal(newDate);
+  }, []);
 
   const addFoodEntry = useCallback((newEntry: Omit<FoodEntry, 'id' | 'timestamp'>) => {
     setFoodEntries((prevEntries) => {
@@ -66,17 +70,20 @@ export function useDailyLog() {
       const updatedEntries = [...prevEntries, entryWithMeta];
 
       setDailyLog((prevSummary) => {
-        if (!prevSummary) return null; // Should not happen if initialized
+        const summaryForDate = prevSummary && prevSummary.date === format(currentSelectedDate, 'yyyy-MM-dd')
+          ? prevSummary
+          : { date: format(currentSelectedDate, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
+        
         const updatedSummary: DailyLogEntry = {
-          ...prevSummary,
-          calories: prevSummary.calories + newEntry.calories,
-          protein: prevSummary.protein + newEntry.protein,
-          fat: prevSummary.fat + newEntry.fat,
-          carbs: prevSummary.carbs + newEntry.carbs,
+          ...summaryForDate,
+          calories: summaryForDate.calories + newEntry.calories,
+          protein: summaryForDate.protein + newEntry.protein,
+          fat: summaryForDate.fat + newEntry.fat,
+          carbs: summaryForDate.carbs + newEntry.carbs,
         };
         
         try {
-          localStorage.setItem(getTodayStorageKey(), JSON.stringify({ summary: updatedSummary, entries: updatedEntries }));
+          localStorage.setItem(getStorageKeyForDate(currentSelectedDate), JSON.stringify({ summary: updatedSummary, entries: updatedEntries }));
         } catch (error) {
           console.error("Failed to save daily log to localStorage", error);
         }
@@ -84,7 +91,7 @@ export function useDailyLog() {
       });
       return updatedEntries;
     });
-  }, []);
+  }, [currentSelectedDate]);
 
   const deleteFoodEntry = useCallback((entryId: string) => {
     setFoodEntries((prevEntries) => {
@@ -92,9 +99,14 @@ export function useDailyLog() {
       if (!entryToDelete) return prevEntries;
 
       const updatedEntries = prevEntries.filter(entry => entry.id !== entryId);
+      
+      const summaryForDate = dailyLog && dailyLog.date === format(currentSelectedDate, 'yyyy-MM-dd')
+        ? dailyLog
+        : { date: format(currentSelectedDate, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
+
 
       const newSummary: DailyLogEntry = {
-        date: dailyLog!.date, // dailyLog is guaranteed to be initialized by loadTodaysLog
+        date: summaryForDate.date,
         calories: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.calories, 0)),
         protein: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.protein, 0)),
         fat: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.fat, 0)),
@@ -104,8 +116,7 @@ export function useDailyLog() {
       setDailyLog(newSummary);
 
       try {
-        localStorage.setItem(getTodayStorageKey(), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
-        // Defer the toast call to the next event loop tick
+        localStorage.setItem(getStorageKeyForDate(currentSelectedDate), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
         setTimeout(() => {
           toast({
             title: "Meal Deleted",
@@ -124,20 +135,35 @@ export function useDailyLog() {
       }
       return updatedEntries;
     });
-  }, [dailyLog, toast]);
+  }, [dailyLog, currentSelectedDate, toast]);
 
 
-  const clearTodaysLog = useCallback(() => {
-    const todayDate = format(new Date(), 'yyyy-MM-dd');
-    const initialLog: DailyLogEntry = { date: todayDate, calories: 0, protein: 0, fat: 0, carbs: 0 };
+  const clearLogForDate = useCallback((dateToClear: Date) => {
+    const formattedDate = format(dateToClear, 'yyyy-MM-dd');
+    const initialLog: DailyLogEntry = { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 };
     setDailyLog(initialLog);
     setFoodEntries([]);
     try {
-      localStorage.setItem(getTodayStorageKey(), JSON.stringify({ summary: initialLog, entries: [] }));
+      localStorage.setItem(getStorageKeyForDate(dateToClear), JSON.stringify({ summary: initialLog, entries: [] }));
+      if (format(dateToClear, 'yyyy-MM-dd') === format(currentSelectedDate, 'yyyy-MM-dd')) {
+        // If clearing the currently selected date's log
+         setDailyLog(initialLog);
+         setFoodEntries([]);
+      }
     } catch (error) {
       console.error("Failed to clear daily log in localStorage", error);
     }
-  }, []);
+  }, [currentSelectedDate]);
 
-  return { dailyLog, foodEntries, addFoodEntry, deleteFoodEntry, clearTodaysLog, isLoading, refreshLog: loadTodaysLog };
+  return { 
+    dailyLog, 
+    foodEntries, 
+    addFoodEntry, 
+    deleteFoodEntry, 
+    clearLog: clearLogForDate, // Keep existing name if preferred, or change to clearLogForDate
+    isLoading, 
+    currentSelectedDate, // Expose the date being shown
+    selectDateForLog, // Expose function to change date
+    refreshLog: () => loadLogForDate(currentSelectedDate) // Keep refreshLog if needed, now it reloads current date
+  };
 }

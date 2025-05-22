@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Utensils,
   Loader2,
-  Trash2, // Added Trash2
+  Trash2,
 } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
@@ -30,6 +30,9 @@ import { useGoals } from "@/hooks/use-goals";
 import { format } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+
 
 interface MealCardProps {
   id: string;
@@ -38,7 +41,7 @@ interface MealCardProps {
   protein: number;
   fat: number;
   carbs: number;
-  onDelete: (id: string) => void; // Added onDelete prop
+  onDelete: (id: string) => void;
 }
 
 const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, carbs, onDelete }) => (
@@ -53,7 +56,7 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
       <Trash2 className="h-4 w-4" />
     </Button>
     <CardContent className="p-4 space-y-3">
-      <div className="flex justify-between items-start mr-8"> {/* Added mr-8 for spacing from delete button */}
+      <div className="flex justify-between items-start mr-8">
         <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
         <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
           <Flame className="h-5 w-5 mr-1.5" />
@@ -84,7 +87,7 @@ interface SummaryCardProps {
   icon: React.ElementType;
   value: string;
   label: string;
-  iconColorVariable: string; 
+  iconColorVariable: string;
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
@@ -107,20 +110,18 @@ const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) =>
   const { cx, cy } = viewBox;
   return (
     <text x={cx} y={cy} fill="hsl(var(--primary-foreground))" textAnchor="middle" dominantBaseline="central">
-      <tspan fontSize="2rem" fontWeight="bold">{`${percentage}%`}</tspan>
+      <tspan fontSize="2.25rem" fontWeight="bold">{`${percentage}%`}</tspan>
+      <tspan x={cx} dy="1.5em" fontSize="0.75rem" opacity="0.8">ACHIEVED</tspan>
     </text>
   );
 };
 
 
 export default function DashboardPage() {
-  const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry } = useDailyLog(); // Added deleteFoodEntry
+  const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
-  const [currentDate, setCurrentDate] = useState("");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  useEffect(() => {
-    setCurrentDate(format(new Date(), "MMM d"));
-  }, []);
 
   const consumedCalories = dailyLog?.calories ?? 0;
   const goalCalories = goals?.calories ?? 0;
@@ -179,7 +180,7 @@ export default function DashboardPage() {
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, 
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -300,11 +301,29 @@ export default function DashboardPage() {
       {/* Today's Summary */}
       <div className="space-y-3">
         <div className="flex justify-between items-center mb-2"> 
-          <h2 className="text-xl font-semibold">Today's Summary</h2>
-          <div className="flex items-center gap-1 text-sm text-primary">
-            <CalendarDays className="h-4 w-4" />
-            <span>{currentDate}</span>
-          </div>
+          <h2 className="text-xl font-semibold">Summary for</h2>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary">
+                <CalendarDays className="h-4 w-4" />
+                <span>{currentSelectedDate ? format(currentSelectedDate, "MMM d, yyyy") : "Select Date"}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={currentSelectedDate}
+                onSelect={(newDate) => {
+                  if (newDate) {
+                    selectDateForLog(newDate);
+                    setIsCalendarOpen(false);
+                  }
+                }}
+                initialFocus
+                disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="grid grid-cols-2 gap-4">
          {isDataLoading ? (
@@ -331,7 +350,7 @@ export default function DashboardPage() {
       {/* Meal Log */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Meal Log</h2>
+          <h2 className="text-xl font-semibold">Meal Log for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : ""}</h2>
           <Link href="/log-food/photo" passHref>
             <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'hsl(var(--add-button-bg))' }}>
               <PlusCircle className="mr-1 h-4 w-4" />
@@ -368,14 +387,14 @@ export default function DashboardPage() {
                 protein={entry.protein}
                 fat={entry.fat}
                 carbs={entry.carbs}
-                onDelete={deleteFoodEntry} // Pass delete function
+                onDelete={deleteFoodEntry}
               />
             ))}
           </div>
         ) : (
           <Card className="shadow-lg rounded-xl">
             <CardContent className="pt-6 text-center text-muted-foreground">
-              No meals logged for today yet. Use the "Add Meal" button to log your first meal!
+              No meals logged for {currentSelectedDate ? format(currentSelectedDate, "MMM d, yyyy") : "the selected date"} yet. Use the "Add Meal" button to log your first meal!
             </CardContent>
           </Card>
         )}
@@ -393,7 +412,7 @@ export default function DashboardPage() {
         >
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold text-green-700">You're <span className="font-bold">on track</span> today!</h3>
+              <h3 className="text-lg font-semibold text-green-700">You're <span className="font-bold">on track</span> for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : "today"}!</h3>
               <p className="text-xs text-muted-foreground">Keep up the balanced meals for better results.</p>
             </div>
             <TrendingUp className="h-7 w-7 text-green-600" />
