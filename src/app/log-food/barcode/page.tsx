@@ -23,7 +23,7 @@ import {
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useToast } from "@/hooks/use-toast";
 import type { FoodEntry } from "@/types";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils"; // cn might not be used anymore in this version
 
 interface ScannedProductInfo {
   id: string;
@@ -85,11 +85,12 @@ export default function LogFoodByBarcodePage() {
         setIsScanning(false);
         return;
       }
-
+      
+      // Attempt to clear stale scanner from ref if it exists and is active
       if (scannerRef.current) {
-        console.warn("Barcode Scanner: useEffect - scannerRef.current was not null. Attempting to clear stale instance.");
+        console.warn("Barcode Scanner: useEffect - scannerRef.current was not null. Attempting to clear stale instance from ref.");
         const staleScanner = scannerRef.current;
-        scannerRef.current = null; 
+        scannerRef.current = null; // Nullify ref immediately
         try {
           if (staleScanner.getState() === Html5QrcodeScannerState.SCANNING || staleScanner.getState() === Html5QrcodeScannerState.PAUSED) {
             staleScanner.clear().catch(err => console.error("Barcode Scanner: Error clearing stale scanner from ref:", err));
@@ -99,6 +100,7 @@ export default function LogFoodByBarcodePage() {
         }
       }
 
+
       const verbose = false;
       const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
         const minEdgePercentage = 0.7;
@@ -107,9 +109,11 @@ export default function LogFoodByBarcodePage() {
         return { width: qrboxSize, height: qrboxSize };
       };
 
-      const onScanSuccess = (decodedText: string, result: Html5QrcodeResult) => {
-        console.log(`Barcode Scanner: Scan successful - ${decodedText}`, result);
-        setIsScanning(false); 
+      const onScanSuccess = (decodedTextOriginal: string, result: Html5QrcodeResult) => {
+        console.log(`Barcode Scanner: Scan successful - ${decodedTextOriginal}`, result);
+        const decodedText = decodedTextOriginal.trim(); // Trim the barcode
+        
+        setIsScanning(false); // This will trigger useEffect cleanup for the scanner
         setScannedBarcode(decodedText);
         
         (async () => {
@@ -120,11 +124,11 @@ export default function LogFoodByBarcodePage() {
             const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
             
             if (!response.ok) {
-              let errorMessage = `API request failed with status ${response.status}`;
+              let errorMessage = `API request failed with status ${response.status}.`;
               if (response.status === 404) {
-                errorMessage = `Product with barcode ${decodedText} not found.`;
+                errorMessage = `Product with barcode ${decodedText} not found in the Open Food Facts database. The database is community-driven and may not include all products.`;
               }
-              console.warn("Product data issue (response not ok):", errorMessage); // Changed from console.error
+              console.warn("Error fetching product data (response not ok):", errorMessage);
               setScanError(errorMessage);
               toast({
                 title: response.status === 404 ? "Product Not Found" : "API Error",
@@ -139,11 +143,11 @@ export default function LogFoodByBarcodePage() {
             const data = await response.json();
 
             if (data.status === 0 || !data.product) {
-              const errorMessage = `Product with barcode ${decodedText} not found in Open Food Facts database.`;
-              console.warn("Product data issue:", errorMessage, data);
+              const errorMessage = `Product with barcode ${decodedText} not found in Open Food Facts database, or data is unavailable. This community database may not have all products.`;
+              console.warn("Product data issue (status 0 or no product):", errorMessage, data);
               setScanError(errorMessage);
               toast({
-                title: "Product Data Issue",
+                title: "Product Data Not Available",
                 description: errorMessage,
                 variant: "destructive", 
                 action: <AlertCircle className="text-red-500" />
@@ -196,7 +200,7 @@ export default function LogFoodByBarcodePage() {
 
           } catch (error: any) {
             console.error("Error fetching product data (catch block):", error);
-            const errorMessage = error.message || "Failed to fetch product information.";
+            const errorMessage = error.message || "Failed to fetch product information. Check your internet connection.";
             setScanError(errorMessage);
             toast({
               title: "Product Fetch Error",
@@ -212,6 +216,7 @@ export default function LogFoodByBarcodePage() {
 
       const onScanFailure = (error: string) => {
         // console.warn(`Barcode Scanner: Scan Failure - ${error}`); 
+        // Don't set scanError here for minor scan failures, only for initialization/major issues.
       };
       
       try {
@@ -229,9 +234,13 @@ export default function LogFoodByBarcodePage() {
         console.log("Barcode Scanner: Calling localScannerInstance.render().");
         localScannerInstance.render(onScanSuccess, onScanFailure);
         
+        // Only assign to ref if render was called and we are still in scanning mode
+        // This helps if isScanning becomes false quickly after render is called.
         if (isScanning && localScannerInstance) { 
             scannerRef.current = localScannerInstance;
         } else if (localScannerInstance) {
+            // If isScanning became false during/after render call (e.g. user cancelled immediately)
+            // try to clean up the orphaned scanner.
             console.log("Barcode Scanner: isScanning became false during/after render. Clearing orphaned scanner.");
             try {
                 if (localScannerInstance.getState() === Html5QrcodeScannerState.SCANNING || localScannerInstance.getState() === Html5QrcodeScannerState.PAUSED) {
@@ -241,25 +250,31 @@ export default function LogFoodByBarcodePage() {
                  console.error("Exception clearing orphaned scanner post-render:", e);
             }
         }
+
       } catch (initOrRenderError) {
           console.error("Barcode Scanner: Error during Html5QrcodeScanner instantiation or render call.", initOrRenderError);
           const errorMessage = (initOrRenderError instanceof Error) ? initOrRenderError.message : String(initOrRenderError);
           setScanError(`Scanner initialization/render error: ${errorMessage}. Check console and camera permissions.`);
-          setIsScanning(false);
+          setIsScanning(false); // This will trigger cleanup in useEffect
       }
     }
 
     return () => {
       console.log("Barcode Scanner: useEffect cleanup function running.");
+      // Prefer clearing the local instance if it exists, otherwise use the ref.
       const scannerToAttemptClear = localScannerInstance || scannerRef.current;
       
       if (scannerRef.current === scannerToAttemptClear) {
+        // If the scanner we are about to clear is the one in the ref, nullify the ref first.
+        // This is important so that subsequent calls to start scanning don't try to use a ref
+        // to an instance that is in the process of being cleared.
         scannerRef.current = null;
       }
 
       if (scannerToAttemptClear) {
         console.log("Barcode Scanner: Cleanup - Attempting to clear scanner instance:", scannerToAttemptClear);
         try {
+          // Check scanner state before attempting to clear
           const state = scannerToAttemptClear.getState();
           if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
             scannerToAttemptClear.clear()
@@ -269,12 +284,13 @@ export default function LogFoodByBarcodePage() {
             console.log("Barcode Scanner: Cleanup - Scanner not in active state to be cleared. State:", state);
           }
         } catch (e) {
+          // This catch is for errors like `getState()` failing if the instance is already broken.
           console.error("Barcode Scanner: Cleanup - Exception during clear attempt (e.g., getState failed):", e);
         }
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScanning]);
+  }, [isScanning]); // Removed toast from dependencies to avoid re-renders
 
 
   const handleStartScan = () => {
@@ -285,11 +301,13 @@ export default function LogFoodByBarcodePage() {
     setHasLogged(false);
 
     if (isScanning && scannerRef.current) {
+      // If already scanning (e.g. "Scan Another" clicked while scanner is somehow still active),
+      // force a re-initialization by toggling isScanning.
       console.log("Barcode Scanner: handleStartScan - Already scanning, attempting to force re-initialization.");
-      setIsScanning(false); 
+      setIsScanning(false); // This will trigger cleanup in useEffect
       setTimeout(() => {
-        setIsScanning(true); 
-      }, 150);
+        setIsScanning(true); // This will trigger initialization in useEffect
+      }, 150); // Small delay to allow cleanup to complete
     } else {
       setIsScanning(true);
     }
@@ -297,11 +315,12 @@ export default function LogFoodByBarcodePage() {
   
   const handleCancelScan = () => {
     console.log("Barcode Scanner: handleCancelScan called.");
-    setIsScanning(false); 
+    setIsScanning(false); // This will trigger cleanup in useEffect
   }
 
   const handleScanAnother = () => {
     console.log("Barcode Scanner: handleScanAnother called.");
+    // Reset state and then re-trigger scanning, similar to handleStartScan
     handleStartScan(); 
   }
 
@@ -320,7 +339,7 @@ export default function LogFoodByBarcodePage() {
       action: <CheckCircle className="text-green-500" />,
     });
     setHasLogged(true);
-    setProductInfo(null); 
+    setProductInfo(null); // Clear product info after logging
   };
 
   return (
@@ -335,6 +354,7 @@ export default function LogFoodByBarcodePage() {
         </CardHeader>
 
         <CardContent className="space-y-6 p-4 md:p-6">
+          {/* Scanner UI region */}
           <div className="relative w-full aspect-[4/3] bg-muted/50 rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden shadow-inner">
             {isScanning ? (
               <div id={qrcodeRegionId} className="w-full h-full" />
@@ -347,6 +367,7 @@ export default function LogFoodByBarcodePage() {
             )}
           </div>
 
+          {/* Error display if scanner fails to init or major scan error */}
           {scanError && !isScanning && !isLoadingProduct && !productInfo && ( 
             <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
@@ -355,6 +376,7 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
 
+          {/* Action Buttons */}
           <div className="space-y-3">
             {!isScanning && !productInfo && !isLoadingProduct && !hasLogged && (
               <Button onClick={handleStartScan} size="lg" className="w-full group transition-transform hover:scale-105 active:scale-95">
@@ -368,6 +390,7 @@ export default function LogFoodByBarcodePage() {
             )}
           </div>
 
+          {/* Loading Product Indicator */}
           {isLoadingProduct && (
             <div className="flex flex-col items-center justify-center p-6 space-y-3 text-center rounded-lg bg-secondary/30 animate-in fade-in-0 zoom-in-95 duration-500">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -376,6 +399,7 @@ export default function LogFoodByBarcodePage() {
             </div>
           )}
           
+          {/* Product Lookup Failed Alert (after scan, if API call fails or product not found) */}
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && scanError && (
             <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
@@ -389,12 +413,13 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
           
+          {/* Fallback for scanned but no error and no product (should be rare with current logic) */}
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && !scanError && (
              <Alert className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <PackageSearch className="h-4 w-4" />
               <AlertTitle>Barcode Scanned</AlertTitle>
               <AlertDescription>
-                Scanned: {scannedBarcode}. No product details found or an error occurred.
+                Scanned: {scannedBarcode}. Preparing to fetch details or an issue occurred. If nothing happens, try scanning again.
               </AlertDescription>
                <Button onClick={handleScanAnother} variant="outline" className="w-full mt-4">
                   <RefreshCcw className="mr-2 h-4 w-4" /> Scan Another Item
@@ -402,6 +427,7 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
 
+          {/* Product Info Display */}
           {productInfo && (
             <Card className="mt-4 bg-card shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-5 duration-500">
               <CardHeader className="pb-3">
@@ -434,6 +460,7 @@ export default function LogFoodByBarcodePage() {
             </Card>
           )}
 
+           {/* Scan Another Item button after logging */}
            {hasLogged && !isScanning && !productInfo && ( 
              <Button onClick={handleScanAnother} size="lg" className="w-full mt-4">
                 <RefreshCcw className="mr-2 h-5 w-5" /> Scan Another Item
@@ -444,6 +471,4 @@ export default function LogFoodByBarcodePage() {
     </div>
   );
 }
-    
-
     
