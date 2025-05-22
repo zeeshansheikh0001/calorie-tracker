@@ -13,11 +13,16 @@ function getStorageKeyForDate(date: Date): string {
 }
 
 export function useDailyLog() {
-  const [currentSelectedDate, setCurrentSelectedDateInternal] = useState<Date>(new Date());
+  const [currentSelectedDateInternal, setCurrentSelectedDateInternal] = useState<Date | null>(null);
   const [dailyLog, setDailyLog] = useState<DailyLogEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Set the initial date only on the client side after mount
+    setCurrentSelectedDateInternal(new Date());
+  }, []);
 
   const loadLogForDate = useCallback((dateToLoad: Date) => {
     setIsLoading(true);
@@ -53,14 +58,18 @@ export function useDailyLog() {
   }, []);
 
   useEffect(() => {
-    loadLogForDate(currentSelectedDate);
-  }, [currentSelectedDate, loadLogForDate]);
+    if (currentSelectedDateInternal) {
+      loadLogForDate(currentSelectedDateInternal);
+    }
+  }, [currentSelectedDateInternal, loadLogForDate]);
 
   const selectDateForLog = useCallback((newDate: Date) => {
     setCurrentSelectedDateInternal(newDate);
   }, []);
 
   const addFoodEntry = useCallback((newEntry: Omit<FoodEntry, 'id' | 'timestamp'>) => {
+    if (!currentSelectedDateInternal) return; // Guard against null date
+
     setFoodEntries((prevEntries) => {
       const entryWithMeta: FoodEntry = {
         ...newEntry,
@@ -70,9 +79,9 @@ export function useDailyLog() {
       const updatedEntries = [...prevEntries, entryWithMeta];
 
       setDailyLog((prevSummary) => {
-        const summaryForDate = prevSummary && prevSummary.date === format(currentSelectedDate, 'yyyy-MM-dd')
+        const summaryForDate = prevSummary && prevSummary.date === format(currentSelectedDateInternal, 'yyyy-MM-dd')
           ? prevSummary
-          : { date: format(currentSelectedDate, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
+          : { date: format(currentSelectedDateInternal, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
         
         const updatedSummary: DailyLogEntry = {
           ...summaryForDate,
@@ -83,7 +92,7 @@ export function useDailyLog() {
         };
         
         try {
-          localStorage.setItem(getStorageKeyForDate(currentSelectedDate), JSON.stringify({ summary: updatedSummary, entries: updatedEntries }));
+          localStorage.setItem(getStorageKeyForDate(currentSelectedDateInternal), JSON.stringify({ summary: updatedSummary, entries: updatedEntries }));
         } catch (error) {
           console.error("Failed to save daily log to localStorage", error);
         }
@@ -91,18 +100,20 @@ export function useDailyLog() {
       });
       return updatedEntries;
     });
-  }, [currentSelectedDate]);
+  }, [currentSelectedDateInternal]);
 
   const deleteFoodEntry = useCallback((entryId: string) => {
+    if (!currentSelectedDateInternal) return; // Guard against null date
+
     setFoodEntries((prevEntries) => {
       const entryToDelete = prevEntries.find(entry => entry.id === entryId);
       if (!entryToDelete) return prevEntries;
 
       const updatedEntries = prevEntries.filter(entry => entry.id !== entryId);
       
-      const summaryForDate = dailyLog && dailyLog.date === format(currentSelectedDate, 'yyyy-MM-dd')
+      const summaryForDate = dailyLog && dailyLog.date === format(currentSelectedDateInternal, 'yyyy-MM-dd')
         ? dailyLog
-        : { date: format(currentSelectedDate, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
+        : { date: format(currentSelectedDateInternal, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
 
 
       const newSummary: DailyLogEntry = {
@@ -116,7 +127,7 @@ export function useDailyLog() {
       setDailyLog(newSummary);
 
       try {
-        localStorage.setItem(getStorageKeyForDate(currentSelectedDate), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
+        localStorage.setItem(getStorageKeyForDate(currentSelectedDateInternal), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
         setTimeout(() => {
           toast({
             title: "Meal Deleted",
@@ -135,17 +146,16 @@ export function useDailyLog() {
       }
       return updatedEntries;
     });
-  }, [dailyLog, currentSelectedDate, toast]);
+  }, [dailyLog, currentSelectedDateInternal, toast]);
 
 
   const clearLogForDate = useCallback((dateToClear: Date) => {
     const formattedDate = format(dateToClear, 'yyyy-MM-dd');
     const initialLog: DailyLogEntry = { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 };
-    setDailyLog(initialLog);
-    setFoodEntries([]);
+    
     try {
       localStorage.setItem(getStorageKeyForDate(dateToClear), JSON.stringify({ summary: initialLog, entries: [] }));
-      if (format(dateToClear, 'yyyy-MM-dd') === format(currentSelectedDate, 'yyyy-MM-dd')) {
+      if (currentSelectedDateInternal && format(dateToClear, 'yyyy-MM-dd') === format(currentSelectedDateInternal, 'yyyy-MM-dd')) {
         // If clearing the currently selected date's log
          setDailyLog(initialLog);
          setFoodEntries([]);
@@ -153,17 +163,17 @@ export function useDailyLog() {
     } catch (error) {
       console.error("Failed to clear daily log in localStorage", error);
     }
-  }, [currentSelectedDate]);
+  }, [currentSelectedDateInternal]);
 
   return { 
     dailyLog, 
     foodEntries, 
     addFoodEntry, 
     deleteFoodEntry, 
-    clearLog: clearLogForDate, // Keep existing name if preferred, or change to clearLogForDate
+    clearLog: clearLogForDate,
     isLoading, 
-    currentSelectedDate, // Expose the date being shown
-    selectDateForLog, // Expose function to change date
-    refreshLog: () => loadLogForDate(currentSelectedDate) // Keep refreshLog if needed, now it reloads current date
+    currentSelectedDate: currentSelectedDateInternal, 
+    selectDateForLog, 
+    refreshLog: () => { if (currentSelectedDateInternal) loadLogForDate(currentSelectedDateInternal); }
   };
 }
