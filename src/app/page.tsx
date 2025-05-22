@@ -59,7 +59,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
- <Card className="shadow-md hover:shadow-lg transition-shadow flex-1 min-w-[150px] sm:min-w-0">
+ <Card className="shadow-md hover:shadow-lg transition-shadow">
     <CardContent className="p-4 flex items-center space-x-3">
       <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.15)`}}>
          <Icon className="h-6 w-6" style={{ color: `hsl(${iconColor})` }}/>
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <span>{currentDate}</span>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 justify-between">
+        <div className="grid grid-cols-2 gap-4">
          {(isLoadingLog || isLoadingGoals) ? (
             <>
               <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" />
