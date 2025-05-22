@@ -74,89 +74,91 @@ export default function LogFoodByBarcodePage() {
         return { width: qrboxSize, height: qrboxSize };
       };
 
-      const onScanSuccess = async (decodedText: string, result: Html5QrcodeResult) => {
+      const onScanSuccess = (decodedText: string, result: Html5QrcodeResult) => {
         console.log(`Barcode Scanner: Scan successful - ${decodedText}`, result);
         setIsScanning(false); 
         setScannedBarcode(decodedText);
-        setIsLoadingProduct(true);
-        setProductInfo(null);
-        setScanError(null);
-
-        try {
-          const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
-          if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error(`Product with barcode ${decodedText} not found.`);
+        
+        // Async IIFE for product lookup
+        (async () => {
+          setIsLoadingProduct(true);
+          setProductInfo(null);
+          setScanError(null);
+          try {
+            const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
+            if (!response.ok) {
+              if (response.status === 404) {
+                throw new Error(`Product with barcode ${decodedText} not found.`);
+              }
+              throw new Error(`API request failed with status ${response.status}`);
             }
-            throw new Error(`API request failed with status ${response.status}`);
-          }
 
-          const data = await response.json();
+            const data = await response.json();
 
-          if (data.status === 0 || !data.product) {
-            throw new Error(`Product with barcode ${decodedText} not found in Open Food Facts database.`);
-          }
+            if (data.status === 0 || !data.product) {
+              throw new Error(`Product with barcode ${decodedText} not found in Open Food Facts database.`);
+            }
 
-          const product = data.product;
-          const nutriments = product.nutriments || {};
+            const product = data.product;
+            const nutriments = product.nutriments || {};
 
-          const getNutrientValue = (nutrientKey: string): number => {
-            const value = nutriments[nutrientKey];
-            return typeof value === 'number' ? value : 0;
-          };
-          
-          let calories = getNutrientValue('energy-kcal_100g');
-          if (calories === 0 && nutriments['energy_100g']) { // Check for kJ if kcal is missing/zero
-             const energyKj = getNutrientValue('energy_100g');
-             if (energyKj > 0) {
-                 calories = Math.round(energyKj / 4.184);
-             }
-          }
+            const getNutrientValue = (nutrientKey: string): number => {
+              const value = nutriments[nutrientKey];
+              return typeof value === 'number' ? value : 0;
+            };
+            
+            let calories = getNutrientValue('energy-kcal_100g');
+            if (calories === 0 && nutriments['energy_100g']) { 
+               const energyKj = getNutrientValue('energy_100g');
+               if (energyKj > 0) {
+                   calories = Math.round(energyKj / 4.184);
+               }
+            }
 
+            const fetchedProductInfo: ScannedProductInfo = {
+              id: decodedText,
+              name: product.product_name_en || product.product_name || product.generic_name || `Product ${decodedText}`,
+              calories: calories,
+              protein: getNutrientValue('proteins_100g'),
+              fat: getNutrientValue('fat_100g'),
+              carbs: getNutrientValue('carbohydrates_100g'),
+            };
+            
+            setProductInfo(fetchedProductInfo);
 
-          const fetchedProductInfo: ScannedProductInfo = {
-            id: decodedText,
-            name: product.product_name_en || product.product_name || product.generic_name || `Product ${decodedText}`,
-            calories: calories,
-            protein: getNutrientValue('proteins_100g'),
-            fat: getNutrientValue('fat_100g'),
-            carbs: getNutrientValue('carbohydrates_100g'),
-          };
-          
-          setProductInfo(fetchedProductInfo);
+            if (fetchedProductInfo.calories === 0 && !fetchedProductInfo.name.toLowerCase().includes('product ')) {
+               console.warn(`Product ${fetchedProductInfo.name} found, but nutritional data might be incomplete.`);
+               toast({
+                   title: "Nutritional Data May Be Incomplete",
+                   description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero.`,
+                   variant: "default", 
+               });
+            } else {
+              toast({
+                title: "Product Found!",
+                description: `Details for ${fetchedProductInfo.name} loaded. Values are typically per 100g/ml.`,
+                action: <PackageSearch className="text-green-500" />
+              });
+            }
 
-          if (fetchedProductInfo.calories === 0 && !fetchedProductInfo.name.toLowerCase().includes('product ')) {
-             console.warn(`Product ${fetchedProductInfo.name} found, but nutritional data might be incomplete.`);
-             toast({
-                 title: "Nutritional Data May Be Incomplete",
-                 description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero.`,
-                 variant: "default", 
-             });
-          } else {
+          } catch (error: any) {
+            console.error("Error fetching product data:", error);
+            const errorMessage = error.message || "Failed to fetch product information.";
+            setScanError(errorMessage);
             toast({
-              title: "Product Found!",
-              description: `Details for ${fetchedProductInfo.name} loaded. Values are typically per 100g/ml.`,
-              action: <PackageSearch className="text-green-500" />
+              title: "Product Fetch Error",
+              description: errorMessage,
+              variant: "destructive",
+              action: <AlertCircle className="text-red-500" />
             });
+          } finally {
+            setIsLoadingProduct(false);
           }
-
-        } catch (error: any) {
-          console.error("Error fetching product data:", error);
-          const errorMessage = error.message || "Failed to fetch product information.";
-          setScanError(errorMessage);
-          toast({
-            title: "Product Fetch Error",
-            description: errorMessage,
-            variant: "destructive",
-            action: <AlertCircle className="text-red-500" />
-          });
-        } finally {
-          setIsLoadingProduct(false);
-        }
+        })();
       };
 
       const onScanFailure = (error: string) => {
-        // console.warn(`Barcode Scanner: Scan Failure - ${error}`); // Can be very noisy
+        // console.warn(`Barcode Scanner: Scan Failure - ${error}`); 
       };
       
       try {
@@ -198,7 +200,6 @@ export default function LogFoodByBarcodePage() {
       console.log("Barcode Scanner: useEffect cleanup function running.");
       const scannerToAttemptClear = localScannerInstance || scannerRef.current;
       
-      // Nullify the ref immediately. The actual .clear() is async.
       if (scannerRef.current === scannerToAttemptClear) {
         scannerRef.current = null;
       }
@@ -233,7 +234,7 @@ export default function LogFoodByBarcodePage() {
       setIsScanning(false); 
       setTimeout(() => {
         setIsScanning(true); 
-      }, 100); // Increased delay slightly
+      }, 100); 
     } else {
       setIsScanning(true);
     }
@@ -288,7 +289,7 @@ export default function LogFoodByBarcodePage() {
             )}
           />
 
-          {scanError && !isScanning && !isLoadingProduct && !productInfo && ( // Show general scanError only if not overridden by product fetch error
+          {scanError && !isScanning && !isLoadingProduct && !productInfo && ( 
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Scan Error</AlertTitle>
@@ -328,7 +329,6 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
           
-          {/* Case where barcode was scanned, no API error, but productInfo is still null (should be rare after API integration) */}
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && !scanError && (
              <Alert>
               <PackageSearch className="h-4 w-4" />
@@ -377,6 +377,4 @@ export default function LogFoodByBarcodePage() {
     </div>
   );
 }
-    
-
     
