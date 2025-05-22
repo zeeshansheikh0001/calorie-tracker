@@ -27,6 +27,7 @@ import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
+import { useUserProfile } from "@/hooks/use-user-profile"; // Import the new hook
 import { format } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
@@ -120,6 +121,7 @@ const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) =>
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
+  const { userProfile, isLoading: isLoadingProfile } = useUserProfile(); // Use the profile hook
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
 
@@ -154,18 +156,27 @@ export default function DashboardPage() {
   const todayProtein = dailyLog?.protein ?? 0;
   const todayFat = dailyLog?.fat ?? 0;
 
-  const isDataLoading = isLoadingLog || isLoadingGoals;
+  const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="https://placehold.co/100x100.png" alt="Alex" data-ai-hint="user avatar" />
-            <AvatarFallback>A</AvatarFallback>
-          </Avatar>
-          <h1 className="text-xl font-semibold">Hi, Alex</h1>
+          {isLoadingProfile ? (
+            <>
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-6 w-24" />
+            </>
+          ) : (
+            <>
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} data-ai-hint="user avatar" />
+                <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+              <h1 className="text-xl font-semibold">Hi, {userProfile.name}</h1>
+            </>
+          )}
         </div>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5 text-muted-foreground" />
@@ -176,7 +187,7 @@ export default function DashboardPage() {
        <Card 
           className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden relative"
         >
-          {isDataLoading ? (
+          {isDataLoading ? ( // Use combined loading state
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
@@ -326,7 +337,7 @@ export default function DashboardPage() {
           </Popover>
         </div>
         <div className="grid grid-cols-2 gap-4">
-         {isDataLoading ? (
+         {isDataLoading ? ( // Use combined loading state
             <>
               {[1, 2, 3, 4].map(i => (
                  <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
