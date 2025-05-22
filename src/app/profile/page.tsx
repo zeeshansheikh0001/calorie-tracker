@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Edit3, Shield, Bell } from "lucide-react";
+import { Settings, LogOut, Edit3, Shield, Bell, HeartPulse } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfilePage() {
@@ -51,3 +51,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
