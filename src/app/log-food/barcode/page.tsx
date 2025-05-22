@@ -76,20 +76,9 @@ export default function LogFoodByBarcodePage() {
         return { width: qrboxSize, height: qrboxSize };
       };
 
-      localScannerInstance = new Html5QrcodeScanner(
-        qrcodeRegionId,
-        {
-          fps: 10,
-          qrbox: qrboxFunction,
-          rememberLastUsedCamera: true,
-          supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-        },
-        verbose
-      );
-
       const onScanSuccess = (decodedText: string, result: Html5QrcodeResult) => {
         console.log(`Barcode Scanner: Scan successful - ${decodedText}`, result);
-        setIsScanning(false); // This triggers cleanup of localScannerInstance
+        setIsScanning(false); // This triggers cleanup of localScannerInstance via useEffect
 
         setScannedBarcode(decodedText);
         setIsLoadingProduct(true);
@@ -117,36 +106,48 @@ export default function LogFoodByBarcodePage() {
         // console.warn(`Barcode Scanner: Scan Failure - ${error}`); // Can be very noisy
       };
       
-      console.log("Barcode Scanner: Calling localScannerInstance.render().");
-      localScannerInstance.render(onScanSuccess, onScanFailure)
-        .then(() => {
-          console.log("Barcode Scanner: localScannerInstance.render() resolved (camera likely started).");
-          if (isScanning && localScannerInstance) { // Check if still in scanning mode
-            scannerRef.current = localScannerInstance; // Assign the locally created instance to the ref
-          } else if (localScannerInstance) {
-            // isScanning became false while render was in progress. Clean up this orphaned scanner.
-            console.log("Barcode Scanner: isScanning became false during render. Clearing orphaned scanner.");
+      try {
+        localScannerInstance = new Html5QrcodeScanner(
+          qrcodeRegionId,
+          {
+            fps: 10,
+            qrbox: qrboxFunction,
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+          },
+          verbose
+        );
+
+        console.log("Barcode Scanner: Calling localScannerInstance.render().");
+        // Html5QrcodeScanner.render() in v2.3.8 does not return a Promise.
+        // It initiates scanning and uses callbacks.
+        localScannerInstance.render(onScanSuccess, onScanFailure);
+        
+        // If render() call is successful (doesn't throw synchronously), we assume it's launched.
+        // The ref is needed for cleanup and potentially by callbacks.
+        if (isScanning && localScannerInstance) { // Double check if still in scanning mode
+            scannerRef.current = localScannerInstance;
+        } else if (localScannerInstance) {
+             // isScanning became false during/after render call. Clean up this orphaned scanner.
+            console.log("Barcode Scanner: isScanning became false during/after render. Clearing orphaned scanner.");
             try {
                 if (localScannerInstance.getState() === Html5QrcodeScannerState.SCANNING || localScannerInstance.getState() === Html5QrcodeScannerState.PAUSED) {
-                   localScannerInstance.clear().catch(e => console.error("Error clearing orphaned scanner:", e));
+                   localScannerInstance.clear().catch(e => console.error("Error clearing orphaned scanner post-render:", e));
                 }
             } catch(e) {
-                 console.error("Exception clearing orphaned scanner:", e);
+                 console.error("Exception clearing orphaned scanner post-render:", e);
             }
-          }
-        })
-        .catch(renderError => {
-          console.error("Barcode Scanner: localScannerInstance.render() failed.", renderError);
-          const errorMessage = (renderError instanceof Error) ? renderError.message : String(renderError);
-          setScanError(`Failed to start camera: ${errorMessage}. Check permissions or ensure no other app/tab is using the camera.`);
-          setIsScanning(false); // Triggers cleanup and stops scanning state
-        });
+        }
+      } catch (initOrRenderError) {
+          console.error("Barcode Scanner: Error during Html5QrcodeScanner instantiation or render call.", initOrRenderError);
+          const errorMessage = (initOrRenderError instanceof Error) ? initOrRenderError.message : String(initOrRenderError);
+          setScanError(`Scanner initialization/render error: ${errorMessage}. Check console and camera permissions.`);
+          setIsScanning(false); // Trigger cleanup and stop scanning state
+      }
     }
 
     return () => {
       console.log("Barcode Scanner: useEffect cleanup function running.");
-      // Prefer to clear the instance created in this effect's scope, if it exists.
-      // Otherwise, try to clear what's in scannerRef.current.
       const scannerToAttemptClear = localScannerInstance || scannerRef.current;
 
       if (scannerToAttemptClear) {
@@ -165,13 +166,9 @@ export default function LogFoodByBarcodePage() {
         }
       }
       
-      // Ensure ref is nulled if it was pointing to the scanner we are cleaning up
       if (scannerRef.current === scannerToAttemptClear) {
         scannerRef.current = null;
       }
-      // If localScannerInstance was created but not assigned to ref (e.g. render failed or isScanning changed)
-      // and it's different from what was in ref, it should also be considered for cleanup if it started.
-      // The current logic for scannerToAttemptClear should cover this.
     };
   }, [isScanning, toast]);
 
@@ -183,13 +180,11 @@ export default function LogFoodByBarcodePage() {
     setHasLogged(false);
 
     if (isScanning) {
-      // If already scanning (e.g. "Scan Another Item" from a state where scanner might be up)
-      // Force a re-initialization by toggling isScanning
       console.log("Barcode Scanner: handleStartScan - Already scanning, forcing re-initialization.");
-      setIsScanning(false); // This will trigger cleanup
+      setIsScanning(false); 
       setTimeout(() => {
-        setIsScanning(true); // This will trigger initialization
-      }, 50); // A small delay to allow cleanup to process
+        setIsScanning(true); 
+      }, 50); 
     } else {
       setIsScanning(true);
     }
@@ -197,12 +192,12 @@ export default function LogFoodByBarcodePage() {
   
   const handleCancelScan = () => {
     console.log("Barcode Scanner: handleCancelScan called.");
-    setIsScanning(false); // Triggers cleanup via useEffect
+    setIsScanning(false); 
   }
 
   const handleScanAnother = () => {
     console.log("Barcode Scanner: handleScanAnother called.");
-    handleStartScan(); // Reuses the logic to ensure a clean start
+    handleStartScan(); 
   }
 
   const handleAddToLog = () => {
@@ -220,7 +215,7 @@ export default function LogFoodByBarcodePage() {
       action: <CheckCircle className="text-green-500" />,
     });
     setHasLogged(true);
-    setProductInfo(null); // Clear product info after logging
+    setProductInfo(null); 
   };
 
   return (
@@ -240,7 +235,7 @@ export default function LogFoodByBarcodePage() {
             id={qrcodeRegionId} 
             className={cn(
               "w-full aspect-video bg-muted rounded-md border border-dashed", 
-              { "min-h-[300px]": isScanning || (!isScanning && !productInfo && !scannedBarcode && !scanError) }
+              { "min-h-[300px]": isScanning || (!isScanning && !productInfo && !scannedBarcode && !scanError && !hasLogged) }
             )}
           />
 
@@ -318,6 +313,4 @@ export default function LogFoodByBarcodePage() {
     </div>
   );
 }
-    
-
     
