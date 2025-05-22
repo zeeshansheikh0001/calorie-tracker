@@ -119,10 +119,10 @@ export default function DashboardPage() {
 
       {/* Action Buttons */}
        <div className="grid grid-cols-3 gap-3"> {/* Always 3 columns, reduced gap */}
-        {(isLoadingLog || isLoadingGoals) ? (
+        {(isLoadingLog || isLoadingGoals) ? ( // Simplified check for loading state for actions
             <>
                 {[1,2,3].map(i => (
-                  <Card key={`skel-action-${i}`} className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><Skeleton className="h-6 w-6 rounded-full" /><Skeleton className="h-4 w-12" /></CardContent></Card>
+                  <Card key={`skel-action-${i}`} className="shadow-lg h-full"><CardContent className="p-4 flex flex-row items-center gap-3"><Skeleton className="h-6 w-6 rounded-full" /><Skeleton className="h-4 w-12" /></CardContent></Card>
                 ))}
             </>
         ) : (
@@ -137,7 +137,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/log-food/photo" passHref> {/* Assuming upload is also part of photo log page */}
+        <Link href="/log-food/photo" passHref> 
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
                <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-         <Link href="/log-food/barcode" passHref> 
+         <Link href="/log-food/manual" passHref> 
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
@@ -260,3 +260,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
