@@ -13,6 +13,8 @@
     --primary: 245 76% 58%; /* Vibrant Blue-Purple */
     --primary-hsl: 245, 76%, 58%; /* For direct HSL use, e.g. hsla(var(--primary-hsl), 0.1) */
     --primary-foreground: 0 0% 100%; /* White */
+    --primary-foreground-hsl-raw: 0, 0%, 100%; /* Raw HSL for primary-foreground */
+    --primary-foreground-hsl: var(--primary-foreground-hsl-raw);
     --secondary: 220 50% 90%; /* Lighter blue-gray for secondary elements */
     --secondary-foreground: 230 40% 40%; /* Darker blue for text on secondary */
     --muted: 220 30% 94%; /* Muted light blue/gray */
@@ -73,6 +75,8 @@
     --primary: 245 70% 65%; /* Lighter vibrant Blue-Purple */
     --primary-hsl: 245, 70%, 65%;
     --primary-foreground: 0 0% 100%;
+    --primary-foreground-hsl-raw: 0, 0%, 100%;
+    --primary-foreground-hsl: var(--primary-foreground-hsl-raw);
     --secondary: 220 20% 25%; /* Darker secondary */
     --secondary-foreground: 220 30% 80%;
     --muted: 220 15% 20%;

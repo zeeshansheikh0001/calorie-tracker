@@ -20,12 +20,14 @@ import {
   Lightbulb,
   TrendingUp,
   Utensils,
+  Loader2, // Added for chart skeleton
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import type { FoodEntry as LoggedFoodEntry } from "@/types"; // Renamed to avoid conflict with Card component
+import { useEffect, useState, type FC } from "react";
+import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { format } from "date-fns";
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
 
 interface MealCardProps {
   id: string;
@@ -74,7 +76,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
- <Card className="shadow-md hover:shadow-lg transition-shadow flex-1 min-w-[150px]">
+ <Card className="shadow-md hover:shadow-lg transition-shadow">
     <CardContent className="p-4 flex items-center space-x-3">
       <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.1)`}}>
          <Icon className="h-6 w-6" style={{ color: `hsl(${iconColor})` }}/>
@@ -87,20 +89,71 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, ico
   </Card>
 );
 
+interface DonutCenterLabelProps {
+  viewBox?: { cx?: number; cy?: number };
+  percentage: number;
+}
+
+const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) => {
+  if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') {
+    return null;
+  }
+  const { cx, cy } = viewBox;
+  return (
+    <text x={cx} y={cy} fill="hsl(var(--primary-foreground))" textAnchor="middle" dominantBaseline="central">
+      <tspan fontSize="2rem" fontWeight="bold">{`${percentage}%`}</tspan>
+    </text>
+  );
+};
+
 
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog } = useDailyLog();
-  const { goals, isLoading: isLoadingGoals } = useGoals(); // Keep isLoadingGoals if used elsewhere or for future use
+  const { goals, isLoading: isLoadingGoals } = useGoals();
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
     setCurrentDate(format(new Date(), "MMM d"));
   }, []);
 
+  const consumedCalories = dailyLog?.calories ?? 0;
+  const goalCalories = goals?.calories ?? 0;
+  const percentAchieved = goalCalories > 0 ? Math.round((consumedCalories / goalCalories) * 100) : 0;
+
+  const pieData = [
+    { name: 'Consumed', value: consumedCalories },
+    { name: 'Remaining', value: Math.max(0, goalCalories - consumedCalories) }
+  ];
+  
+  // Ensure 'Remaining' is only added if goalCalories > consumedCalories and goalCalories > 0
+  const chartData = [];
+  if (consumedCalories > 0 && goalCalories > 0) {
+     chartData.push({ name: 'Consumed', value: consumedCalories });
+  } else if (consumedCalories > 0 && goalCalories === 0) { // Consumed something but no goal set
+     chartData.push({ name: 'Consumed', value: consumedCalories });
+  }
+
+
+  if (goalCalories > consumedCalories && goalCalories > 0) {
+    chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories });
+  } else if (goalCalories === 0 && consumedCalories === 0) { // Nothing consumed, no goal
+    chartData.push({ name: 'Empty', value: 1 }); // To draw an empty track
+  }
+
+
+  const COLORS = {
+    Consumed: 'hsl(var(--accent))', // Bright Yellow/Orange
+    Remaining: 'hsla(var(--primary-foreground-hsl-raw), 0.3)', // Semi-transparent white
+    Empty: 'hsla(var(--primary-foreground-hsl-raw), 0.3)',
+  };
+
+
   const todayCalories = dailyLog?.calories ?? 0;
   const todayCarbs = dailyLog?.carbs ?? 0;
   const todayProtein = dailyLog?.protein ?? 0;
   const todayFat = dailyLog?.fat ?? 0;
+
+  const isDataLoading = isLoadingLog || isLoadingGoals;
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
@@ -118,25 +171,57 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* Smart Calorie Tracker Card */}
-      <Card 
-        className="shadow-xl text-primary-foreground p-6 rounded-2xl"
-        style={{ background: 'linear-gradient(100deg, rgb(var(--gradient-start-rgb)) 0%, rgb(var(--gradient-end-rgb)) 100%)' }}
-      >
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">Smart Calorie Tracker</h2>
-            <p className="text-sm opacity-90">Eat smarter. Track easier.</p>
+      {/* Smart Calorie Tracker Card with Donut Chart */}
+      {isDataLoading ? (
+         <Card className="shadow-xl text-primary-foreground p-4 rounded-2xl min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center"
+          style={{ background: 'linear-gradient(100deg, rgb(var(--gradient-start-rgb)) 0%, rgb(var(--gradient-end-rgb)) 100%)' }}
+        >
+          <Skeleton className="h-6 w-3/5 mb-1 bg-white/40" />
+          <Skeleton className="h-4 w-2/5 mb-3 bg-white/40" />
+          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center">
+            <Loader2 className="h-10 w-10 text-white/60 animate-spin" />
           </div>
-          <div className="p-3 bg-white/20 rounded-xl">
-            <Utensils className="h-8 w-8 text-yellow-300" />
-          </div>
-        </div>
-      </Card>
+        </Card>
+      ) : (
+        <Card 
+          className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden"
+          style={{ background: 'linear-gradient(100deg, rgb(var(--gradient-start-rgb)) 0%, rgb(var(--gradient-end-rgb)) 100%)' }}
+        >
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-lg font-semibold flex items-center justify-between">
+              <span>Daily Calories</span>
+              <span className="text-sm opacity-90">{Math.round(consumedCalories)} / {Math.round(goalCalories)} kcal</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0 h-[150px] sm:h-[170px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="70%"
+                  outerRadius="90%"
+                  dataKey="value"
+                  stroke="none"
+                  paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData[1]?.value > 0 ? 2 : 0}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Empty} />
+                  ))}
+                  {goalCalories > 0 && <Label content={<DonutCenterLabel percentage={percentAchieved} />} position="center" />}
+                </Pie>
+                <Tooltip formatter={(value, name) => [`${Math.round(value as number)} kcal`, name as string]} wrapperStyle={{zIndex: 1000}}/>
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
 
       {/* Action Buttons */}
        <div className="grid grid-cols-3 gap-3">
-        {(isLoadingLog || isLoadingGoals) ? ( 
+        {isDataLoading ? ( 
             <>
                 {[1,2,3].map(i => (
                   <Card key={`skel-action-${i}`} className="shadow-lg h-full">
@@ -193,7 +278,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-         {(isLoadingLog || isLoadingGoals) ? (
+         {isDataLoading ? (
             <>
               <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" />
               <SummaryCard icon={Wheat} value="..." label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
@@ -242,7 +327,7 @@ export default function DashboardPage() {
           </div>
         ) : foodEntries.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {foodEntries.map((entry: LoggedFoodEntry) => ( // Ensure type is used here
+            {foodEntries.map((entry: LoggedFoodEntry) => (
               <MealCard
                 key={entry.id}
                 id={entry.id}
@@ -285,5 +370,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
