@@ -22,46 +22,61 @@ import {
   Utensils,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { Goal } from "@/types";
+import type { FoodEntry as LoggedFoodEntry } from "@/types"; // Renamed to avoid conflict with Card component
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { format } from "date-fns";
 
 interface MealCardProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  calories: string;
-  iconColor?: string;
-  bgColor?: string;
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
 }
 
-const MealCard: React.FC<MealCardProps> = ({ icon: Icon, title, description, calories, iconColor = "text-primary", bgColor="bg-secondary/30" }) => (
-  <Card className="shadow-lg hover:shadow-xl transition-shadow">
-    <CardContent className="pt-6">
-      <div className="flex items-center space-x-3 mb-2">
-        <div className={`p-2 rounded-full ${bgColor}`}>
-          <Icon className={`h-5 w-5 ${iconColor}`} />
+const MealCard: React.FC<MealCardProps> = ({ name, calories, protein, fat, carbs }) => (
+  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+    <CardContent className="p-4 space-y-3">
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold text-foreground flex-1 mr-2 truncate" title={name}>{name}</h3>
+        <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
+          <Flame className="h-5 w-5 mr-1.5" />
+          {Math.round(calories)}
+          <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
         </div>
-        <h3 className="text-md font-semibold">{title}</h3>
       </div>
-      <p className="text-xs text-muted-foreground mb-1 truncate" title={description}>{description}</p>
-      <p className="text-sm font-medium" style={{color: 'hsl(var(--primary))'}}>{calories}</p>
+      <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
+          <span>Protein</span>
+        </div>
+        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
+          <span>Fat</span>
+        </div>
+        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
+          <span>Carbs</span>
+        </div>
+      </div>
     </CardContent>
   </Card>
 );
+
 
 interface SummaryCardProps {
   icon: React.ElementType;
   value: string;
   label: string;
-  iconColor: string; // HSL raw string like 'var(--text-kcal-raw)'
+  iconColor: string; 
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
- <Card className="shadow-md hover:shadow-lg transition-shadow">
+ <Card className="shadow-md hover:shadow-lg transition-shadow flex-1 min-w-[150px]">
     <CardContent className="p-4 flex items-center space-x-3">
-      <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.15)`}}>
+      <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.1)`}}>
          <Icon className="h-6 w-6" style={{ color: `hsl(${iconColor})` }}/>
       </div>
       <div className="flex flex-col">
@@ -75,7 +90,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, ico
 
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog } = useDailyLog();
-  const { goals, isLoading: isLoadingGoals } = useGoals();
+  const { goals, isLoading: isLoadingGoals } = useGoals(); // Keep isLoadingGoals if used elsewhere or for future use
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
@@ -211,28 +226,31 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2].map(i => ( 
               <Card key={`skel-meal-${i}`} className="shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-5 w-3/4" />
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <Skeleton className="h-6 w-3/4" /> {/* Name */}
+                    <Skeleton className="h-6 w-1/4" /> {/* Calories */}
                   </div>
-                  <Skeleton className="h-3 w-full mb-1" /> 
-                  <Skeleton className="h-4 w-1/4" /> 
+                  <div className="grid grid-cols-3 gap-2">
+                    <Skeleton className="h-12 w-full rounded-md" /> {/* Protein */}
+                    <Skeleton className="h-12 w-full rounded-md" /> {/* Fat */}
+                    <Skeleton className="h-12 w-full rounded-md" /> {/* Carbs */}
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : foodEntries.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {foodEntries.map((entry) => (
+            {foodEntries.map((entry: LoggedFoodEntry) => ( // Ensure type is used here
               <MealCard
                 key={entry.id}
-                icon={Utensils} 
-                title={entry.name}
-                description={`P: ${Math.round(entry.protein)}g, C: ${Math.round(entry.carbs)}g, F: ${Math.round(entry.fat)}g`}
-                calories={`${Math.round(entry.calories)} kcal`}
-                iconColor="text-green-600" 
-                bgColor="bg-green-100"
+                id={entry.id}
+                name={entry.name}
+                calories={entry.calories}
+                protein={entry.protein}
+                fat={entry.fat}
+                carbs={entry.carbs}
               />
             ))}
           </div>
@@ -268,3 +286,4 @@ export default function DashboardPage() {
   );
 }
 
+    
