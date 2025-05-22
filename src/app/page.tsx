@@ -15,7 +15,7 @@ import {
   Flame,
   Wheat,
   Drumstick,
-  Droplets, // Changed from CakeSlice
+  Droplets,
   PlusCircle,
   Lightbulb,
   TrendingUp,
@@ -187,10 +187,10 @@ export default function DashboardPage() {
             </>
           ) : (
             <>
-              <SummaryCard icon={Flame} value={todayCalories.toString()} label="kcal" iconColor="var(--text-kcal-raw)" />
-              <SummaryCard icon={Wheat} value={todayCarbs.toString()} label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
-              <SummaryCard icon={Drumstick} value={todayProtein.toString()} label="Protein (g)" iconColor="var(--text-protein-raw)" />
-              <SummaryCard icon={Droplets} value={todayFat.toString()} label="Fat (g)" iconColor="var(--text-fat-raw)" />
+              <SummaryCard icon={Flame} value={Math.round(todayCalories).toString()} label="kcal" iconColor="var(--text-kcal-raw)" />
+              <SummaryCard icon={Wheat} value={Math.round(todayCarbs).toString()} label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value={Math.round(todayProtein).toString()} label="Protein (g)" iconColor="var(--text-protein-raw)" />
+              <SummaryCard icon={Droplets} value={Math.round(todayFat).toString()} label="Fat (g)" iconColor="var(--text-fat-raw)" />
             </>
           )}
         </div>
@@ -229,8 +229,8 @@ export default function DashboardPage() {
                 key={entry.id}
                 icon={Utensils} 
                 title={entry.name}
-                description={`P: ${entry.protein}g, C: ${entry.carbs}g, F: ${entry.fat}g`}
-                calories={`${entry.calories} kcal`}
+                description={`P: ${Math.round(entry.protein)}g, C: ${Math.round(entry.carbs)}g, F: ${Math.round(entry.fat)}g`}
+                calories={`${Math.round(entry.calories)} kcal`}
                 iconColor="text-green-600" 
                 bgColor="bg-green-100"
               />
@@ -267,3 +267,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
