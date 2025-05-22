@@ -28,7 +28,7 @@ export default function LogFoodByPhotoPage() {
   const [isCameraLoading, setIsCameraLoading] = useState(false);
   const [capturedDataUri, setCapturedDataUri] = useState<string | null>(null);
   const [isStreamActive, setIsStreamActive] = useState(false);
-  const [attemptId, setAttemptId] = useState(0); 
+  const [attemptId, setAttemptId] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,9 +37,10 @@ export default function LogFoodByPhotoPage() {
   useEffect(() => {
     let stream: MediaStream | null = null;
     let readinessTimeout: NodeJS.Timeout | null = null;
+    let startCameraTimeoutId: NodeJS.Timeout | null = null;
 
     const cleanupVideoEventListeners = () => {
-      const videoNode = videoRef.current; 
+      const videoNode = videoRef.current;
       if (videoNode) {
         videoNode.onloadedmetadata = null;
         videoNode.onplaying = null;
@@ -48,16 +49,17 @@ export default function LogFoodByPhotoPage() {
     };
 
     const performCleanup = () => {
-      const videoNode = videoRef.current; 
+      const videoNode = videoRef.current;
       console.log("Camera: Full cleanup called");
+      if (startCameraTimeoutId) clearTimeout(startCameraTimeoutId);
       if (readinessTimeout) clearTimeout(readinessTimeout);
       cleanupVideoEventListeners();
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         console.log("Camera: Stream tracks stopped");
-        stream = null; 
+        stream = null;
       }
-      if (videoNode && videoNode.srcObject) { 
+      if (videoNode && videoNode.srcObject) {
         videoNode.srcObject = null;
         console.log("Camera: videoNode srcObject cleared");
       }
@@ -65,10 +67,10 @@ export default function LogFoodByPhotoPage() {
     };
 
     const startCamera = async () => {
-      const videoNode = videoRef.current; 
+      const videoNode = videoRef.current;
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
-        toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
+        toast({ variant: 'destructive', title: 'Camera Init Error', description: 'Camera component element not found. Please try switching tabs or refreshing.' });
         setHasCameraPermission(false);
         setIsCameraLoading(false);
         return;
@@ -76,15 +78,14 @@ export default function LogFoodByPhotoPage() {
 
       console.log("Camera: Attempting to start...");
       setIsCameraLoading(true);
-      setHasCameraPermission(undefined); 
-      setIsStreamActive(false); 
+      setHasCameraPermission(undefined);
+      setIsStreamActive(false);
 
       const onMetadataLoaded = () => {
         if (!videoNode) return;
         console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
         if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
-          // If onplaying is defined, call it manually. Otherwise videoNode.play() should trigger it.
-          if (videoNode.onplaying) videoNode.onplaying(new Event('playing')); 
+          if (videoNode.onplaying) videoNode.onplaying(new Event('playing'));
         } else {
           console.warn("Camera: onloadedmetadata - video dimensions are zero.");
         }
@@ -105,31 +106,33 @@ export default function LogFoodByPhotoPage() {
         console.error("Camera: videoNode.onerror:", e);
         if (readinessTimeout) clearTimeout(readinessTimeout);
         toast({ variant: "destructive", title: "Camera Error", description: "The camera stream encountered an error." });
-        performCleanup(); 
+        performCleanup();
         setHasCameraPermission(false);
         setIsCameraLoading(false);
       };
-      
+
       try {
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+          stream.getTracks().forEach(track => track.stop());
         }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         console.log("Camera: Permission granted.");
         setHasCameraPermission(true);
 
         videoNode.srcObject = stream;
-        cleanupVideoEventListeners(); 
+        cleanupVideoEventListeners();
         videoNode.onloadedmetadata = onMetadataLoaded;
         videoNode.onplaying = onPlaying;
         videoNode.onerror = onVideoError;
-        
+
         readinessTimeout = setTimeout(() => {
           console.warn("Camera: Timeout waiting for video metadata/play (10s).");
-          toast({ variant: "destructive", title: "Camera Timeout", description: "Camera took too long to initialize. Please check permissions or try another browser."});
-          performCleanup();
-          setHasCameraPermission(false); 
-          setIsCameraLoading(false);
+          if (!isStreamActive) { // Only toast if stream hasn't become active yet
+            toast({ variant: "destructive", title: "Camera Timeout", description: "Camera took too long to initialize. Please check permissions or try another browser." });
+            performCleanup();
+            setHasCameraPermission(false);
+            setIsCameraLoading(false);
+          }
         }, 10000);
 
         await videoNode.play();
@@ -146,18 +149,25 @@ export default function LogFoodByPhotoPage() {
           description: errorMessage,
         });
         setIsCameraLoading(false);
-        if (stream) stream.getTracks().forEach(track => track.stop()); 
+        if (stream) stream.getTracks().forEach(track => track.stop());
+         stream = null;
       }
     };
 
     if (tabMode === 'camera' && !previewUrl) {
-      startCamera();
+      // Defer the call to startCamera to allow DOM to settle and refs to be attached
+      startCameraTimeoutId = setTimeout(() => {
+        // Re-check conditions, in case tab changed quickly
+        if (tabMode === 'camera' && !previewUrl) {
+          startCamera();
+        }
+      }, 0);
     } else {
       performCleanup();
     }
 
-    return performCleanup; 
-  }, [tabMode, previewUrl, toast, attemptId]); 
+    return performCleanup;
+  }, [tabMode, previewUrl, toast, attemptId]);
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -197,7 +207,7 @@ export default function LogFoodByPhotoPage() {
         console.log("Image drawn to canvas");
         const dataUri = canvasNode.toDataURL('image/jpeg');
 
-        setPreviewUrl(dataUri); 
+        setPreviewUrl(dataUri);
         setCapturedDataUri(dataUri);
         setSelectedFile(null);
         setAnalysisResult(null);
@@ -289,7 +299,7 @@ export default function LogFoodByPhotoPage() {
   };
 
   const handleAddToLog = () => {
-    if (!analysisResult) return; 
+    if (!analysisResult) return;
 
     if (!analysisResult.isFoodItem) {
         toast({
@@ -299,10 +309,10 @@ export default function LogFoodByPhotoPage() {
         });
         return;
     }
-    
+
     let mealName = "Unnamed Meal";
     if (analysisResult.ingredients && analysisResult.ingredients.length > 0) {
-      mealName = analysisResult.ingredients.slice(0, 3).join(", "); 
+      mealName = analysisResult.ingredients.slice(0, 3).join(", ");
       if (analysisResult.ingredients.length > 3) mealName += "...";
     } else if (analysisResult.isFoodItem) {
       mealName = "AI Analyzed Meal";
@@ -352,9 +362,9 @@ export default function LogFoodByPhotoPage() {
           <Tabs value={tabMode} onValueChange={(value) => {
             const newTabMode = value as 'upload' | 'camera';
             setTabMode(newTabMode);
-            if (previewUrl) resetPreview(); 
-            if (newTabMode === 'camera' && !previewUrl) { 
-                 setAttemptId(prev => prev + 1); 
+            if (previewUrl) resetPreview();
+            if (newTabMode === 'camera' && !previewUrl) {
+                 setAttemptId(prev => prev + 1);
             }
           }} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -494,3 +504,6 @@ export default function LogFoodByPhotoPage() {
     </div>
   );
 }
+
+
+    
