@@ -28,7 +28,7 @@ import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { useUserProfile } from "@/hooks/use-user-profile"; // Import the new hook
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
 import { Calendar } from "@/components/ui/calendar";
@@ -56,8 +56,8 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
     >
       <Trash2 className="h-4 w-4" />
     </Button>
-    <CardContent className="p-4 space-y-3">
-      <div className="flex justify-between items-start mr-8">
+    <CardContent className="p-4 space-y-3 mr-8"> {/* Added mr-8 for delete button spacing */}
+      <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
         <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
           <Flame className="h-5 w-5 mr-1.5" />
@@ -92,7 +92,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
- <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
     <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(${iconColorVariable})` }} />
     <p className="text-lg font-bold" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
     <p className="text-xs text-muted-foreground">{label}</p>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
        <Card 
           className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden relative"
         >
-          {isDataLoading ? ( // Use combined loading state
+          {isDataLoading ? ( 
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
@@ -199,7 +199,7 @@ export default function DashboardPage() {
               }}
               data-ai-hint="health fitness abstract"
             >
-              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay */}
+              <div className="absolute inset-0 bg-black/30 z-0"></div> 
               <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
                 <Skeleton className="h-6 w-3/5 mb-1 bg-white/40" />
                 <Skeleton className="h-4 w-2/5 mb-3 bg-white/40" />
@@ -312,12 +312,25 @@ export default function DashboardPage() {
       {/* Today's Summary */}
       <div className="space-y-3">
         <div className="flex justify-between items-center mb-2"> 
-          <h2 className="text-xl font-semibold">Summary for</h2>
+          <h2 className="text-xl font-semibold">
+            Summary for{" "}
+            {currentSelectedDate
+              ? isToday(currentSelectedDate)
+                ? "Today"
+                : format(currentSelectedDate, "MMM d, yyyy")
+              : "the selected date"}
+          </h2>
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary">
                 <CalendarDays className="h-4 w-4" />
-                <span>{currentSelectedDate ? format(currentSelectedDate, "MMM d, yyyy") : "Select Date"}</span>
+                <span>
+                  {currentSelectedDate
+                    ? isToday(currentSelectedDate)
+                      ? "Today"
+                      : format(currentSelectedDate, "MMM d, yyyy")
+                    : "Select Date"}
+                </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -337,7 +350,7 @@ export default function DashboardPage() {
           </Popover>
         </div>
         <div className="grid grid-cols-2 gap-4">
-         {isDataLoading ? ( // Use combined loading state
+         {isDataLoading ? ( 
             <>
               {[1, 2, 3, 4].map(i => (
                  <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
@@ -361,7 +374,14 @@ export default function DashboardPage() {
       {/* Meal Log */}
       <div className="space-y-3">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Meal Log for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : ""}</h2>
+          <h2 className="text-xl font-semibold">
+            Meal Log for{" "}
+            {currentSelectedDate
+              ? isToday(currentSelectedDate)
+                ? "Today"
+                : format(currentSelectedDate, "MMM d, yyyy")
+              : "Selected Date"}
+          </h2>
           <Link href="/log-food/photo" passHref>
             <Button variant="ghost" size="sm" className="text-sm" style={{ color: 'hsl(var(--add-button-bg))' }}>
               <PlusCircle className="mr-1 h-4 w-4" />
@@ -373,7 +393,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2].map(i => ( 
               <Card key={`skel-meal-${i}`} className="shadow-lg rounded-xl">
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-4 space-y-3 mr-8">
                   <div className="flex justify-between items-start">
                     <Skeleton className="h-6 w-3/4" /> 
                     <Skeleton className="h-6 w-1/4" /> 
@@ -405,7 +425,13 @@ export default function DashboardPage() {
         ) : (
           <Card className="shadow-lg rounded-xl">
             <CardContent className="pt-6 text-center text-muted-foreground">
-              No meals logged for {currentSelectedDate ? format(currentSelectedDate, "MMM d, yyyy") : "the selected date"} yet. Use the "Add Meal" button to log your first meal!
+              No meals logged for{" "}
+              {currentSelectedDate
+                ? isToday(currentSelectedDate)
+                  ? "today"
+                  : format(currentSelectedDate, "MMM d, yyyy")
+                : "the selected date"}{" "}
+              yet. Use the "Add Meal" button to log your first meal!
             </CardContent>
           </Card>
         )}
@@ -423,7 +449,14 @@ export default function DashboardPage() {
         >
           <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold text-green-700">You're <span className="font-bold">on track</span> for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : "today"}!</h3>
+              <h3 className="text-lg font-semibold text-green-700">
+                You're <span className="font-bold">on track</span> for{" "}
+                {currentSelectedDate
+                  ? isToday(currentSelectedDate)
+                    ? "today"
+                    : format(currentSelectedDate, "MMM d")
+                  : "today"}!
+                </h3>
               <p className="text-xs text-muted-foreground">Keep up the balanced meals for better results.</p>
             </div>
             <TrendingUp className="h-7 w-7 text-green-600" />
@@ -433,3 +466,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
