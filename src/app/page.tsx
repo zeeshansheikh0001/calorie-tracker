@@ -129,17 +129,17 @@ export default function DashboardPage() {
       </Card>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {(isLoadingLog || isLoadingGoals) ? (
             <>
-                <Card className="shadow-lg"><CardContent className="pt-6 text-center"><div className="animate-pulse bg-muted-foreground/20 h-16 w-full rounded-md"></div></CardContent></Card>
-                <Card className="shadow-lg"><CardContent className="pt-6 text-center"><div className="animate-pulse bg-muted-foreground/20 h-16 w-full rounded-md"></div></CardContent></Card>
-                <Card className="shadow-lg"><CardContent className="pt-6 text-center"><div className="animate-pulse bg-muted-foreground/20 h-16 w-full rounded-md"></div></CardContent></Card>
+                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
+                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
+                <Card className="shadow-lg"><CardContent className="p-4 flex flex-row items-center gap-3"><div className="animate-pulse bg-muted-foreground/20 h-10 w-full rounded-md"></div></CardContent></Card>
             </>
         ) : (
         <>
         <Link href="/log-food/photo" passHref>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}>
                 <Camera className="h-6 w-6 text-primary" />
@@ -149,9 +149,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
         <Link href="/log-food/photo" passHref>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
-               <div className="p-2 rounded-full" style={{backgroundColor: 'hsl(145, 63%, 90%)'}}>
+               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
                 <UploadCloud className="h-6 w-6" style={{color: 'hsl(145, 58%, 40%)'}} />
               </div>
               <p className="text-sm font-medium">Upload</p>
@@ -159,9 +159,9 @@ export default function DashboardPage() {
           </Card>
         </Link>
          <Link href="/log-food/barcode" passHref> 
-          <Card className="shadow-lg hover:shadow-xl transition-shadow text-center cursor-pointer h-full">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
-              <div className="p-2 rounded-full" style={{backgroundColor: 'hsl(340, 82%, 92%)'}}>
+              <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
                 <FilePenLine className="h-6 w-6" style={{color: 'hsl(340, 72%, 62%)'}} />
               </div>
               <p className="text-sm font-medium">Manual</p>
@@ -237,5 +237,5 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-}
 
+    
