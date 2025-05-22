@@ -15,7 +15,7 @@ import {
   Flame,
   Wheat,
   Drumstick,
-  Droplets,
+  Droplets, // Changed from CakeSlice
   PlusCircle,
   Lightbulb,
   TrendingUp,
@@ -78,8 +78,8 @@ interface SummaryCardProps {
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
-    <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(var(${iconColorVariable}))` }} />
-    <p className="text-lg font-bold" style={{ color: `hsl(var(${iconColorVariable}))` }}>{value}</p>
+    <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(${iconColorVariable})` }} />
+    <p className="text-lg font-bold" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
     <p className="text-xs text-muted-foreground">{label}</p>
   </Card>
 );
@@ -170,12 +170,15 @@ export default function DashboardPage() {
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Placeholder
+                // Place your image in the public folder and update the path here
+                // e.g. backgroundImage: `url('/my-background.png')`
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                position: 'relative', // Needed for overlay
+                position: 'relative',
               }}
+              data-ai-hint="health fitness abstract"
             >
               <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay */}
               <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
@@ -189,16 +192,19 @@ export default function DashboardPage() {
           ) : (
             <div 
               style={{ 
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Placeholder
+                // Place your image in the public folder and update the path here
+                // e.g. backgroundImage: `url('/my-background.png')`
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`,
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                position: 'relative', // Needed for overlay
+                position: 'relative', 
               }}
-              className="min-h-[220px] sm:min-h-[240px]" // Ensure height is consistent
+              data-ai-hint="health fitness abstract"
+              className="min-h-[220px] sm:min-h-[240px]"
             >
-              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay */}
-              <div className="relative z-10 flex flex-col h-full"> {/* Ensure content fills the card */}
+              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay for text legibility */}
+              <div className="relative z-10 flex flex-col h-full"> 
                 <CardHeader className="pb-2 pt-4 px-4">
                   <CardTitle className="text-lg font-semibold flex items-center justify-between">
                     <span>Daily Calories</span>
@@ -225,7 +231,7 @@ export default function DashboardPage() {
                         {goalCalories > 0 && <Label content={<DonutCenterLabel percentage={percentAchieved} />} position="center" />}
                       </Pie>
                       <Tooltip 
-                        formatter={(value) => [`${Math.round(value as number)} kcal`, ""]} // Hide default name in tooltip
+                        formatter={(value) => [`${Math.round(value as number)} kcal`, ""]}
                         wrapperStyle={{zIndex: 1000}}
                       />
                     </PieChart>
@@ -288,21 +294,21 @@ export default function DashboardPage() {
 
       {/* Today's Summary */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center mb-2"> {/* Added mb-2 */}
+        <div className="flex justify-between items-center mb-2"> 
           <h2 className="text-xl font-semibold">Today's Summary</h2>
           <div className="flex items-center gap-1 text-sm text-primary">
             <CalendarDays className="h-4 w-4" />
             <span>{currentDate}</span>
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-3"> {/* Changed to grid-cols-4 and smaller gap */}
+        <div className="grid grid-cols-2 gap-4">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
                  <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
-                    <Skeleton className="h-6 w-6 mx-auto mb-1 rounded-full" /> {/* Icon placeholder */}
-                    <Skeleton className="h-5 w-10 mx-auto mb-1" /> {/* Value placeholder */}
-                    <Skeleton className="h-3 w-8 mx-auto" /> {/* Label placeholder */}
+                    <Skeleton className="h-6 w-6 mx-auto mb-1 rounded-full" />
+                    <Skeleton className="h-5 w-10 mx-auto mb-1" />
+                    <Skeleton className="h-3 w-8 mx-auto" />
                   </Card>
               ))}
             </>
@@ -391,6 +397,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-
+    
 
     
