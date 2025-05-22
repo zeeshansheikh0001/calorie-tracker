@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Save, User, Mail, ArrowLeft, UploadCloud } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import type { UserProfile } from "@/types";
 
 const DEFAULT_USER_PROFILE: UserProfile = {
