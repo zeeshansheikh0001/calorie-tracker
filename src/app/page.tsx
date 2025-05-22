@@ -15,7 +15,7 @@ import {
   Flame,
   Wheat,
   Drumstick,
-  CakeSlice, 
+  Droplets, // Changed from CakeSlice
   PlusCircle,
   Lightbulb,
   TrendingUp,
@@ -181,16 +181,16 @@ export default function DashboardPage() {
          {(isLoadingLog || isLoadingGoals) ? (
             <>
               <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" />
-              <SummaryCard icon={Wheat} value="..." label="Carbs" iconColor="var(--text-carbs-raw)" />
-              <SummaryCard icon={Drumstick} value="..." label="Protein" iconColor="var(--text-protein-raw)" />
-              <SummaryCard icon={CakeSlice} value="..." label="Fat" iconColor="var(--text-fat-raw)" />
+              <SummaryCard icon={Wheat} value="..." label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value="..." label="Protein (g)" iconColor="var(--text-protein-raw)" />
+              <SummaryCard icon={Droplets} value="..." label="Fat (g)" iconColor="var(--text-fat-raw)" />
             </>
           ) : (
             <>
-              <SummaryCard icon={Flame} value={`${todayCalories}`} label="kcal" iconColor="var(--text-kcal-raw)" />
-              <SummaryCard icon={Wheat} value={`${todayCarbs}g`} label="Carbs" iconColor="var(--text-carbs-raw)" />
-              <SummaryCard icon={Drumstick} value={`${todayProtein}g`} label="Protein" iconColor="var(--text-protein-raw)" />
-              <SummaryCard icon={CakeSlice} value={`${todayFat}g`} label="Fat" iconColor="var(--text-fat-raw)" />
+              <SummaryCard icon={Flame} value={todayCalories.toString()} label="kcal" iconColor="var(--text-kcal-raw)" />
+              <SummaryCard icon={Wheat} value={todayCarbs.toString()} label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value={todayProtein.toString()} label="Protein (g)" iconColor="var(--text-protein-raw)" />
+              <SummaryCard icon={Droplets} value={todayFat.toString()} label="Fat (g)" iconColor="var(--text-fat-raw)" />
             </>
           )}
         </div>
@@ -267,4 +267,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
