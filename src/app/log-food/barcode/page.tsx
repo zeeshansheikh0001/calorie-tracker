@@ -115,7 +115,7 @@ export default function LogFoodByBarcodePage() {
         (async () => {
           setIsLoadingProduct(true);
           setProductInfo(null);
-          setScanError(null); // Clear previous errors before new fetch
+          setScanError(null); 
           try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
             
@@ -124,7 +124,7 @@ export default function LogFoodByBarcodePage() {
               if (response.status === 404) {
                 errorMessage = `Product with barcode ${decodedText} not found.`;
               }
-              console.error("Error fetching product data (response not ok):", errorMessage);
+              console.warn("Product data issue (response not ok):", errorMessage); // Changed from console.error
               setScanError(errorMessage);
               toast({
                 title: response.status === 404 ? "Product Not Found" : "API Error",
@@ -133,7 +133,7 @@ export default function LogFoodByBarcodePage() {
                 action: <AlertCircle className="text-red-500" />
               });
               setIsLoadingProduct(false);
-              return; // Exit async IIFE
+              return; 
             }
 
             const data = await response.json();
@@ -149,7 +149,7 @@ export default function LogFoodByBarcodePage() {
                 action: <AlertCircle className="text-red-500" />
               });
               setIsLoadingProduct(false);
-              return; // Exit async IIFE
+              return; 
             }
 
             const product = data.product;
@@ -183,7 +183,7 @@ export default function LogFoodByBarcodePage() {
                console.warn(`Product ${fetchedProductInfo.name} found, but nutritional data might be incomplete.`);
                toast({
                    title: "Nutritional Data May Be Incomplete",
-                   description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero.`,
+                   description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero. Values are typically per 100g/ml.`,
                    variant: "default", 
                });
             } else {
@@ -444,4 +444,6 @@ export default function LogFoodByBarcodePage() {
     </div>
   );
 }
+    
+
     
