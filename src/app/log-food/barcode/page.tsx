@@ -10,6 +10,7 @@ import { ScanLine, PackageSearch, PlusCircle, CheckCircle, AlertCircle, Loader2,
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useToast } from "@/hooks/use-toast";
 import type { FoodEntry } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface ScannedProductInfo {
   id: string;
