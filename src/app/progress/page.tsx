@@ -1,25 +1,16 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { BarChart as BarChartIcon, PieChart as PieChartIcon, TrendingUp, Activity, CalendarDays, CheckCircle, XCircle, ListChecks } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, Sector } from 'recharts';
-import { LineChart as LucideLineChart, TrendingUp, Activity, CalendarDays } from "lucide-react";
-import type { Goal, DailyLogEntry } from "@/types"; // Assuming types are defined
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDailyLog } from "@/hooks/use-daily-log";
+import { useGoals } from "@/hooks/use-goals";
+import { format, isToday } from "date-fns";
 
-const mockGoals: Goal = { calories: 2200, protein: 160, fat: 75, carbs: 220 };
-const mockLog: DailyLogEntry[] = [
-  { date: '2024-07-01', calories: 2100, protein: 150, fat: 70, carbs: 210 },
-  { date: '2024-07-02', calories: 2300, protein: 165, fat: 80, carbs: 230 },
-  { date: '2024-07-03', calories: 2050, protein: 155, fat: 65, carbs: 200 },
-  { date: '2024-07-04', calories: 2250, protein: 160, fat: 72, carbs: 225 },
-  { date: '2024-07-05', calories: 1900, protein: 140, fat: 60, carbs: 190 },
-  { date: '2024-07-06', calories: 2400, protein: 170, fat: 85, carbs: 245 },
-  { date: '2024-07-07', calories: 2150, protein: 158, fat: 73, carbs: 215 },
-];
-
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))'];
+const CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
 const renderActiveShape = (props: any) => {
   const RADIAN = Math.PI / 180;
@@ -36,7 +27,7 @@ const renderActiveShape = (props: any) => {
 
   return (
     <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} className="text-sm font-semibold">
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-sm font-semibold">
         {payload.name}
       </text>
       <Sector
@@ -47,6 +38,7 @@ const renderActiveShape = (props: any) => {
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
+        cornerRadius={5}
       />
       <Sector
         cx={cx}
@@ -56,12 +48,13 @@ const renderActiveShape = (props: any) => {
         innerRadius={outerRadius + 6}
         outerRadius={outerRadius + 10}
         fill={fill}
+        cornerRadius={3}
       />
       <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
       <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-xs">{`${value.toFixed(0)}g`}</text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="hsl(var(--foreground))" className="text-xs">{`${Math.round(value)}g`}</text>
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="hsl(var(--muted-foreground))" className="text-xs">
-        {`(${(percent * 100).toFixed(2)}%)`}
+        {`(${(percent * 100).toFixed(1)}%)`}
       </text>
     </g>
   );
@@ -69,135 +62,159 @@ const renderActiveShape = (props: any) => {
 
 
 export default function ProgressPage() {
-  const [goals, setGoals] = useState<Goal>(mockGoals);
-  const [dailyLog, setDailyLog] = useState<DailyLogEntry[]>(mockLog);
-  const [timeRange, setTimeRange] = useState("7days");
+  const { dailyLog, foodEntries, isLoading: isLoadingLog, currentSelectedDate } = useDailyLog();
+  const { goals, isLoading: isLoadingGoals } = useGoals();
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const isLoading = isLoadingLog || isLoadingGoals;
 
-  useEffect(() => {
-    const storedGoals = localStorage.getItem("userGoals");
-    if (storedGoals) {
-      setGoals(JSON.parse(storedGoals));
-    }
-    // In a real app, fetch dailyLog based on timeRange
-  }, [timeRange]);
+  const caloriesToday = dailyLog?.calories ?? 0;
+  const proteinToday = dailyLog?.protein ?? 0;
+  const fatToday = dailyLog?.fat ?? 0;
+  const carbsToday = dailyLog?.carbs ?? 0;
+  const mealsLoggedToday = foodEntries?.length ?? 0;
 
-  const averageCalories = dailyLog.reduce((sum, entry) => sum + entry.calories, 0) / dailyLog.length;
-  
-  const latestEntry = dailyLog[dailyLog.length -1] || {calories: 0, protein: 0, fat: 0, carbs: 0};
-  const macroData = [
-    { name: 'Protein', value: latestEntry.protein },
-    { name: 'Fat', value: latestEntry.fat },
-    { name: 'Carbs', value: latestEntry.carbs },
+  const calorieGoal = goals?.calories ?? 0;
+  const calorieProgress = calorieGoal > 0 ? (caloriesToday / calorieGoal) * 100 : 0;
+  const isOnTrackToday = calorieGoal > 0 && caloriesToday <= calorieGoal;
+
+  const calorieChartData = [
+    { name: 'Consumed', value: Math.round(caloriesToday), fill: 'hsl(var(--chart-1))' },
+    { name: 'Goal', value: Math.round(calorieGoal), fill: 'hsl(var(--chart-2))' },
   ];
 
+  const macroData = [
+    { name: 'Protein', value: proteinToday > 0 ? proteinToday : 0.01 }, // Add small value if 0 for pie chart
+    { name: 'Fat', value: fatToday > 0 ? fatToday : 0.01 },
+    { name: 'Carbs', value: carbsToday > 0 ? carbsToday : 0.01 },
+  ].filter(m => m.value > 0); // Filter out zero values after adding small epsilon if needed
 
-  const onPieEnter = (_: any, index: number) => {
+   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
   };
+  
+  const selectedDateFormatted = currentSelectedDate 
+    ? isToday(currentSelectedDate) 
+      ? "Today" 
+      : format(currentSelectedDate, "MMM d, yyyy") 
+    : "Selected Date";
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center">
-            <LucideLineChart className="mr-3 h-8 w-8 text-primary" />
-            Your Nutritional Progress
-          </h1>
-          <p className="text-muted-foreground">Visualize your journey towards better health.</p>
-        </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
-            <SelectValue placeholder="Select time range" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7days">Last 7 Days</SelectItem>
-            <SelectItem value="30days">Last 30 Days</SelectItem>
-            <SelectItem value="alltime">All Time</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center">
+          <TrendingUp className="mr-3 h-8 w-8 text-primary" />
+          Nutritional Stats for {selectedDateFormatted}
+        </h1>
+        <p className="text-muted-foreground">Your performance for the selected day.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500 delay-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Daily Calories</CardTitle>
+            <CardTitle className="text-sm font-medium">Calories Consumed</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageCalories.toFixed(0)} kcal</div>
-            <p className="text-xs text-muted-foreground">
-              Target: {goals.calories} kcal
-            </p>
-            <Progress value={(averageCalories / goals.calories) * 100} className="mt-2 h-2" />
+            {isLoading ? (
+              <>
+                <div className="h-7 w-24 bg-muted rounded animate-pulse mb-1"></div>
+                <div className="h-3 w-32 bg-muted rounded animate-pulse"></div>
+              </>
+            ) : (
+              <>
+              <div className="text-2xl font-bold">{Math.round(caloriesToday)} kcal</div>
+              <p className="text-xs text-muted-foreground">
+                Goal: {Math.round(calorieGoal)} kcal
+              </p>
+              </>
+            )}
+            <Progress value={calorieProgress} className="mt-2 h-3 rounded-full" indicatorClassName="rounded-full" />
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500 delay-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Goal Adherence</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Goal Adherence (Calories)</CardTitle>
+            {isLoading ? <TrendingUp className="h-4 w-4 text-muted-foreground" /> : isOnTrackToday ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {/* Placeholder for adherence calculation */}
-              {((dailyLog.filter(d => d.calories <= goals.calories).length / dailyLog.length) * 100).toFixed(0)}%
+             {isLoading ? (
+              <>
+                <div className="h-7 w-20 bg-muted rounded animate-pulse mb-1"></div>
+                <div className="h-3 w-28 bg-muted rounded animate-pulse"></div>
+              </>
+            ) : (
+            <>
+            <div className={`text-2xl font-bold ${isOnTrackToday ? 'text-green-500' : 'text-red-500'}`}>
+              {calorieGoal > 0 ? `${Math.round(calorieProgress)}%` : "No Goal Set"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Days on track in selected period
+              {isOnTrackToday ? "On track for today!" : (caloriesToday > calorieGoal && calorieGoal > 0 ? "Over calorie goal" : "Under calorie goal or no goal")}
             </p>
-             <Progress value={((dailyLog.filter(d => d.calories <= goals.calories).length / dailyLog.length) * 100)} className="mt-2 h-2 bg-green-500/20 [&>div]:bg-green-500" />
+            </>
+            )}
+            <Progress 
+                value={calorieGoal > 0 ? Math.min(100, calorieProgress) : 0} 
+                className={`mt-2 h-3 rounded-full ${isOnTrackToday && calorieGoal > 0 ? 'bg-green-500/20 [&>div]:bg-green-500' : (calorieGoal > 0 ? 'bg-red-500/20 [&>div]:bg-red-500' : 'bg-muted')}`}
+                indicatorClassName="rounded-full"
+            />
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500 delay-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Days Logged</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Meals Logged</CardTitle>
+            <ListChecks className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dailyLog.length} days</div>
+             {isLoading ? (
+                <div className="h-7 w-12 bg-muted rounded animate-pulse mb-1"></div>
+             ) : (
+                <div className="text-2xl font-bold">{mealsLoggedToday}</div>
+             )}
             <p className="text-xs text-muted-foreground">
-              Consistency is key!
+              Items logged for {selectedDateFormatted.toLowerCase()}
             </p>
-             <Progress value={(dailyLog.length / (timeRange === '7days' ? 7 : 30)) * 100} className="mt-2 h-2 bg-blue-500/20 [&>div]:bg-blue-500" />
           </CardContent>
         </Card>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500 delay-400">
           <CardHeader>
-            <CardTitle>Daily Calorie Intake vs. Goal</CardTitle>
-            <CardDescription>How your intake compares to your {goals.calories} kcal goal.</CardDescription>
+            <CardTitle className="flex items-center"><BarChartIcon className="mr-2 h-5 w-5 text-primary"/>Calories: Consumed vs. Goal</CardTitle>
+            <CardDescription>Comparison for {selectedDateFormatted}.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] w-full">
+            {isLoading ? <div className="h-full w-full bg-muted rounded animate-pulse"></div> : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dailyLog} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+              <BarChart data={calorieChartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }} barGap={10} barCategoryGap="20%">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "hsl(var(--background))", borderColor: "hsl(var(--border))", borderRadius: "var(--radius)"}}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
                 />
-                <Legend wrapperStyle={{ fontSize: "12px" }} />
-                <Bar dataKey="calories" name="Calories Consumed" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                {/* You could add a reference line for the goal */}
-                {/* <ReferenceLine y={goals.calories} label="Goal" stroke="hsl(var(--accent))" strokeDasharray="3 3" /> */}
+                <Bar dataKey="value" name="Calories" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500 delay-500">
           <CardHeader>
-            <CardTitle>Macronutrient Distribution (Latest Day)</CardTitle>
-            <CardDescription>Breakdown of protein, fat, and carbs for {new Date(latestEntry.date || Date.now()).toLocaleDateString()}</CardDescription>
+            <CardTitle className="flex items-center"><PieChartIcon className="mr-2 h-5 w-5 text-primary"/>Macronutrient Distribution</CardTitle>
+            <CardDescription>Protein, Fat, and Carbs for {selectedDateFormatted}.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] w-full">
+          {isLoading || macroData.length === 0 ? (
+            <div className="h-full w-full flex items-center justify-center bg-muted rounded animate-pulse text-muted-foreground">
+                {isLoading ? "Loading chart..." : "No macro data for this day."}
+            </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -206,32 +223,25 @@ export default function ProgressPage() {
                   data={macroData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={100}
-                  fill="hsl(var(--primary))"
+                  innerRadius="55%"
+                  outerRadius="80%"
                   dataKey="value"
                   onMouseEnter={onPieEnter}
+                  paddingAngle={5}
                 >
                   {macroData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} stroke="hsl(var(--background))" strokeWidth={2}/>
                   ))}
                 </Pie>
-                 <Tooltip contentStyle={{ backgroundColor: "hsl(var(--background))", borderColor: "hsl(var(--border))", borderRadius: "var(--radius)"}}/>
+                 <Tooltip contentStyle={{ backgroundColor: "hsl(var(--background))", borderColor: "hsl(var(--border))", borderRadius: "var(--radius)"}} formatter={(value: number, name: string) => [`${Math.round(value)}g`, name]}/>
               </PieChart>
             </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Placeholder for historical data table or more detailed reports */}
-      {/* <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Detailed Log History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">A table with historical logs would go here.</p>
-        </CardContent>
-      </Card> */}
     </div>
   );
 }
+
+    
