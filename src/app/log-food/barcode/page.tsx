@@ -115,20 +115,41 @@ export default function LogFoodByBarcodePage() {
         (async () => {
           setIsLoadingProduct(true);
           setProductInfo(null);
-          setScanError(null);
+          setScanError(null); // Clear previous errors before new fetch
           try {
             const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
+            
             if (!response.ok) {
+              let errorMessage = `API request failed with status ${response.status}`;
               if (response.status === 404) {
-                throw new Error(`Product with barcode ${decodedText} not found.`);
+                errorMessage = `Product with barcode ${decodedText} not found.`;
               }
-              throw new Error(`API request failed with status ${response.status}`);
+              console.error("Error fetching product data (response not ok):", errorMessage);
+              setScanError(errorMessage);
+              toast({
+                title: response.status === 404 ? "Product Not Found" : "API Error",
+                description: errorMessage,
+                variant: "destructive",
+                action: <AlertCircle className="text-red-500" />
+              });
+              setIsLoadingProduct(false);
+              return; // Exit async IIFE
             }
 
             const data = await response.json();
 
             if (data.status === 0 || !data.product) {
-              throw new Error(`Product with barcode ${decodedText} not found in Open Food Facts database.`);
+              const errorMessage = `Product with barcode ${decodedText} not found in Open Food Facts database.`;
+              console.warn("Product data issue:", errorMessage, data);
+              setScanError(errorMessage);
+              toast({
+                title: "Product Data Issue",
+                description: errorMessage,
+                variant: "destructive", 
+                action: <AlertCircle className="text-red-500" />
+              });
+              setIsLoadingProduct(false);
+              return; // Exit async IIFE
             }
 
             const product = data.product;
@@ -174,7 +195,7 @@ export default function LogFoodByBarcodePage() {
             }
 
           } catch (error: any) {
-            console.error("Error fetching product data:", error);
+            console.error("Error fetching product data (catch block):", error);
             const errorMessage = error.message || "Failed to fetch product information.";
             setScanError(errorMessage);
             toast({
@@ -253,7 +274,7 @@ export default function LogFoodByBarcodePage() {
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScanning]); // toast dependency removed as it can cause re-renders affecting scanner
+  }, [isScanning]);
 
 
   const handleStartScan = () => {
@@ -268,7 +289,7 @@ export default function LogFoodByBarcodePage() {
       setIsScanning(false); 
       setTimeout(() => {
         setIsScanning(true); 
-      }, 150); // Increased delay slightly
+      }, 150);
     } else {
       setIsScanning(true);
     }
