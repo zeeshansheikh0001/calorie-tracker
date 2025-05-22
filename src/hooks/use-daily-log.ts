@@ -88,31 +88,39 @@ export function useDailyLog() {
 
   const deleteFoodEntry = useCallback((entryId: string) => {
     setFoodEntries((prevEntries) => {
+      const entryToDelete = prevEntries.find(entry => entry.id === entryId);
+      if (!entryToDelete) return prevEntries;
+
       const updatedEntries = prevEntries.filter(entry => entry.id !== entryId);
 
       const newSummary: DailyLogEntry = {
         date: dailyLog!.date, // dailyLog is guaranteed to be initialized by loadTodaysLog
-        calories: updatedEntries.reduce((sum, entry) => sum + entry.calories, 0),
-        protein: updatedEntries.reduce((sum, entry) => sum + entry.protein, 0),
-        fat: updatedEntries.reduce((sum, entry) => sum + entry.fat, 0),
-        carbs: updatedEntries.reduce((sum, entry) => sum + entry.carbs, 0),
+        calories: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.calories, 0)),
+        protein: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.protein, 0)),
+        fat: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.fat, 0)),
+        carbs: Math.round(updatedEntries.reduce((sum, entry) => sum + entry.carbs, 0)),
       };
 
       setDailyLog(newSummary);
 
       try {
         localStorage.setItem(getTodayStorageKey(), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
-        toast({
-          title: "Meal Deleted",
-          description: "The meal has been removed from your log.",
-        });
+        // Defer the toast call to the next event loop tick
+        setTimeout(() => {
+          toast({
+            title: "Meal Deleted",
+            description: "The meal has been removed from your log.",
+          });
+        }, 0);
       } catch (error) {
         console.error("Failed to save daily log to localStorage after delete", error);
-        toast({
-          title: "Error Deleting Meal",
-          description: "Could not update the log after deletion.",
-          variant: "destructive",
-        });
+        setTimeout(() => {
+          toast({
+            title: "Error Deleting Meal",
+            description: "Could not update the log after deletion.",
+            variant: "destructive",
+          });
+        }, 0);
       }
       return updatedEntries;
     });
