@@ -16,14 +16,14 @@ import { useToast } from "@/hooks/use-toast";
 export default function LogFoodByPhotoPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For AI analysis
   const [analysisResult, setAnalysisResult] = useState<AnalyzeFoodPhotoOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [isCameraLoading, setIsCameraLoading] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(false); // For camera startup
   const [capturedDataUri, setCapturedDataUri] = useState<string | null>(null);
   const [isStreamActive, setIsStreamActive] = useState(false);
 
@@ -32,13 +32,38 @@ export default function LogFoodByPhotoPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const requestCameraPermission = useCallback(async () => {
-    if (!videoRef.current) {
-      setIsStreamActive(false);
+    if (!videoRef.current && tabMode === 'camera' && !previewUrl) {
+      console.error("requestCameraPermission called but videoRef is null. This might be a timing issue.");
+      // Attempt to re-check in a moment if the ref isn't set yet
+      setTimeout(() => {
+          if (!videoRef.current) {
+            console.error("videoRef still null after short delay in requestCameraPermission.");
+            toast({
+                variant: 'destructive',
+                title: 'Camera Error',
+                description: 'Could not initialize camera component. Please try again.',
+            });
+            setHasCameraPermission(false);
+            setIsCameraLoading(false);
+            setIsStreamActive(false);
+          } else {
+            requestCameraPermission(); // Retry with ref hopefully now set
+          }
+      }, 100);
+      return false;
+    }
+    
+    // If we are not in camera tab or a preview is shown, no need to request
+    if (tabMode !== 'camera' || previewUrl) {
+      setIsCameraLoading(false);
       return false;
     }
 
     setIsCameraLoading(true);
+    setHasCameraPermission(null); // Reset while trying
+    setIsStreamActive(false);
     let streamSuccess = false;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       setHasCameraPermission(true);
@@ -49,69 +74,92 @@ export default function LogFoodByPhotoPage() {
         await new Promise<void>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
             console.error("Camera metadata load timed out");
+            videoEl.onloadedmetadata = null;
+            videoEl.onerror = null;
             reject(new Error("Camera metadata load timed out"));
-          }, 5000); // 5-second timeout
+          }, 7000); // Increased timeout
 
           videoEl.onloadedmetadata = () => {
             clearTimeout(timeoutId);
-            console.log("Camera metadata loaded.");
-            setIsStreamActive(true);
-            streamSuccess = true;
-            resolve();
+            videoEl.onerror = null; // Clean up error handler
+            console.log("Camera metadata loaded. Video dimensions:", videoEl.videoWidth, "x", videoEl.videoHeight);
+            if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+                setIsStreamActive(true);
+                streamSuccess = true;
+                resolve();
+            } else {
+                console.error("Camera metadata loaded but video dimensions are zero.");
+                reject(new Error("Video dimensions are zero after metadata load."));
+            }
           };
           videoEl.onerror = (e) => {
             clearTimeout(timeoutId);
-            console.error("Video element error:", e);
+            videoEl.onloadedmetadata = null; // Clean up metadata handler
+            console.error("Video element error during stream setup:", e);
             reject(new Error("Video element error"));
           };
+           // Ensure video is playing if autoPlay isn't enough
+          videoEl.play().catch(playError => {
+            console.warn("Video play() failed, possibly due to browser policy:", playError);
+            // Some browsers require user interaction to play video, though `muted` usually bypasses this.
+            // If play fails, metadata might not load. This might need a user gesture to trigger play.
+          });
         });
       } else {
-         setIsStreamActive(false);
+         setIsStreamActive(false); // Should not happen if video is always rendered
+         console.error("videoRef.current became null during stream setup");
       }
       return streamSuccess;
     } catch (err) {
-      console.error('Error accessing camera:', err);
+      console.error('Error accessing or setting up camera:', err);
       setHasCameraPermission(false);
       setIsStreamActive(false);
       toast({
         variant: 'destructive',
         title: 'Camera Access Denied',
-        description: 'Please enable camera permissions in your browser settings.',
+        description: (err as Error)?.message || 'Please enable camera permissions and ensure it is not in use by another app.',
       });
       return false;
     } finally {
       setIsCameraLoading(false);
     }
-  }, [toast]);
+  }, [toast, tabMode, previewUrl]); // Added tabMode and previewUrl as they gate the logic
 
   useEffect(() => {
-    const videoElement = videoRef.current; 
+    const videoElement = videoRef.current;
+    let currentStream: MediaStream | null = null;
+    if (videoElement && videoElement.srcObject) {
+        currentStream = videoElement.srcObject as MediaStream;
+    }
 
     if (tabMode === 'camera' && !previewUrl) {
-      if (!isStreamActive && !isCameraLoading) { 
+      if (!isStreamActive && !isCameraLoading && hasCameraPermission !== false) { 
          requestCameraPermission();
       }
-    } else {
-      if (videoElement && videoElement.srcObject) {
-        const stream = videoElement.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+    } else { // Not in camera tab, or a preview IS shown, or permission explicitly denied
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+      if (videoElement) {
         videoElement.srcObject = null;
       }
-      if (isStreamActive) { // Only update if it was active
+      if (isStreamActive) {
         setIsStreamActive(false);
       }
     }
 
-    // Cleanup function: ensure stream is stopped if active when component unmounts or dependencies change
     return () => {
-      if (videoElement && videoElement.srcObject) {
-        const stream = videoElement.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        if (videoElement) videoElement.srcObject = null; // Check again
+      // Cleanup stream when component unmounts or dependencies change leading to stream stop
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
       }
-       // setIsStreamActive(false); // This can cause issues if called during valid active stream periods
+      if (videoElement) { // Check if videoElement (captured at effect start) is still valid
+        videoElement.srcObject = null;
+      }
+      // isStreamActive will be false if we came through the 'else' block above
     };
-  }, [tabMode, previewUrl, requestCameraPermission, isStreamActive, isCameraLoading]);
+  // Re-evaluating dependencies for camera lifecycle management
+  }, [tabMode, previewUrl, requestCameraPermission, hasCameraPermission]); // Removed isStreamActive, isCameraLoading from here to simplify, relying on requestCameraPermission to manage them. Added hasCameraPermission.
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -128,25 +176,23 @@ export default function LogFoodByPhotoPage() {
       setError(null);
 
       // If a file is selected, ensure camera stream is off
-      if (videoRef.current && videoRef.current.srcObject) {
-          const stream = videoRef.current.srcObject as MediaStream;
-          stream.getTracks().forEach(track => track.stop());
-          videoRef.current.srcObject = null;
-      }
-      setIsStreamActive(false);
+      // This will be handled by the useEffect reacting to previewUrl change
     }
   };
 
   const handleCapturePhoto = () => {
-    console.log("Attempting to capture photo. Stream active:", isStreamActive);
+    console.log("Attempting to capture photo. Stream active:", isStreamActive, "Video Ref:", videoRef.current);
     if (videoRef.current && canvasRef.current && videoRef.current.srcObject && isStreamActive) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
       if (video.videoWidth === 0 || video.videoHeight === 0) {
         console.error("Capture failed: Video dimensions are zero.", { w: video.videoWidth, h: video.videoHeight });
-        setError("Camera reported zero dimensions. Cannot capture.");
-        toast({ variant: "destructive", title: "Camera Error", description: "Video dimensions are zero. Try again." });
+        setError("Camera reported zero dimensions. Cannot capture. Try reopening camera tab.");
+        toast({ variant: "destructive", title: "Camera Error", description: "Video dimensions are zero. Try again or re-open camera tab." });
+        setIsStreamActive(false); // Attempt to reset stream state
+        // Consider forcing a re-request of permission or stream restart
+        requestCameraPermission(); 
         return;
       }
       
@@ -166,9 +212,8 @@ export default function LogFoodByPhotoPage() {
         setAnalysisResult(null);
         setError(null);
         
-        // The useEffect will detect previewUrl change and stop the stream & set isStreamActive to false.
-        // For immediate feedback on button disable state, we can set it here too.
-        setIsStreamActive(false);
+        // Setting previewUrl will trigger useEffect to stop the stream.
+        // setIsStreamActive(false); // Handled by useEffect
       } else {
         console.error("Could not get 2D context from canvas.");
         setError("Could not get canvas context to capture photo.");
@@ -182,7 +227,7 @@ export default function LogFoodByPhotoPage() {
       if (!isStreamActive) logMessage += "Stream is not marked as active. ";
       console.error(logMessage, { videoSrcObj: videoRef.current?.srcObject, isStreamActiveVal: isStreamActive });
       setError("Camera or canvas not available, or stream not active.");
-      toast({ variant: "destructive", title: "Camera Error", description: "Camera not ready to capture. Please try reopening the camera tab." });
+      toast({ variant: "destructive", title: "Camera Error", description: "Camera not ready to capture. Please try reopening the camera tab or re-granting permission." });
     }
   };
 
@@ -252,15 +297,7 @@ export default function LogFoodByPhotoPage() {
       description: `${analysisResult.calorieEstimate} kcal added to your log.`,
       variant: "default",
     });
-    // Clear states after logging
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    setAnalysisResult(null);
-    setCapturedDataUri(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""; 
-    }
-    // isStreamActive will be handled by useEffect based on previewUrl
+    resetPreview();
   };
 
   const resetPreview = () => {
@@ -273,8 +310,6 @@ export default function LogFoodByPhotoPage() {
       fileInputRef.current.value = "";
     }
     // Setting previewUrl to null will trigger useEffect to restart camera if on camera tab.
-    // isStreamActive will be set to false by the useEffect when previewUrl was previously truthy.
-    // Then, when previewUrl becomes null, useEffect will call requestCameraPermission which sets isStreamActive.
   }
 
   return (
@@ -290,7 +325,18 @@ export default function LogFoodByPhotoPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Tabs value={tabMode} onValueChange={(value) => setTabMode(value as 'upload' | 'camera')} className="w-full">
+          <Tabs value={tabMode} onValueChange={(value) => {
+            setTabMode(value as 'upload' | 'camera');
+            // When switching tabs, if going away from camera or if a preview is set, stream should stop via useEffect.
+            // If going to camera and no preview, stream should start via useEffect.
+            // Reset preview when switching tabs to ensure clean state.
+            if (previewUrl) resetPreview();
+            // Ensure camera specific states are reset if not going to camera tab or if already in a state that should not have active camera
+            if (value !== 'camera') {
+                setIsStreamActive(false); 
+                // setHasCameraPermission(null); // Keep permission state unless explicitly re-denied
+            }
+          }} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload"><UploadCloud className="mr-2 h-4 w-4" />Upload Photo</TabsTrigger>
               <TabsTrigger value="camera"><Camera className="mr-2 h-4 w-4" />Use Camera</TabsTrigger>
@@ -298,9 +344,7 @@ export default function LogFoodByPhotoPage() {
             <TabsContent value="upload">
               <div className="mt-4 flex flex-col items-center justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md border-border hover:border-primary transition-colors">
                 <div className="space-y-1 text-center">
-                  {previewUrl && (selectedFile || capturedDataUri) ? ( // Show preview if it's from upload or capture
-                    null // Preview is now common below
-                  ) : (
+                  {previewUrl && (selectedFile || capturedDataUri) ? null : (
                     <UploadCloud className="mx-auto h-12 w-12 text-muted-foreground" />
                   )}
                   <div className="flex text-sm text-muted-foreground justify-center">
@@ -320,35 +364,57 @@ export default function LogFoodByPhotoPage() {
             </TabsContent>
             <TabsContent value="camera">
               <div className="mt-4 space-y-4 text-center">
-                {isCameraLoading && (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="ml-2">Starting camera...</p>
+                {/* Video container - always rendered if in camera tab & no preview */}
+                {tabMode === 'camera' && !previewUrl && (
+                  <div className="w-full aspect-video rounded-md bg-muted border border-border overflow-hidden relative">
+                    <video 
+                      ref={videoRef} 
+                      className="w-full h-full object-cover"
+                      autoPlay 
+                      playsInline 
+                      muted 
+                      onCanPlay={() => console.log("Video can play.")}
+                      onPlaying={() => { console.log("Video is playing."); if (!isStreamActive && videoRef.current?.srcObject) setIsStreamActive(true);}} // Secondary check for stream active
+                      onError={(e) => console.error("Video tag native error", e)}
+                    />
+                    {isCameraLoading && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4">
+                        <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                        <p>Starting camera...</p>
+                      </div>
+                    )}
+                    {hasCameraPermission === false && !isCameraLoading && (
+                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4 text-center">
+                        <VideoOff className="h-10 w-10 mb-3 text-red-400" />
+                        <AlertTitle className="text-lg font-semibold mb-1">Camera Access Denied</AlertTitle>
+                        <AlertDescription className="text-sm mb-3">
+                          Please allow camera access in your browser settings. Ensure no other app is using the camera.
+                        </AlertDescription>
+                        <Button variant="secondary" size="sm" onClick={requestCameraPermission}>
+                           Retry Access
+                        </Button>
+                      </div>
+                    )}
+                     {hasCameraPermission === true && !isStreamActive && !isCameraLoading && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4">
+                            <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                            <p>Waiting for camera stream...</p>
+                        </div>
+                    )}
                   </div>
                 )}
-                {hasCameraPermission === false && !isCameraLoading && (
-                  <Alert variant="destructive">
-                    <VideoOff className="h-4 w-4" />
-                    <AlertTitle>Camera Access Denied</AlertTitle>
-                    <AlertDescription>
-                      Please allow camera access in your browser settings.
-                      You might need to refresh the page.
-                      <Button variant="link" size="sm" onClick={requestCameraPermission} className="mt-1">Retry Access</Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
-                {hasCameraPermission === true && !previewUrl && ( 
-                  <>
-                    <video ref={videoRef} className="w-full aspect-video rounded-md bg-muted" autoPlay playsInline muted />
-                    <Button 
-                      onClick={handleCapturePhoto} 
-                      size="lg" 
-                      className="w-full sm:w-auto"
-                      disabled={!isStreamActive || isLoading || isCameraLoading}
-                    >
-                      <Camera className="mr-2 h-5 w-5" /> Capture Photo
-                    </Button>
-                  </>
+
+                {/* Capture button: shown if in camera mode, no preview, permission granted */}
+                {tabMode === 'camera' && !previewUrl && hasCameraPermission === true && (
+                     <Button 
+                        onClick={handleCapturePhoto} 
+                        size="lg" 
+                        className="w-full sm:w-auto"
+                        disabled={!isStreamActive || isLoading || isCameraLoading} // isLoading = AI analysis, isCameraLoading = camera init
+                      >
+                        <Camera className="mr-2 h-5 w-5" /> 
+                        {isStreamActive ? 'Capture Photo' : 'Camera Starting...'}
+                      </Button>
                 )}
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
               </div>
@@ -368,7 +434,7 @@ export default function LogFoodByPhotoPage() {
                   />
                   <div className="text-center mt-2">
                     <Button variant="outline" size="sm" onClick={resetPreview}>
-                        {capturedDataUri ? "Retake or Upload New" : "Clear Photo"}
+                        {capturedDataUri ? "Retake or Upload New" : "Clear Photo & Use Other"}
                     </Button>
                   </div>
             </div>
@@ -382,7 +448,7 @@ export default function LogFoodByPhotoPage() {
             </Alert>
           )}
 
-          {isLoading && analysisResult === null && ( // Show general loading for analysis
+          {isLoading && analysisResult === null && (
             <div className="flex items-center justify-center p-6 bg-secondary/50 rounded-md mt-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="ml-3 text-foreground">Analyzing your meal, please wait...</p>
@@ -401,7 +467,7 @@ export default function LogFoodByPhotoPage() {
             </Button>
           )}
           <Button onClick={handleSubmit} disabled={(!selectedFile && !capturedDataUri) || isLoading} className="w-full sm:w-auto">
-            {isLoading && !analysisResult ? ( // Show loader only if actively analyzing for the first time
+            {isLoading && !analysisResult ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Pizza className="mr-2 h-4 w-4" />
