@@ -4,78 +4,90 @@
 
 @layer base {
   :root {
-    --background: 280 33% 94%; /* #F2E9F4 Light Lavender */
-    --foreground: 283 30% 20%; /* Darker shade of purple for text */
-    --card: 280 33% 98%; /* Slightly lighter than background for cards, almost white */
-    --card-foreground: 283 30% 20%;
-    --popover: 280 33% 98%;
-    --popover-foreground: 283 30% 20%;
-    --primary: 283 37% 55%; /* #9D5DBC Vibrant Purple */
-    --primary-foreground: 0 0% 100%; /* White text on primary */
-    --secondary: 283 30% 85%; /* Muted purple */
-    --secondary-foreground: 283 30% 20%;
-    --muted: 283 30% 90%;
-    --muted-foreground: 283 25% 45%;
-    --accent: 16 100% 66%; /* #FF7F50 Coral */
-    --accent-foreground: 0 0% 100%; /* White text on accent */
-    --destructive: 0 84.2% 60.2%;
+    --background: 220 60% 97%; /* Light bluish white */
+    --foreground: 220 25% 25%; /* Dark grayish blue */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 220 25% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 25%;
+    --primary: 245 76% 58%; /* Vibrant Blue-Purple */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 220 50% 90%; /* Lighter blue-gray for secondary elements */
+    --secondary-foreground: 230 40% 40%; /* Darker blue for text on secondary */
+    --muted: 220 30% 94%; /* Muted light blue/gray */
+    --muted-foreground: 220 20% 50%; /* Medium gray-blue for muted text */
+    --accent: 45 100% 58%; /* Bright Yellow/Orange for highlights */
+    --accent-foreground: 220 25% 25%; /* Dark text on accent */
+    --destructive: 0 84.2% 60.2%; /* Standard red */
     --destructive-foreground: 0 0% 98%;
-    --border: 283 25% 80%;
-    --input: 283 25% 88%;
-    --ring: 283 37% 55%; /* Primary color for focus rings */
-    --chart-1: 283 37% 55%;
-    --chart-2: 16 100% 66%;
-    --chart-3: 210 40% 56.1%;
-    --chart-4: 142.1 76.2% 36.3%;
-    --chart-5: 343.6 91.7% 49.6%;
-    --radius: 0.5rem;
+    --border: 220 30% 90%; /* Light border */
+    --input: 220 30% 93%; /* Light input background */
+    --ring: 245 76% 65%; /* Slightly lighter primary for ring */
+    --radius: 0.8rem; /* Increased radius for more rounded look */
+
+    /* Custom gradient colors */
+    --gradient-start-rgb: 108, 99, 255; /* Approx 242, 100%, 69% */
+    --gradient-end-rgb: 79, 70, 229;   /* Approx 243, 70%, 59% */
+
+    /* Specific icon/text colors from image */
+    --text-kcal: 350 80% 60%;
+    --text-carbs: 40 90% 60%;
+    --text-protein: 180 60% 50%;
+    --text-fat: 260 60% 70%;
+    --add-button-bg: 170 70% 45%; /* Tealish for + Add */
+
 
     /* Sidebar specific colors */
-    --sidebar-background: 283 25% 90%; /* Slightly darker lavender */
-    --sidebar-foreground: 283 30% 25%;
-    --sidebar-primary: 283 37% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 283 30% 80%; /* Lavender accent for hover */
-    --sidebar-accent-foreground: 283 30% 20%;
-    --sidebar-border: 283 20% 75%;
-    --sidebar-ring: 283 37% 55%;
+    --sidebar-background: hsl(var(--card));
+    --sidebar-foreground: hsl(var(--card-foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--secondary));
+    --sidebar-accent-foreground: hsl(var(--secondary-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
   }
 
   .dark {
-    --background: 280 10% 10%; /* Very dark, slightly purple-ish gray */
-    --foreground: 280 25% 90%; /* Light lavender/off-white */
-    --card: 280 10% 15%;
-    --card-foreground: 280 25% 90%;
-    --popover: 280 10% 15%;
-    --popover-foreground: 280 25% 90%;
-    --primary: 283 40% 65%; /* Slightly lighter purple for dark mode */
-    --primary-foreground: 280 10% 5%; /* Dark text on lighter purple */
-    --secondary: 280 15% 25%;
-    --secondary-foreground: 280 25% 90%;
-    --muted: 280 15% 25%;
-    --muted-foreground: 280 20% 60%;
-    --accent: 16 100% 70%; /* Slightly lighter coral for dark mode */
-    --accent-foreground: 280 10% 5%; /* Dark text on lighter coral */
-    --destructive: 0 62.8% 30.6%;
+    --background: 220 15% 10%; /* Dark blue-gray */
+    --foreground: 220 25% 90%; /* Light grayish blue */
+    --card: 220 15% 15%; /* Darker card */
+    --card-foreground: 220 25% 90%;
+    --popover: 220 15% 15%;
+    --popover-foreground: 220 25% 90%;
+    --primary: 245 70% 65%; /* Lighter vibrant Blue-Purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 25%; /* Darker secondary */
+    --secondary-foreground: 220 30% 80%;
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 20% 65%;
+    --accent: 45 100% 65%; /* Lighter Yellow/Orange */
+    --accent-foreground: 220 15% 10%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 280 10% 25%;
-    --input: 280 10% 20%;
-    --ring: 283 40% 65%; /* Primary color for focus rings */
-    --chart-1: 283 40% 65%;
-    --chart-2: 16 100% 70%;
-    --chart-3: 210 40% 56.1%;
-    --chart-4: 142.1 76.2% 36.3%;
-    --chart-5: 343.6 91.7% 49.6%;
+    --border: 220 15% 25%;
+    --input: 220 15% 22%;
+    --ring: 245 70% 70%;
     
+    --gradient-start-rgb: 129, 140, 248; /* Lighter purple for dark mode gradient */
+    --gradient-end-rgb: 99, 102, 241;   /* Lighter blue for dark mode gradient */
+
+    /* Specific icon/text colors for dark mode - adjust if needed */
+    --text-kcal: 350 80% 70%;
+    --text-carbs: 40 90% 70%;
+    --text-protein: 180 60% 60%;
+    --text-fat: 260 60% 75%;
+    --add-button-bg: 170 70% 55%;
+
     /* Sidebar specific colors for dark mode */
-    --sidebar-background: 280 10% 12%;
-    --sidebar-foreground: 280 25% 85%;
-    --sidebar-primary: 283 40% 65%;
-    --sidebar-primary-foreground: 280 10% 5%;
-    --sidebar-accent: 280 10% 20%;
-    --sidebar-accent-foreground: 280 25% 90%;
-    --sidebar-border: 280 10% 22%;
-    --sidebar-ring: 283 40% 65%;
+    --sidebar-background: hsl(var(--card));
+    --sidebar-foreground: hsl(var(--card-foreground));
+    --sidebar-primary: hsl(var(--primary));
+    --sidebar-primary-foreground: hsl(var(--primary-foreground));
+    --sidebar-accent: hsl(var(--secondary));
+    --sidebar-accent-foreground: hsl(var(--secondary-foreground));
+    --sidebar-border: hsl(var(--border));
+    --sidebar-ring: hsl(var(--ring));
   }
 }
 
