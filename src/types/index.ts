@@ -21,5 +21,10 @@ export interface DailyLogEntry {
   protein: number;
   fat: number;
   carbs: number;
-  // foodEntries: FoodEntry[]; // Optional: if storing individual food items
+}
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  avatarUrl?: string;
 }
