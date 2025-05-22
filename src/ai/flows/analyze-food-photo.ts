@@ -27,18 +27,18 @@ const AnalyzeFoodPhotoOutputSchema = z.object({
     .describe('Indicates if the image is determined to be a food item.'),
   calorieEstimate: z
     .number()
-    .describe('Estimated calorie count of the meal. Set to 0 if not a food item.'),
+    .describe('Highly accurate estimated calorie count of the meal. Set to 0 if not a food item.'),
   proteinEstimate: z
     .number()
-    .describe('Estimated protein content of the meal, in grams. Set to 0 if not a food item.'),
-  fatEstimate: z.number().describe('Estimated fat content of the meal, in grams. Set to 0 if not a food item.'),
+    .describe('Highly accurate estimated protein content of the meal, in grams. Set to 0 if not a food item.'),
+  fatEstimate: z.number().describe('Highly accurate estimated fat content of the meal, in grams. Set to 0 if not a food item.'),
   carbEstimate: z
     .number()
-    .describe('Estimated carbohydrate content of the meal, in grams. Set to 0 if not a food item.'),
-  ingredients: z
+    .describe('Highly accurate estimated carbohydrate content of the meal, in grams. Set to 0 if not a food item.'),
+  ingredients: z // This field will now store dish names
     .string()
     .array()
-    .describe('List of ingredients identified in the meal. Empty array if not a food item.'),
+    .describe('List of common names of the primary food item(s) or dish(es) identified (e.g., "Pizza", "Chicken Biryani"). Empty array if not a food item or if names cannot be determined.'),
 });
 export type AnalyzeFoodPhotoOutput = z.infer<typeof AnalyzeFoodPhotoOutputSchema>;
 
@@ -50,13 +50,13 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodPhotoPrompt',
   input: {schema: AnalyzeFoodPhotoInputSchema},
   output: {schema: AnalyzeFoodPhotoOutputSchema},
-  prompt: `You are a nutrition expert. Analyze the provided image.
+  prompt: `You are an expert nutritionist. Analyze the provided image with high precision.
 First, determine if the image contains a food item.
 
 If the image IS a food item:
 - Set 'isFoodItem' to true.
-- Estimate its nutritional information (calorie count, protein, fat, carbohydrates in grams).
-- Identify the ingredients in the meal.
+- Provide highly accurate estimates for its nutritional information (calorie count, protein, fat, carbohydrates in grams).
+- Identify the common name(s) of the primary food item(s) or dish(es) in the meal (e.g., "Pizza", "Chicken Biryani", "Apple Pie"). List these in the 'ingredients' array. If it's a single dish, provide its name as a single element array. If multiple distinct dishes are clearly visible, list their common names. Avoid listing individual raw ingredients unless it's a very simple, unmixed food like "Apple". If no specific dish name can be determined, provide a general category like "Mixed Salad" or "Fruit Bowl".
 
 If the image IS NOT a food item:
 - Set 'isFoodItem' to false.
@@ -72,7 +72,7 @@ Format your response as a JSON object:
   "proteinEstimate": number,
   "fatEstimate": number,
   "carbEstimate": number,
-  "ingredients": string[]
+  "ingredients": string[] // This should be an array of dish names, e.g., ["Chicken Curry", "Rice"] or ["Vegetable Stir-fry"]
 }`,
 });
 
