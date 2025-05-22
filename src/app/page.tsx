@@ -20,13 +20,14 @@ import {
   Lightbulb,
   TrendingUp,
   Utensils,
-  Loader2, // Added for chart skeleton
+  Loader2, 
 } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { format } from "date-fns";
+import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
 
 interface MealCardProps {
@@ -39,7 +40,7 @@ interface MealCardProps {
 }
 
 const MealCard: React.FC<MealCardProps> = ({ name, calories, protein, fat, carbs }) => (
-  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden">
+  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl">
     <CardContent className="p-4 space-y-3">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-foreground flex-1 mr-2 truncate" title={name}>{name}</h3>
@@ -72,20 +73,14 @@ interface SummaryCardProps {
   icon: React.ElementType;
   value: string;
   label: string;
-  iconColor: string; 
+  iconColorVariable: string; 
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColor }) => (
- <Card className="shadow-md hover:shadow-lg transition-shadow">
-    <CardContent className="p-4 flex items-center space-x-3">
-      <div className={`p-3 rounded-lg`} style={{ backgroundColor: `hsla(${iconColor}, 0.1)`}}>
-         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColor})` }}/>
-      </div>
-      <div className="flex flex-col">
-        <p className="text-2xl font-bold" style={{ color: `hsl(${iconColor})` }}>{value}</p>
-        <p className="text-sm text-muted-foreground -mt-1">{label}</p>
-      </div>
-    </CardContent>
+const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
+ <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+    <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(var(${iconColorVariable}))` }} />
+    <p className="text-lg font-bold" style={{ color: `hsl(var(${iconColorVariable}))` }}>{value}</p>
+    <p className="text-xs text-muted-foreground">{label}</p>
   </Card>
 );
 
@@ -119,31 +114,25 @@ export default function DashboardPage() {
   const consumedCalories = dailyLog?.calories ?? 0;
   const goalCalories = goals?.calories ?? 0;
   const percentAchieved = goalCalories > 0 ? Math.round((consumedCalories / goalCalories) * 100) : 0;
-
-  const pieData = [
-    { name: 'Consumed', value: consumedCalories },
-    { name: 'Remaining', value: Math.max(0, goalCalories - consumedCalories) }
-  ];
   
-  // Ensure 'Remaining' is only added if goalCalories > consumedCalories and goalCalories > 0
   const chartData = [];
   if (consumedCalories > 0 && goalCalories > 0) {
      chartData.push({ name: 'Consumed', value: consumedCalories });
-  } else if (consumedCalories > 0 && goalCalories === 0) { // Consumed something but no goal set
+  } else if (consumedCalories > 0 && goalCalories === 0) { 
      chartData.push({ name: 'Consumed', value: consumedCalories });
   }
 
 
   if (goalCalories > consumedCalories && goalCalories > 0) {
     chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories });
-  } else if (goalCalories === 0 && consumedCalories === 0) { // Nothing consumed, no goal
-    chartData.push({ name: 'Empty', value: 1 }); // To draw an empty track
+  } else if (goalCalories === 0 && consumedCalories === 0) { 
+    chartData.push({ name: 'Empty', value: 1 }); 
   }
 
 
   const COLORS = {
-    Consumed: 'hsl(var(--accent))', // Bright Yellow/Orange
-    Remaining: 'hsla(var(--primary-foreground-hsl-raw), 0.3)', // Semi-transparent white
+    Consumed: 'hsl(var(--accent))', 
+    Remaining: 'hsla(var(--primary-foreground-hsl-raw), 0.3)', 
     Empty: 'hsla(var(--primary-foreground-hsl-raw), 0.3)',
   };
 
@@ -172,51 +161,80 @@ export default function DashboardPage() {
       </div>
 
       {/* Smart Calorie Tracker Card with Donut Chart */}
-      {isDataLoading ? (
-         <Card className="shadow-xl text-primary-foreground p-4 rounded-2xl min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center"
-          style={{ background: 'linear-gradient(100deg, rgb(var(--gradient-start-rgb)) 0%, rgb(var(--gradient-end-rgb)) 100%)' }}
+       <Card 
+          className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden relative"
+          // Use a placeholder for now, replace with actual image path in public folder
+          // e.g., url('/your-image-name.jpg')
         >
-          <Skeleton className="h-6 w-3/5 mb-1 bg-white/40" />
-          <Skeleton className="h-4 w-2/5 mb-3 bg-white/40" />
-          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center">
-            <Loader2 className="h-10 w-10 text-white/60 animate-spin" />
-          </div>
+          {isDataLoading ? (
+            <div 
+              className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
+              style={{
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Placeholder
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                position: 'relative', // Needed for overlay
+              }}
+            >
+              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay */}
+              <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
+                <Skeleton className="h-6 w-3/5 mb-1 bg-white/40" />
+                <Skeleton className="h-4 w-2/5 mb-3 bg-white/40" />
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center">
+                  <Loader2 className="h-10 w-10 text-white/60 animate-spin" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div 
+              style={{ 
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // Placeholder
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                position: 'relative', // Needed for overlay
+              }}
+              className="min-h-[220px] sm:min-h-[240px]" // Ensure height is consistent
+            >
+              <div className="absolute inset-0 bg-black/30 z-0"></div> {/* Dark overlay */}
+              <div className="relative z-10 flex flex-col h-full"> {/* Ensure content fills the card */}
+                <CardHeader className="pb-2 pt-4 px-4">
+                  <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                    <span>Daily Calories</span>
+                    <span className="text-sm opacity-90">{Math.round(consumedCalories)} / {Math.round(goalCalories)} kcal</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 flex-grow h-[150px] sm:h-[170px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="70%"
+                        outerRadius="90%"
+                        dataKey="value"
+                        stroke="none"
+                        paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData[1]?.value > 0 ? 5 : 0}
+                        isAnimationActive={true}
+                      >
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Empty} />
+                        ))}
+                        {goalCalories > 0 && <Label content={<DonutCenterLabel percentage={percentAchieved} />} position="center" />}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(value) => [`${Math.round(value as number)} kcal`, ""]} // Hide default name in tooltip
+                        wrapperStyle={{zIndex: 1000}}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </div>
+            </div>
+          )}
         </Card>
-      ) : (
-        <Card 
-          className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden"
-          style={{ background: 'linear-gradient(100deg, rgb(var(--gradient-start-rgb)) 0%, rgb(var(--gradient-end-rgb)) 100%)' }}
-        >
-          <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-lg font-semibold flex items-center justify-between">
-              <span>Daily Calories</span>
-              <span className="text-sm opacity-90">{Math.round(consumedCalories)} / {Math.round(goalCalories)} kcal</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 h-[150px] sm:h-[170px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius="70%"
-                  outerRadius="90%"
-                  dataKey="value"
-                  stroke="none"
-                  paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData[1]?.value > 0 ? 2 : 0}
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Empty} />
-                  ))}
-                  {goalCalories > 0 && <Label content={<DonutCenterLabel percentage={percentAchieved} />} position="center" />}
-                </Pie>
-                <Tooltip formatter={(value, name) => [`${Math.round(value as number)} kcal`, name as string]} wrapperStyle={{zIndex: 1000}}/>
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
 
 
       {/* Action Buttons */}
@@ -270,27 +288,30 @@ export default function DashboardPage() {
 
       {/* Today's Summary */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-2"> {/* Added mb-2 */}
           <h2 className="text-xl font-semibold">Today's Summary</h2>
           <div className="flex items-center gap-1 text-sm text-primary">
             <CalendarDays className="h-4 w-4" />
             <span>{currentDate}</span>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-4 gap-3"> {/* Changed to grid-cols-4 and smaller gap */}
          {isDataLoading ? (
             <>
-              <SummaryCard icon={Flame} value="..." label="kcal" iconColor="var(--text-kcal-raw)" />
-              <SummaryCard icon={Wheat} value="..." label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
-              <SummaryCard icon={Drumstick} value="..." label="Protein (g)" iconColor="var(--text-protein-raw)" />
-              <SummaryCard icon={Droplets} value="..." label="Fat (g)" iconColor="var(--text-fat-raw)" />
+              {[1, 2, 3, 4].map(i => (
+                 <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
+                    <Skeleton className="h-6 w-6 mx-auto mb-1 rounded-full" /> {/* Icon placeholder */}
+                    <Skeleton className="h-5 w-10 mx-auto mb-1" /> {/* Value placeholder */}
+                    <Skeleton className="h-3 w-8 mx-auto" /> {/* Label placeholder */}
+                  </Card>
+              ))}
             </>
           ) : (
             <>
-              <SummaryCard icon={Flame} value={Math.round(todayCalories).toString()} label="kcal" iconColor="var(--text-kcal-raw)" />
-              <SummaryCard icon={Wheat} value={Math.round(todayCarbs).toString()} label="Carbs (g)" iconColor="var(--text-carbs-raw)" />
-              <SummaryCard icon={Drumstick} value={Math.round(todayProtein).toString()} label="Protein (g)" iconColor="var(--text-protein-raw)" />
-              <SummaryCard icon={Droplets} value={Math.round(todayFat).toString()} label="Fat (g)" iconColor="var(--text-fat-raw)" />
+              <SummaryCard icon={Flame} value={Math.round(todayCalories).toString()} label="kcal" iconColorVariable="var(--text-kcal-raw)" />
+              <SummaryCard icon={Wheat} value={`${Math.round(todayCarbs)}g`} label="Carbs" iconColorVariable="var(--text-carbs-raw)" />
+              <SummaryCard icon={Drumstick} value={`${Math.round(todayProtein)}g`} label="Protein" iconColorVariable="var(--text-protein-raw)" />
+              <SummaryCard icon={Droplets} value={`${Math.round(todayFat)}g`} label="Fat" iconColorVariable="var(--text-fat-raw)" />
             </>
           )}
         </div>
@@ -310,16 +331,16 @@ export default function DashboardPage() {
         {isLoadingLog ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2].map(i => ( 
-              <Card key={`skel-meal-${i}`} className="shadow-lg">
+              <Card key={`skel-meal-${i}`} className="shadow-lg rounded-xl">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex justify-between items-start">
-                    <Skeleton className="h-6 w-3/4" /> {/* Name */}
-                    <Skeleton className="h-6 w-1/4" /> {/* Calories */}
+                    <Skeleton className="h-6 w-3/4" /> 
+                    <Skeleton className="h-6 w-1/4" /> 
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <Skeleton className="h-12 w-full rounded-md" /> {/* Protein */}
-                    <Skeleton className="h-12 w-full rounded-md" /> {/* Fat */}
-                    <Skeleton className="h-12 w-full rounded-md" /> {/* Carbs */}
+                    <Skeleton className="h-12 w-full rounded-md" /> 
+                    <Skeleton className="h-12 w-full rounded-md" /> 
+                    <Skeleton className="h-12 w-full rounded-md" /> 
                   </div>
                 </CardContent>
               </Card>
@@ -340,7 +361,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <Card className="shadow-lg">
+          <Card className="shadow-lg rounded-xl">
             <CardContent className="pt-6 text-center text-muted-foreground">
               No meals logged for today yet. Use the "Add Meal" button to log your first meal!
             </CardContent>
@@ -370,3 +391,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
