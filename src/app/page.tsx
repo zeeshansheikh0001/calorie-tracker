@@ -15,12 +15,13 @@ import {
   Flame,
   Wheat,
   Drumstick,
-  Droplets, // Changed from CakeSlice
+  Droplets,
   PlusCircle,
   Lightbulb,
   TrendingUp,
   Utensils,
-  Loader2, 
+  Loader2,
+  Trash2, // Added Trash2
 } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
@@ -37,13 +38,23 @@ interface MealCardProps {
   protein: number;
   fat: number;
   carbs: number;
+  onDelete: (id: string) => void; // Added onDelete prop
 }
 
-const MealCard: React.FC<MealCardProps> = ({ name, calories, protein, fat, carbs }) => (
-  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl">
+const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, carbs, onDelete }) => (
+  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl relative">
+    <Button
+      variant="ghost"
+      size="icon"
+      className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive z-10"
+      onClick={() => onDelete(id)}
+      aria-label="Delete meal"
+    >
+      <Trash2 className="h-4 w-4" />
+    </Button>
     <CardContent className="p-4 space-y-3">
-      <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-foreground flex-1 mr-2 truncate" title={name}>{name}</h3>
+      <div className="flex justify-between items-start mr-8"> {/* Added mr-8 for spacing from delete button */}
+        <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
         <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
           <Flame className="h-5 w-5 mr-1.5" />
           {Math.round(calories)}
@@ -103,7 +114,7 @@ const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) =>
 
 
 export default function DashboardPage() {
-  const { dailyLog, foodEntries, isLoading: isLoadingLog } = useDailyLog();
+  const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry } = useDailyLog(); // Added deleteFoodEntry
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const [currentDate, setCurrentDate] = useState("");
 
@@ -163,15 +174,11 @@ export default function DashboardPage() {
       {/* Smart Calorie Tracker Card with Donut Chart */}
        <Card 
           className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden relative"
-          // Use a placeholder for now, replace with actual image path in public folder
-          // e.g., url('/your-image-name.jpg')
         >
           {isDataLoading ? (
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
-                // Place your image in the public folder and update the path here
-                // e.g. backgroundImage: `url('/my-background.png')`
                 backgroundImage: `url("/your-image-in-public-folder.jpg")`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -192,8 +199,6 @@ export default function DashboardPage() {
           ) : (
             <div 
               style={{ 
-                // Place your image in the public folder and update the path here
-                // e.g. backgroundImage: `url('/my-background.png')`
                 backgroundImage: `url("/your-image-in-public-folder.jpg")`,
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
@@ -222,7 +227,7 @@ export default function DashboardPage() {
                         outerRadius="90%"
                         dataKey="value"
                         stroke="none"
-                        paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData[1]?.value > 0 ? 5 : 0}
+                        paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData.some(d => d.name === 'Remaining' && d.value > 0) ? 5 : 0}
                         isAnimationActive={true}
                       >
                         {chartData.map((entry, index) => (
@@ -363,6 +368,7 @@ export default function DashboardPage() {
                 protein={entry.protein}
                 fat={entry.fat}
                 carbs={entry.carbs}
+                onDelete={deleteFoodEntry} // Pass delete function
               />
             ))}
           </div>
@@ -397,6 +403,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-    
-
-    

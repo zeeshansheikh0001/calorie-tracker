@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import type { FoodEntry, DailyLogEntry } from '@/types';
 import { format } from 'date-fns';
+import { useToast } from "@/hooks/use-toast";
 
 const LOCAL_STORAGE_KEY_PREFIX = 'dailyLog_';
 
@@ -14,6 +16,7 @@ export function useDailyLog() {
   const [dailyLog, setDailyLog] = useState<DailyLogEntry | null>(null);
   const [foodEntries, setFoodEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   const loadTodaysLog = useCallback(() => {
     setIsLoading(true);
@@ -83,6 +86,39 @@ export function useDailyLog() {
     });
   }, []);
 
+  const deleteFoodEntry = useCallback((entryId: string) => {
+    setFoodEntries((prevEntries) => {
+      const updatedEntries = prevEntries.filter(entry => entry.id !== entryId);
+
+      const newSummary: DailyLogEntry = {
+        date: dailyLog!.date, // dailyLog is guaranteed to be initialized by loadTodaysLog
+        calories: updatedEntries.reduce((sum, entry) => sum + entry.calories, 0),
+        protein: updatedEntries.reduce((sum, entry) => sum + entry.protein, 0),
+        fat: updatedEntries.reduce((sum, entry) => sum + entry.fat, 0),
+        carbs: updatedEntries.reduce((sum, entry) => sum + entry.carbs, 0),
+      };
+
+      setDailyLog(newSummary);
+
+      try {
+        localStorage.setItem(getTodayStorageKey(), JSON.stringify({ summary: newSummary, entries: updatedEntries }));
+        toast({
+          title: "Meal Deleted",
+          description: "The meal has been removed from your log.",
+        });
+      } catch (error) {
+        console.error("Failed to save daily log to localStorage after delete", error);
+        toast({
+          title: "Error Deleting Meal",
+          description: "Could not update the log after deletion.",
+          variant: "destructive",
+        });
+      }
+      return updatedEntries;
+    });
+  }, [dailyLog, toast]);
+
+
   const clearTodaysLog = useCallback(() => {
     const todayDate = format(new Date(), 'yyyy-MM-dd');
     const initialLog: DailyLogEntry = { date: todayDate, calories: 0, protein: 0, fat: 0, carbs: 0 };
@@ -95,5 +131,5 @@ export function useDailyLog() {
     }
   }, []);
 
-  return { dailyLog, foodEntries, addFoodEntry, clearTodaysLog, isLoading, refreshLog: loadTodaysLog };
+  return { dailyLog, foodEntries, addFoodEntry, deleteFoodEntry, clearTodaysLog, isLoading, refreshLog: loadTodaysLog };
 }
