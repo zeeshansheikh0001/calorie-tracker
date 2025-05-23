@@ -68,7 +68,7 @@ export default function ProfilePage() {
   
   const displayProfile = {
     name: "Md Abu Ubayda",
-    phone: "+88001712346789",
+    phone: "+88001712346789", // As per image
     avatarUrl: dynamicUserProfile.avatarUrl || DEFAULT_USER_PROFILE_DATA.avatarUrl,
   };
 
@@ -84,7 +84,7 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background"> {/* Removed min-h-screen */}
       {/* Top Green Section */}
       <div className="bg-emerald-700 text-white pt-6 sm:pt-8">
         <div className="container mx-auto px-4 sm:px-6">
