@@ -206,12 +206,12 @@ export default function DashboardPage() {
           {isDataLoading ? (
             <div className="flex flex-col md:flex-row items-start gap-6 min-h-[200px]">
               <div className="flex-1 space-y-3 w-full md:w-2/3">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-16 w-24" />
-                <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-6 w-32" /> {/* Title: Your Progress */}
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" /> {/* Percentage: e.g., 75% */}
+                <Skeleton className="h-6 w-28" /> {/* Date: e.g., Today / 19 September */}
               </div>
-              <div className="w-full md:w-1/3 flex justify-center items-center">
-                <Skeleton className="h-32 w-32 rounded-full bg-sky-200 dark:bg-sky-800" />
+              <div className="w-full md:w-1/3 flex justify-center items-center h-32 md:h-36"> {/* Chart placeholder */}
+                <Skeleton className="h-full w-full max-w-[128px] md:max-w-[144px] aspect-square rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
@@ -222,7 +222,7 @@ export default function DashboardPage() {
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
-                <div className="text-5xl font-bold text-foreground">
+                <div className="text-4xl sm:text-5xl font-bold text-foreground">
                   {goalCalories > 0 ? `${percentAchieved}%` : "-"}
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right side: Donut Chart */}
-              <div className="w-full md:w-1/3 h-36 md:h-40 flex justify-center items-center relative mt-4 md:mt-0">
+              <div className="w-full md:w-1/3 h-36 md:h-40 flex justify-center items-center relative md:mt-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
