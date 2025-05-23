@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,6 +23,8 @@ import {
   BarChart2,
   ChevronDown,
   Trash2,
+  BookOpen, // Added for Blog section
+  ArrowRight, // Added for Blog "Read More"
 } from "lucide-react";
 import { useState, type FC, useEffect } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
@@ -127,9 +129,9 @@ interface CustomDonutTooltipProps extends TooltipProps<number, string> {
 
 const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload; 
-    const value = payload[0].value; 
-    const name = data.name; 
+    const data = payload[0].payload;
+    const value = payload[0].value;
+    const name = data.name;
 
     let displayName = name;
     if (name === 'ConsumedNoGoal') {
@@ -140,9 +142,8 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
       displayName = 'Remaining in Goal';
     }
 
-
-    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1) 
-      ? '0 kcal' 
+    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
+      ? '0 kcal'
       : `${Math.round(value || 0)} kcal`;
 
     return (
@@ -155,6 +156,78 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
   return null;
 };
 
+interface BlogCardProps {
+  id: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  imageHint?: string;
+  readMoreLink: string;
+}
+
+const BlogCard: FC<BlogCardProps> = ({ title, excerpt, imageUrl, imageHint, readMoreLink }) => (
+  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col">
+    <div className="relative w-full h-48">
+      <Image
+        src={imageUrl}
+        alt={title}
+        layout="fill"
+        objectFit="cover"
+        className="group-hover:scale-105 transition-transform duration-300"
+        data-ai-hint={imageHint || "health fitness"}
+      />
+    </div>
+    <CardHeader className="pb-2">
+      <CardTitle className="text-lg font-semibold line-clamp-2">{title}</CardTitle>
+    </CardHeader>
+    <CardContent className="flex-grow pb-3">
+      <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
+    </CardContent>
+    <CardFooter className="pt-0 pb-4">
+      <Link href={readMoreLink} passHref>
+        <Button variant="link" className="p-0 text-primary hover:text-primary/80">
+          Read More <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </Link>
+    </CardFooter>
+  </Card>
+);
+
+const mockBlogData: BlogCardProps[] = [
+  {
+    id: "1",
+    title: "The Surprising Benefits of Morning Workouts",
+    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "morning workout",
+    readMoreLink: "#",
+  },
+  {
+    id: "2",
+    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
+    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "healthy food",
+    readMoreLink: "#",
+  },
+  {
+    id: "3",
+    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
+    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "mindful eating",
+    readMoreLink: "#",
+  },
+  {
+    id: "4",
+    title: "Hydration Secrets: Are You Drinking Enough Water?",
+    excerpt: "Uncover the importance of hydration for overall health and performance.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "water hydration",
+    readMoreLink: "#",
+  },
+];
+
 
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
@@ -165,18 +238,18 @@ export default function DashboardPage() {
 
   const consumedCalories = dailyLog?.calories ?? 0;
   const goalCalories = goals?.calories ?? 0;
-  
+
   let percentAchieved = 0;
   if (goalCalories > 0) {
     percentAchieved = Math.round((consumedCalories / goalCalories) * 100);
   }
-  
+
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', 
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', 
-    Empty: 'hsla(var(--muted-foreground), 0.1)',
-    ConsumedNoGoal: 'hsl(var(--accent))',
+    Consumed: 'hsl(var(--card))', // White/light color from theme for the arc
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for the track
+    Empty: 'hsla(var(--muted-foreground), 0.1)', // Very light gray for empty state
+    ConsumedNoGoal: 'hsl(var(--accent))', // Accent color if goal is 0 but calories consumed
   };
 
   if (goalCalories > 0) {
@@ -185,18 +258,20 @@ export default function DashboardPage() {
       if (consumedCalories < goalCalories) {
         chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories, fill: COLORS.Remaining });
       }
-    } else { 
+    } else {
+      // Consumed is 0, but goal exists
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { 
+  } else { // No goal set
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
     } else {
-      // Use 1 as a placeholder value to render the empty track, actual value in tooltip is 0
-      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
+      // No goal and no consumption
+      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); // Push a minimal value for chart rendering
     }
   }
-  if (chartData.length === 0) { // Should not happen with above logic but as a fallback
+  // Ensure chartData always has something to render to avoid Recharts errors with empty data
+  if (chartData.length === 0) {
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -244,9 +319,9 @@ export default function DashboardPage() {
           {isDataLoading ? (
              <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
-                <Skeleton className="h-5 w-24" /> 
-                <Skeleton className="h-10 w-20" /> 
-                <Skeleton className="h-4 w-20" /> 
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
+                <Skeleton className="h-4 w-20" />
               </div>
               <div className="w-[120px] h-[120px] flex-shrink-0 bg-sky-200 dark:bg-sky-800 rounded-full" />
             </div>
@@ -262,9 +337,9 @@ export default function DashboardPage() {
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary px-1">
+                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
-                      <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "dd MMMM")) : "Select Date"}</span>
+                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "dd MMMM")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -292,24 +367,24 @@ export default function DashboardPage() {
                       data={chartData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="75%" 
-                      outerRadius="95%" 
+                      innerRadius="75%"
+                      outerRadius="95%"
                       dataKey="value"
                       stroke="none"
                       paddingAngle={chartData.length > 1 && consumedCalories > 0 && (goalCalories - consumedCalories) > 0 ? 8 : 0}
                       isAnimationActive={true}
                     >
                       {chartData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`} 
-                          fill={entry.fill || COLORS.Remaining} 
-                          cornerRadius={10} 
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.fill || COLORS.Remaining}
+                          cornerRadius={10}
                         />
                       ))}
-                      {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
+                       {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
                     </Pie>
                     <Tooltip
-                      content={<CustomDonutTooltip goalCalories={goalCalories} />}
+                      content={<CustomDonutTooltip goalCalories={goalCalories}/>}
                       wrapperStyle={{ outline: "none" }}
                       cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
                     />
@@ -382,7 +457,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-3">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
@@ -470,8 +545,29 @@ export default function DashboardPage() {
         )}
       </div>
 
+      {/* Health Blogs Section */}
+      <div className="space-y-3 mt-6">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold">Health & Wellness Reads</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {mockBlogData.map((blog) => (
+            <BlogCard
+              key={blog.id}
+              id={blog.id}
+              title={blog.title}
+              excerpt={blog.excerpt}
+              imageUrl={blog.imageUrl}
+              imageHint={blog.imageHint}
+              readMoreLink={blog.readMoreLink}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Smart Insights */}
-      <div className="space-y-3">
+      <div className="space-y-3 mt-6">
         <div className="flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-yellow-500" />
           <h2 className="text-xl font-semibold">Smart Insights</h2>
@@ -499,6 +595,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-    
-
-    
