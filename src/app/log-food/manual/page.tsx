@@ -10,25 +10,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
-import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info } from "lucide-react";
+import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCross, Leaf, Activity, ShieldCheck } from "lucide-react";
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
 
 interface NutritionDisplayItemProps {
   icon: React.ElementType;
   label: string;
-  value: string;
+  value: string | number;
+  unit?: string;
   color?: string;
+  className?: string;
 }
 
-const NutritionDisplayItem: FC<NutritionDisplayItemProps> = ({ icon: Icon, label, value, color = "text-foreground" }) => (
-  <div className={`flex items-center space-x-2 p-2.5 rounded-lg bg-background/70 shadow-sm`}>
-    <div className={`p-1.5 rounded-md ${color} bg-opacity-10`}> {/* Icon background tint */}
+const NutritionDisplayItem: FC<NutritionDisplayItemProps> = ({ icon: Icon, label, value, unit, color = "text-foreground", className }) => (
+  <div className={`flex items-center space-x-2 p-2.5 rounded-lg bg-background/70 shadow-sm ${className}`}>
+    <div className={`p-1.5 rounded-md ${color} bg-opacity-10`}>
       <Icon className={`h-5 w-5 flex-shrink-0`} />
     </div>
     <div>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className={`font-semibold text-sm ${color}`}>{value}</p>
+      <p className={`font-semibold text-sm ${color}`}>{value}{unit && <span className="text-xs"> {unit}</span>}</p>
     </div>
   </div>
 );
@@ -62,7 +64,7 @@ export default function ManualLogPage() {
 
       toast({
         title: "AI Estimation Complete",
-        description: "Nutritional values and benefits have been estimated. Review and log if correct.",
+        description: "Nutritional details and benefits have been estimated. Review and log if correct.",
         action: <Sparkles className="text-yellow-500" />,
       });
 
@@ -94,7 +96,7 @@ export default function ManualLogPage() {
     setIsSubmittingLog(true);
 
     const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
-      name: foodName || "Unnamed Food", // Use the user-provided name
+      name: foodName || "Unnamed Food",
       calories: estimatedNutrition.calorieEstimate,
       protein: estimatedNutrition.proteinEstimate,
       fat: estimatedNutrition.fatEstimate,
@@ -114,17 +116,33 @@ export default function ManualLogPage() {
     setIsSubmittingLog(false);
   };
 
+  const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType) => {
+    if (!content) return null;
+    const IconComponent = icon;
+    return (
+      <div className="mt-4">
+        <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
+          <IconComponent className="mr-2 h-5 w-5 text-primary/80" />
+          {title}
+        </h3>
+        <p className="text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm whitespace-pre-line">
+          {content}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto py-8 px-4">
        <Button variant="ghost" onClick={() => router.back()} className="mb-4 group text-sm">
           <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Back
         </Button>
-      <Card className="max-w-lg mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+      <Card className="max-w-2xl mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center">
             <Utensils className="mr-2 h-6 w-6 text-primary" />
-            Log Food Manually
+            Log Food Manually (AI Assisted)
           </CardTitle>
           <CardDescription>
             Describe your meal for AI-powered estimates. Log for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
@@ -142,7 +160,7 @@ export default function ManualLogPage() {
                   if(estimatedNutrition) setEstimatedNutrition(null); 
                   setAiError(null); 
                 }}
-                placeholder="e.g., 200g grilled salmon with asparagus"
+                placeholder="e.g., 200g grilled salmon with asparagus and quinoa"
                 className="mt-1"
                 required
               />
@@ -152,7 +170,7 @@ export default function ManualLogPage() {
                 size="sm" 
                 onClick={handleAiEstimate} 
                 disabled={isAiEstimating || !foodName.trim()}
-                className="mt-2 w-full sm:w-auto"
+                className="mt-3 w-full sm:w-auto"
               >
                 {isAiEstimating ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -172,31 +190,60 @@ export default function ManualLogPage() {
             )}
 
             {estimatedNutrition && !isAiEstimating && (
-              <div className="mt-6 space-y-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
-                <h3 className="text-lg font-semibold text-primary">Estimated Nutritional Information</h3>
-                 <p className="text-xs text-muted-foreground flex items-center">
-                    <Info className="mr-1.5 h-3.5 w-3.5" />
-                    {estimatedNutrition.estimatedQuantityNote}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
-                  <NutritionDisplayItem icon={Flame} label="Calories" value={`${estimatedNutrition.calorieEstimate.toFixed(0)} kcal`} color="text-red-500" />
-                  <NutritionDisplayItem icon={Drumstick} label="Protein" value={`${estimatedNutrition.proteinEstimate.toFixed(1)} g`} color="text-sky-500" />
-                  <NutritionDisplayItem icon={Droplets} label="Fat" value={`${estimatedNutrition.fatEstimate.toFixed(1)} g`} color="text-amber-500" />
-                  <NutritionDisplayItem icon={Wheat} label="Carbs" value={`${estimatedNutrition.carbEstimate.toFixed(1)} g`} color="text-emerald-500" />
+              <div className="mt-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
+                <div>
+                  <h3 className="text-lg font-semibold text-primary mb-1">Estimated Nutritional Information</h3>
+                  <p className="text-xs text-muted-foreground flex items-center mb-3">
+                      <Info className="mr-1.5 h-3.5 w-3.5" />
+                      {estimatedNutrition.estimatedQuantityNote}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
+                    <NutritionDisplayItem icon={Flame} label="Calories" value={estimatedNutrition.calorieEstimate.toFixed(0)} unit="kcal" color="text-red-500" />
+                    <NutritionDisplayItem icon={Drumstick} label="Protein" value={estimatedNutrition.proteinEstimate.toFixed(1)} unit="g" color="text-sky-500" />
+                    <NutritionDisplayItem icon={Droplets} label="Fat" value={estimatedNutrition.fatEstimate.toFixed(1)} unit="g" color="text-amber-500" />
+                    <NutritionDisplayItem icon={Wheat} label="Carbs" value={estimatedNutrition.carbEstimate.toFixed(1)} unit="g" color="text-emerald-500" />
+                  </div>
                 </div>
-
-                {estimatedNutrition.healthBenefits && (
+                
+                { (estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate > 0) ||
+                  (estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0) ||
+                  (estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0) ||
+                  (estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0) ||
+                  (estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0) ? (
                   <div>
-                    <h3 className="text-lg font-semibold text-primary mt-4 mb-2 flex items-center">
-                      <Heart className="mr-2 h-5 w-5 text-pink-500" />
+                    <h3 className="text-lg font-semibold text-primary mb-2">Detailed Nutritional Breakdown</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
+                      {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate > 0 && <NutritionDisplayItem icon={Droplets} label="Saturated Fat" value={estimatedNutrition.saturatedFatEstimate.toFixed(1)} unit="g" color="text-orange-400" />}
+                      {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0 &&<NutritionDisplayItem icon={Leaf} label="Dietary Fiber" value={estimatedNutrition.fiberEstimate.toFixed(1)} unit="g" color="text-lime-600" />}
+                      {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0 && <NutritionDisplayItem icon={Activity} label="Sugars" value={estimatedNutrition.sugarEstimate.toFixed(1)} unit="g" color="text-fuchsia-500" />}
+                      {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0 && <NutritionDisplayItem icon={Heart} label="Cholesterol" value={estimatedNutrition.cholesterolEstimate.toFixed(0)} unit="mg" color="text-purple-500" />}
+                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0 && <NutritionDisplayItem icon={UtensilsCross} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
+                    </div>
+                  </div>
+                ) : null}
+                
+                {renderTextSection("How Ingredients Influence Nutrition", estimatedNutrition.commonIngredientsInfluence, Brain)}
+                
+                {estimatedNutrition.healthBenefits && estimatedNutrition.healthBenefits.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
+                      <ShieldCheck className="mr-2 h-5 w-5 text-primary/80" />
                       Potential Health Benefits
                     </h3>
-                    <p className="text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm">
-                      {estimatedNutrition.healthBenefits}
-                    </p>
+                    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm">
+                      {estimatedNutrition.healthBenefits.map((benefit, index) => (
+                        <li key={index}>
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
-                <CardFooter className="px-0 pt-4">
+
+                {renderTextSection("Tips for a Healthier Version", estimatedNutrition.healthierTips, Leaf)}
+                {renderTextSection("Estimation Disclaimer", estimatedNutrition.estimationDisclaimer, Info)}
+
+                <CardFooter className="px-0 pt-4 border-t">
                   <Button type="submit" disabled={isSubmittingLog || isAiEstimating || !foodName.trim() || !estimatedNutrition} className="w-full sm:w-auto">
                     {isSubmittingLog ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
