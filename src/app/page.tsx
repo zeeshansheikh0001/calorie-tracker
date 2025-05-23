@@ -27,7 +27,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useState, type FC, useEffect } from "react";
-import type { FoodEntry as LoggedFoodEntry } from "@/types";
+import type { FoodEntry as LoggedFoodEntry, BlogPost } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { useUserProfile } from "@/hooks/use-user-profile";
@@ -131,7 +131,7 @@ interface CustomDonutTooltipProps extends TooltipProps<number, string> {
 const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const value = payload[0].value || 0; // Ensure value is a number
+    const value = payload[0].value || 0; 
     const name = data.name;
 
     let displayName = name;
@@ -157,25 +157,44 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
   return null;
 };
 
-interface BlogCardProps {
-  id: string;
-  title: string;
-  excerpt: string;
-  imageUrl: string;
-  imageHint?: string;
-  readMoreLink: string; // Will be used for toast for now
-}
 
-const BlogCard: FC<BlogCardProps> = ({ title, excerpt, imageUrl, imageHint, readMoreLink }) => {
-  const { toast } = useToast();
+const mockBlogData: BlogPost[] = [
+  {
+    id: "1",
+    title: "The Surprising Benefits of Morning Workouts",
+    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "morning workout",
+    readMoreLink: "/blog/1",
+  },
+  {
+    id: "2",
+    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
+    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "healthy food",
+    readMoreLink: "/blog/2",
+  },
+  {
+    id: "3",
+    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
+    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "mindful eating",
+    readMoreLink: "/blog/3",
+  },
+  {
+    id: "4",
+    title: "Hydration Secrets: Are You Drinking Enough Water?",
+    excerpt: "Uncover the importance of hydration for overall health and performance.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "water hydration",
+    readMoreLink: "/blog/4",
+  },
+];
 
-  const handleReadMore = () => {
-    toast({
-      title: "Coming Soon!",
-      description: "Full blog post functionality is on the way.",
-    });
-  };
 
+const BlogCard: FC<BlogPost> = ({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
   return (
     <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
       <div className="relative w-full h-40">
@@ -195,48 +214,15 @@ const BlogCard: FC<BlogCardProps> = ({ title, excerpt, imageUrl, imageHint, read
         <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
       </CardContent>
       <CardFooter className="pt-0 pb-4">
-        <Button variant="link" className="p-0 text-primary hover:text-primary/80 text-sm" onClick={handleReadMore}>
-          Read More <ArrowRight className="ml-1.5 h-4 w-4" />
-        </Button>
+        <Link href={readMoreLink} passHref>
+          <Button variant="link" className="p-0 text-primary hover:text-primary/80 text-sm">
+            Read More <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );
 };
-
-const mockBlogData: BlogCardProps[] = [
-  {
-    id: "1",
-    title: "The Surprising Benefits of Morning Workouts",
-    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "morning workout",
-    readMoreLink: "#",
-  },
-  {
-    id: "2",
-    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
-    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "healthy food",
-    readMoreLink: "#",
-  },
-  {
-    id: "3",
-    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
-    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "mindful eating",
-    readMoreLink: "#",
-  },
-  {
-    id: "4",
-    title: "Hydration Secrets: Are You Drinking Enough Water?",
-    excerpt: "Uncover the importance of hydration for overall health and performance.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "water hydration",
-    readMoreLink: "#",
-  },
-];
 
 
 export default function DashboardPage() {
@@ -323,29 +309,30 @@ export default function DashboardPage() {
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
+       <Card className="shadow-lg rounded-2xl p-4 text-foreground" style={{background: `url("/your-image-in-public-folder.jpg") center center / cover no-repeat`, /* Add your image path here */ }}>
+         {/* Comment: Place your background image in the 'public' folder and update the path above. E.g., url('/my-background.png') */}
           {isDataLoading ? (
-            <div className="flex flex-row items-start gap-3">
+             <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> {/* Added overlay for better text visibility on image */}
               <div className="flex-1 space-y-2 text-left">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
-                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-24 bg-white/30" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 bg-white/30" />
+                <Skeleton className="h-4 w-20 bg-white/30" />
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0 bg-sky-200 dark:bg-sky-800 rounded-full" />
+              <Skeleton className="w-[120px] h-[120px] flex-shrink-0 bg-white/30 rounded-full" />
             </div>
           ) : (
-            <div className="flex flex-row items-start gap-3">
+            <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> {/* Added overlay for better text visibility on image */}
               <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-white/80">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
-                <div className="text-3xl font-bold text-foreground">
+                <div className="text-3xl font-bold text-white">
                   {goalCalories > 0 ? `${percentAchieved}%` : "-"}
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
-                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 px-1 py-0.5 h-auto">
+                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-white/90 hover:text-white px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
                        <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
@@ -603,6 +590,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
-    

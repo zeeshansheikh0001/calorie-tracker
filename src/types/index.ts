@@ -28,3 +28,12 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string;
 }
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  imageHint?: string;
+  readMoreLink: string; // This will be used to construct the dynamic route
+}
