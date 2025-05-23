@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
-import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart } from "lucide-react";
+import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info } from "lucide-react";
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
 
@@ -110,7 +110,7 @@ export default function ManualLogPage() {
     });
 
     setEstimatedNutrition(null); 
-    // setFoodName(""); // Optional: clear food name after logging
+    setFoodName(""); 
     setIsSubmittingLog(false);
   };
 
@@ -142,7 +142,7 @@ export default function ManualLogPage() {
                   if(estimatedNutrition) setEstimatedNutrition(null); 
                   setAiError(null); 
                 }}
-                placeholder="e.g., Chicken salad, or 2 slices of pizza"
+                placeholder="e.g., 200g grilled salmon with asparagus"
                 className="mt-1"
                 required
               />
@@ -174,6 +174,10 @@ export default function ManualLogPage() {
             {estimatedNutrition && !isAiEstimating && (
               <div className="mt-6 space-y-4 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
                 <h3 className="text-lg font-semibold text-primary">Estimated Nutritional Information</h3>
+                 <p className="text-xs text-muted-foreground flex items-center">
+                    <Info className="mr-1.5 h-3.5 w-3.5" />
+                    {estimatedNutrition.estimatedQuantityNote}
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
                   <NutritionDisplayItem icon={Flame} label="Calories" value={`${estimatedNutrition.calorieEstimate.toFixed(0)} kcal`} color="text-red-500" />
                   <NutritionDisplayItem icon={Drumstick} label="Protein" value={`${estimatedNutrition.proteinEstimate.toFixed(1)} g`} color="text-sky-500" />
