@@ -178,7 +178,7 @@ export default function DashboardPage() {
             </>
           )}
         </div>
-        <Link href="/reminders" asChild>
+        <Link href="/reminders" legacyBehavior>
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5 text-muted-foreground" />
           </Button>
@@ -193,6 +193,7 @@ export default function DashboardPage() {
             <div 
               className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
               style={{
+                // Ensure you have an image at this path in your public folder
                 backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -213,6 +214,7 @@ export default function DashboardPage() {
           ) : (
             <div 
               style={{ 
+                // Ensure you have an image at this path in your public folder
                 backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
                 backgroundSize: 'cover', 
                 backgroundPosition: 'center',
@@ -351,7 +353,7 @@ export default function DashboardPage() {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-4">
          {isDataLoading ? ( 
             <>
               {[1, 2, 3, 4].map(i => (
@@ -468,3 +470,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
