@@ -94,7 +94,7 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
-    <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+    <Card className="p-3 shadow-md hover:shadow-lg transition-shadow bg-card rounded-xl text-center">
       <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
       </div>
@@ -204,25 +204,25 @@ export default function DashboardPage() {
       {/* Your Progress Card */}
        <Card className="shadow-lg rounded-2xl p-4 sm:p-6 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-            <div className="flex flex-col md:flex-row items-start gap-6 min-h-[200px]">
-              <div className="flex-1 space-y-3 w-full md:w-2/3">
-                <Skeleton className="h-6 w-32" /> {/* Title: Your Progress */}
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" /> {/* Percentage: e.g., 75% */}
-                <Skeleton className="h-6 w-28" /> {/* Date: e.g., Today / 19 September */}
+            <div className="flex flex-row items-start gap-3 min-h-[120px]">
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-24" /> {/* Title: Your Progress */}
+                <Skeleton className="h-8 w-16" /> {/* Percentage: e.g., 75% */}
+                <Skeleton className="h-4 w-20" /> {/* Date: e.g., Today / 19 September */}
               </div>
-              <div className="w-full md:w-1/3 flex justify-center items-center h-32 md:h-36"> {/* Chart placeholder */}
-                <Skeleton className="h-full w-full max-w-[128px] md:max-w-[144px] aspect-square rounded-full bg-sky-200 dark:bg-sky-800" />
+              <div className="w-[120px] h-[120px] flex-shrink-0"> {/* Chart placeholder */}
+                <Skeleton className="h-full w-full rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-start gap-4 md:gap-6">
+            <div className="flex flex-row items-start gap-3">
               {/* Left side: Title, Percentage, Date */}
-              <div className="flex-1 space-y-1 text-center md:text-left w-full md:w-2/3">
-                <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground">
+              <div className="flex-1 space-y-1 text-left">
+                <div className="flex items-center justify-start gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
-                <div className="text-4xl sm:text-5xl font-bold text-foreground">
+                <div className="text-3xl font-bold text-foreground">
                   {goalCalories > 0 ? `${percentAchieved}%` : "-"}
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -250,7 +250,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right side: Donut Chart */}
-              <div className="w-full md:w-1/3 h-36 md:h-40 flex justify-center items-center relative md:mt-0">
+              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -471,4 +471,3 @@ export default function DashboardPage() {
   );
 }
     
-
