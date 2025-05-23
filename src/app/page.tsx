@@ -32,7 +32,7 @@ import { useGoals } from "@/hooks/use-goals";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { format, isToday } from "date-fns";
 import Image from "next/image";
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipProps } from 'recharts';
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
@@ -144,7 +144,7 @@ export default function DashboardPage() {
   const COLORS = {
     Consumed: 'hsl(var(--card))', 
     Remaining: 'hsla(var(--primary-hsl), 0.25)', 
-    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)', // Should be --muted not --muted-foreground
+    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)',
     ConsumedNoGoal: 'hsl(var(--accent))',
   };
 
@@ -154,20 +154,46 @@ export default function DashboardPage() {
       if (consumedCalories < goalCalories) {
         chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories, fill: COLORS.Remaining });
       }
-    } else { // consumedCalories === 0
+    } else { 
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { // goalCalories === 0
+  } else { 
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
     } else {
-      // Represent a full empty track if no goal and no consumption
       chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
     }
   }
-  if (chartData.length === 0) { // Fallback if all conditions above led to empty data (e.g. goal is 0 and consumed is 0)
+  if (chartData.length === 0) { 
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
+
+  const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload; 
+      const value = payload[0].value; 
+      const name = data.name; 
+  
+      let displayName = name;
+      if (name === 'ConsumedNoGoal') {
+        displayName = 'Consumed';
+      } else if (name === 'Empty') {
+        displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+      }
+  
+      const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0)
+        ? '0 kcal' 
+        : `${Math.round(value || 0)} kcal`;
+  
+      return (
+        <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
+          <p className="font-medium">{displayName}</p>
+          <p className="text-muted-foreground">{displayValue}</p>
+        </div>
+      );
+    }
+    return null;
+  };
 
 
   const todayCalories = dailyLog?.calories ?? 0;
@@ -213,20 +239,20 @@ export default function DashboardPage() {
       {/* Your Progress Card */}
        <Card className="shadow-lg rounded-2xl p-4 sm:p-6 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-            <div className="flex flex-row items-start gap-3 min-h-[120px]">
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-24" /> 
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" /> 
-                <Skeleton className="h-4 w-20" /> 
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+              <div className="flex-1 space-y-2 text-center md:text-left">
+                <Skeleton className="h-5 w-24 md:mx-0 mx-auto" /> 
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 md:mx-0 mx-auto" /> 
+                <Skeleton className="h-4 w-20 md:mx-0 mx-auto" /> 
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0"> 
+              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0"> 
                 <Skeleton className="h-full w-full rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-row items-start gap-3">
-              <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center justify-start gap-2 text-sm text-muted-foreground">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+              <div className="flex-1 space-y-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
@@ -236,7 +262,8 @@ export default function DashboardPage() {
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary px-1">
-                      <span>{formattedSelectedDate}</span>
+                       <CalendarDays className="h-4 w-4" />
+                      <span>{currentSelectedDate ? format(currentSelectedDate, "dd MMMM") : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -257,7 +284,7 @@ export default function DashboardPage() {
                 </Popover>
               </div>
 
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
+              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0 flex justify-center items-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -281,31 +308,8 @@ export default function DashboardPage() {
                       {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
                     </Pie>
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--popover))",
-                        borderColor: "hsl(var(--border))",
-                        borderRadius: "var(--radius)",
-                        padding: "0.5rem 0.75rem",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-                      }}
-                      formatter={(value: number, name: string, entry: any) => {
-                        const originalName = entry.payload.name;
-                        let displayName = originalName;
-                        if (originalName === 'ConsumedNoGoal') {
-                          displayName = 'Consumed';
-                        } else if (originalName === 'Empty') {
-                          displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
-                        }
-                    
-                        const displayValue = (originalName === 'Empty' && value === 1 && goalCalories === 0)
-                          ? '0 kcal' 
-                          : `${Math.round(value)} kcal`;
-                    
-                        return [displayValue, displayName];
-                      }}
-                      wrapperStyle={{
-                        outline: "none",
-                      }}
+                      content={<CustomDonutTooltip />}
+                      wrapperStyle={{ outline: "none" }}
                       cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
                     />
                   </PieChart>
@@ -377,7 +381,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
