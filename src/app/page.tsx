@@ -22,9 +22,9 @@ import {
   Utensils,
   BarChart2,
   ChevronDown,
-  Trash2, // Added Trash2
+  Trash2,
 } from "lucide-react";
-import { useState, type FC } from "react";
+import { useState, type FC, useEffect } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
@@ -121,10 +121,11 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
   );
 };
 
-const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  const { goals } = useGoals(); 
-  const goalCalories = goals?.calories ?? 0;
+interface CustomDonutTooltipProps extends TooltipProps<number, string> {
+  goalCalories: number;
+}
 
+const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload; 
     const value = payload[0].value; 
@@ -145,8 +146,8 @@ const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload 
       : `${Math.round(value || 0)} kcal`;
 
     return (
-      <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
-        <p className="font-medium">{displayName}</p>
+      <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>
+        <p className="font-semibold">{displayName}</p>
         <p className="text-muted-foreground">{displayValue}</p>
       </div>
     );
@@ -168,14 +169,13 @@ export default function DashboardPage() {
   let percentAchieved = 0;
   if (goalCalories > 0) {
     percentAchieved = Math.round((consumedCalories / goalCalories) * 100);
-  } else if (consumedCalories > 0) {
   }
   
   const chartData = [];
   const COLORS = {
     Consumed: 'hsl(var(--card))', 
     Remaining: 'hsla(var(--primary-hsl), 0.25)', 
-    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)',
+    Empty: 'hsla(var(--muted-foreground), 0.1)',
     ConsumedNoGoal: 'hsl(var(--accent))',
   };
 
@@ -192,10 +192,11 @@ export default function DashboardPage() {
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
     } else {
+      // Use 1 as a placeholder value to render the empty track, actual value in tooltip is 0
       chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
     }
   }
-  if (chartData.length === 0) { 
+  if (chartData.length === 0) { // Should not happen with above logic but as a fallback
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -208,9 +209,9 @@ export default function DashboardPage() {
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
 
   return (
-    <div className="flex flex-col gap-6 p-4 max-w-3xl mx-auto">
+    <div className="flex flex-col gap-4 p-4 max-w-3xl mx-auto">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center pb-3 border-b border-border">
         <div className="flex items-center gap-3">
           {isLoadingProfile ? (
             <>
@@ -219,11 +220,15 @@ export default function DashboardPage() {
             </>
           ) : (
             <>
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
-                <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-              </Avatar>
-              <h1 className="text-xl font-semibold">Hi, {userProfile.name}</h1>
+              <Link href="/profile">
+                <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
+                  <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
+                  <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                </Avatar>
+              </Link>
+              <Link href="/profile">
+                <h1 className="text-xl font-semibold hover:underline">Hi, {userProfile.name}</h1>
+              </Link>
             </>
           )}
         </div>
@@ -238,14 +243,12 @@ export default function DashboardPage() {
        <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
              <div className="flex flex-row items-start gap-3">
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24" /> 
                 <Skeleton className="h-10 w-20" /> 
                 <Skeleton className="h-4 w-20" /> 
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0"> 
-                <Skeleton className="h-full w-full rounded-full bg-sky-200 dark:bg-sky-800" />
-              </div>
+              <div className="w-[120px] h-[120px] flex-shrink-0 bg-sky-200 dark:bg-sky-800 rounded-full" />
             </div>
           ) : (
             <div className="flex flex-row items-start gap-3">
@@ -306,7 +309,7 @@ export default function DashboardPage() {
                       {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
                     </Pie>
                     <Tooltip
-                      content={<CustomDonutTooltip />}
+                      content={<CustomDonutTooltip goalCalories={goalCalories} />}
                       wrapperStyle={{ outline: "none" }}
                       cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
                     />
@@ -335,7 +338,7 @@ export default function DashboardPage() {
         <>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-col items-center gap-3">
+            <CardContent className="p-4 flex flex-row items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}>
                 <Camera className="h-6 w-6 text-primary" />
               </div>
@@ -345,7 +348,7 @@ export default function DashboardPage() {
         </Link>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-col items-center gap-3">
+            <CardContent className="p-4 flex flex-row items-center gap-3">
                <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
                 <UploadCloud className="h-6 w-6" style={{color: 'hsl(145, 58%, 40%)'}} />
               </div>
@@ -355,7 +358,7 @@ export default function DashboardPage() {
         </Link>
          <Link href="/log-food/manual" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-col items-center gap-3">
+            <CardContent className="p-4 flex flex-row items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
                 <FilePenLine className="h-6 w-6" style={{color: 'hsl(340, 72%, 62%)'}} />
               </div>
@@ -379,7 +382,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
@@ -496,4 +499,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+    
+
     
