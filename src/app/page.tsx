@@ -20,12 +20,10 @@ import {
   Lightbulb,
   TrendingUp,
   Utensils,
-  Loader2,
-  Trash2,
   BarChart2,
   ChevronDown,
 } from "lucide-react";
-import { useEffect, useState, type FC } from "react";
+import { useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
@@ -122,6 +120,36 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
   );
 };
 
+const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload }) => {
+  const { goals } = useGoals(); // Access goals here if needed for context
+  const goalCalories = goals?.calories ?? 0;
+
+  if (active && payload && payload.length) {
+    const data = payload[0].payload; 
+    const value = payload[0].value; 
+    const name = data.name; 
+
+    let displayName = name;
+    if (name === 'ConsumedNoGoal') {
+      displayName = 'Consumed';
+    } else if (name === 'Empty') {
+      displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+    }
+
+    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1) // Check if it's the placeholder for empty chart
+      ? '0 kcal' 
+      : `${Math.round(value || 0)} kcal`;
+
+    return (
+      <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
+        <p className="font-medium">{displayName}</p>
+        <p className="text-muted-foreground">{displayValue}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
@@ -168,33 +196,6 @@ export default function DashboardPage() {
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
-  const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload; 
-      const value = payload[0].value; 
-      const name = data.name; 
-  
-      let displayName = name;
-      if (name === 'ConsumedNoGoal') {
-        displayName = 'Consumed';
-      } else if (name === 'Empty') {
-        displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
-      }
-  
-      const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0)
-        ? '0 kcal' 
-        : `${Math.round(value || 0)} kcal`;
-  
-      return (
-        <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md">
-          <p className="font-medium">{displayName}</p>
-          <p className="text-muted-foreground">{displayValue}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
 
   const todayCalories = dailyLog?.calories ?? 0;
   const todayCarbs = dailyLog?.carbs ?? 0;
@@ -202,12 +203,6 @@ export default function DashboardPage() {
   const todayFat = dailyLog?.fat ?? 0;
 
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
-
-  const formattedSelectedDate = currentSelectedDate
-  ? isToday(currentSelectedDate)
-    ? "Today"
-    : format(currentSelectedDate, "dd MMMM")
-  : "Select Date";
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
@@ -237,22 +232,22 @@ export default function DashboardPage() {
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 sm:p-6 bg-sky-100 dark:bg-sky-900/50 text-foreground">
+       <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
-              <div className="flex-1 space-y-2 text-center md:text-left">
-                <Skeleton className="h-5 w-24 md:mx-0 mx-auto" /> 
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 md:mx-0 mx-auto" /> 
-                <Skeleton className="h-4 w-20 md:mx-0 mx-auto" /> 
+             <div className="flex flex-row items-start gap-3">
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-24" /> 
+                <Skeleton className="h-10 w-20" /> 
+                <Skeleton className="h-4 w-20" /> 
               </div>
-              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0"> 
+              <div className="w-[120px] h-[120px] flex-shrink-0"> 
                 <Skeleton className="h-full w-full rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
-              <div className="flex-1 space-y-1 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground">
+            <div className="flex flex-row items-start gap-3">
+              <div className="flex-1 space-y-1 text-left">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
@@ -263,7 +258,7 @@ export default function DashboardPage() {
                   <PopoverTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary px-1">
                        <CalendarDays className="h-4 w-4" />
-                      <span>{currentSelectedDate ? format(currentSelectedDate, "dd MMMM") : "Select Date"}</span>
+                      <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "dd MMMM")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -284,7 +279,7 @@ export default function DashboardPage() {
                 </Popover>
               </div>
 
-              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0 flex justify-center items-center relative">
+              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
