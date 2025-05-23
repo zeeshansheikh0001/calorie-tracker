@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -19,6 +20,12 @@ export const metadata: Metadata = {
   description: 'Track your calories and nutrition smartly.',
 };
 
+// This RootLayout is a Server Component.
+// It doesn't directly receive or use route `params` or `searchParams` in its props.
+// If child pages (which are Client Components in this app) needed route parameters,
+// they would typically use hooks like `useParams()` or `useSearchParams()` from `next/navigation`.
+// The "params enumerated" warning might stem from Next.js internals or library interactions
+// in development mode if not directly from user code misusing params in a Server Component.
 export default function RootLayout({
   children,
 }: Readonly<{
