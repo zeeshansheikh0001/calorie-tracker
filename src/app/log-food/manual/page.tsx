@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent, type FC } from "react";
+import { useState, type FormEvent, type FC, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,15 @@ export default function ManualLogPage() {
       });
     } finally {
       setIsAiEstimating(false);
+    }
+  };
+
+  const handleFoodNameKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault(); // Prevent default form submission if it's part of a form
+      if (!isAiEstimating && foodName.trim()) {
+        handleAiEstimate();
+      }
     }
   };
 
@@ -166,6 +175,7 @@ export default function ManualLogPage() {
                   if(estimatedNutrition) setEstimatedNutrition(null); 
                   setAiError(null); 
                 }}
+                onKeyDown={handleFoodNameKeyDown}
                 placeholder="e.g., 200g grilled salmon with asparagus and quinoa"
                 className="mt-1"
                 required
@@ -283,3 +293,5 @@ export default function ManualLogPage() {
   );
 }
 
+
+    
