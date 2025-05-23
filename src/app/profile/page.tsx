@@ -40,7 +40,7 @@ export default function ProfilePage() {
       <Card className="shadow-xl rounded-xl overflow-hidden">
         <CardHeader className="items-center text-center pt-8 pb-6 bg-gradient-to-b from-muted/30 to-transparent">
           <Avatar className="h-32 w-32 mb-4 border-4 border-background shadow-lg">
-            <AvatarImage src={userProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl} alt={userProfile.name} data-ai-hint="user avatar" />
+            <AvatarImage src={userProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
             <AvatarFallback className="text-4xl">
               {userProfile.name?.charAt(0).toUpperCase() || "A"}
             </AvatarFallback>
@@ -49,21 +49,22 @@ export default function ProfilePage() {
           <CardDescription className="text-base">{userProfile.email}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 p-4 md:p-6">
-          <Link href="/profile/edit" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-              <Edit3 className="h-5 w-5 text-primary" />
-              Edit Profile
-            </Button>
-          </Link>
+          <div>
+            <Link href="/profile/edit" passHref>
+              <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+                <Edit3 className="h-5 w-5 text-primary" />
+                Edit Profile
+              </Button>
+            </Link>
+            <Link href="/goals" passHref>
+              <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+                <HeartPulse className="h-5 w-5 text-primary" />
+                My Goals
+              </Button>
+            </Link>
+          </div>
           
-          <Link href="/goals" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-              <HeartPulse className="h-5 w-5 text-primary" />
-              My Goals
-            </Button>
-          </Link>
-          
-          <Separator className="my-4" />
+          {/* The Separator previously below "My Goals" is removed */}
           
           <Link href="/reminders" passHref>
             <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
@@ -93,4 +94,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
