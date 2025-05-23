@@ -3,12 +3,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BarChart2, HeartPulse, UserCircle2 } from "lucide-react";
+import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/progress", label: "Stats", icon: BarChart2 },
+  { href: "/ai-features", label: "AI", icon: Sparkles },
   { href: "/goals", label: "Health", icon: HeartPulse },
   { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
