@@ -135,14 +135,13 @@ export default function DashboardPage() {
   const percentAchieved = goalCalories > 0 ? Math.round((consumedCalories / goalCalories) * 100) : 0;
   
   const chartData = [];
-  if (consumedCalories > 0 && goalCalories >= 0) { // Ensure goalCalories can be 0 if consumed is > 0
+  if (consumedCalories > 0 && goalCalories >= 0) { 
      chartData.push({ name: 'Consumed', value: consumedCalories });
   } else if (consumedCalories === 0 && goalCalories === 0) {
-     // Add a small value to show an empty track if both are 0, and another for the remaining part
      chartData.push({ name: 'Consumed', value: 0.001 }); 
      chartData.push({ name: 'Remaining', value: 0.999 });
   } else if (consumedCalories === 0 && goalCalories > 0) {
-     chartData.push({ name: 'Consumed', value: 0.001 }); // Small value for consumed if goal exists
+     chartData.push({ name: 'Consumed', value: 0.001 }); 
      chartData.push({ name: 'Remaining', value: goalCalories });
   }
 
@@ -152,14 +151,13 @@ export default function DashboardPage() {
   } else if (goalCalories > 0 && consumedCalories === 0) {
     // Already handled by the case above (goalCalories > 0 and consumedCalories === 0.001)
   } else if (goalCalories === 0 && consumedCalories === 0 && chartData.length === 1 && chartData[0].name === 'Consumed') {
-    // This handles the case where only consumed was 0.001, needs a remaining part to make a full circle for empty state.
     chartData.push({ name: 'Remaining', value: 0.999 });
   }
 
 
   const COLORS = {
-    Consumed: 'hsl(var(--card))', // White or card background color
-    Remaining: 'hsl(var(--muted))', // Light grey or muted color
+    Consumed: 'hsl(var(--primary))', 
+    Remaining: 'hsl(var(--muted))', 
   };
 
 
@@ -206,20 +204,20 @@ export default function DashboardPage() {
       {/* Your Progress Card */}
        <Card className="shadow-lg rounded-2xl p-4 sm:p-6 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-            <div className="flex flex-col md:flex-row items-center gap-6 min-h-[200px]">
-              <div className="flex-1 space-y-3 w-full md:w-auto">
+            <div className="flex flex-col md:flex-row items-start gap-6 min-h-[200px]">
+              <div className="flex-1 space-y-3 w-full md:w-2/3">
                 <Skeleton className="h-6 w-32" />
                 <Skeleton className="h-16 w-24" />
                 <Skeleton className="h-6 w-28" />
               </div>
               <div className="w-full md:w-1/3 flex justify-center items-center">
-                <Skeleton className="h-32 w-32 rounded-full" />
+                <Skeleton className="h-32 w-32 rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+            <div className="flex flex-col md:flex-row items-start gap-4 md:gap-6">
               {/* Left side: Title, Percentage, Date */}
-              <div className="flex-1 space-y-1 text-center md:text-left w-full">
+              <div className="flex-1 space-y-1 text-center md:text-left w-full md:w-2/3">
                 <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
@@ -252,38 +250,39 @@ export default function DashboardPage() {
               </div>
 
               {/* Right side: Donut Chart */}
-              <div className="w-full md:w-auto h-36 md:h-40 flex justify-center items-center relative mt-4 md:mt-0">
+              <div className="w-full md:w-1/3 h-36 md:h-40 flex justify-center items-center relative mt-4 md:mt-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={chartData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="75%" // Adjusted for thicker donut
-                      outerRadius="95%" // Adjusted for thicker donut
+                      innerRadius="75%" 
+                      outerRadius="95%" 
                       dataKey="value"
                       stroke="none"
                       paddingAngle={chartData.length > 1 && chartData.some(d => d.name === 'Consumed' && d.value > 0.001) && chartData.some(d => d.name === 'Remaining' && d.value > 0) ? 8 : 0}
                       isAnimationActive={true}
-                      cornerRadius={10} // For rounded ends
                     >
                       {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Remaining} />
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Remaining} 
+                          cornerRadius={10} 
+                        />
                       ))}
                       <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />
                     </Pie>
                     <Tooltip formatter={(value, name) => [`${Math.round(value as number)} kcal`, name === "Consumed" ? "Consumed" : "Goal Remaining"]} />
                   </PieChart>
                 </ResponsiveContainer>
-                 {/* Small yellow icon placeholder - this part is tricky with recharts */}
                  {consumedCalories > 0 && goalCalories > 0 && (
                     <div 
                         className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-md"
                         style={{
-                            top: 'calc(50% - 6px)', // Approximate
-                            left: 'calc(50% - 6px)', // Approximate
-                            transform: `rotate(${ (percentAchieved / 100) * 360 - 90}deg) translate(calc(0.85 * 50%)) rotate(-${(percentAchieved / 100) * 360 - 90}deg) `, // Very approximate logic for icon position
-                            // More precise positioning would require complex calculations based on arc end point
+                            top: 'calc(50% - 6px)', 
+                            left: 'calc(50% - 6px)', 
+                            transform: `rotate(${ (percentAchieved / 100) * 360 - 90}deg) translate(calc(0.92 * 50%)) rotate(-${(percentAchieved / 100) * 360 - 90}deg) `, 
                         }}
                     />
                  )}
@@ -353,7 +352,6 @@ export default function DashboardPage() {
                 : format(currentSelectedDate, "MMM d, yyyy")
               : "the selected date"}
           </h2>
-           {/* Calendar popover already exists in the Your Progress card now, remove duplicate or keep if intended elsewhere */}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
          {isDataLoading ? (
