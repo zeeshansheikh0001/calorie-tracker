@@ -143,8 +143,8 @@ export default function DashboardPage() {
   
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', // Bright white/light blue arc
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for track
+    Consumed: 'hsl(var(--card))', 
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', 
     Empty: 'hsla(var(--muted-foreground-hsl), 0.1)',
     ConsumedNoGoal: 'hsl(var(--accent))',
   };
@@ -283,17 +283,6 @@ export default function DashboardPage() {
                     <Tooltip formatter={(value) => [`${Math.round(value as number)} kcal`, ""]} />
                   </PieChart>
                 </ResponsiveContainer>
-                 {consumedCalories > 0 && goalCalories > 0 && (
-                    <div 
-                        className="absolute w-4 h-4 bg-yellow-400 rounded-full shadow-md"
-                        style={{
-                            top: 'calc(50% - 8px)', // Adjusted for w-4 h-4
-                            left: 'calc(50% - 8px)', // Adjusted for w-4 h-4
-                            transform: `rotate(${ (Math.min(100, percentAchieved) / 100) * 360 - 90}deg) translate(calc(0.85 * 60px)) rotate(-${(Math.min(100, percentAchieved) / 100) * 360 - 90}deg) `, 
-                            display: consumedCalories > 0 && goalCalories > 0 ? 'block' : 'none',
-                        }}
-                    />
-                 )}
               </div>
             </div>
           )}
@@ -361,12 +350,12 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-3">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
                  <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
-                    <Skeleton className="h-8 w-8 mx-auto mb-1 rounded-lg" />
+                    <Skeleton className="h-6 w-6 mx-auto mb-1 rounded-lg" />
                     <Skeleton className="h-5 w-10 mx-auto mb-1" />
                     <Skeleton className="h-3 w-8 mx-auto" />
                   </Card>
