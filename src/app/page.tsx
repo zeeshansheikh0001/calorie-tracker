@@ -22,6 +22,7 @@ import {
   Utensils,
   BarChart2,
   ChevronDown,
+  Trash2, // Added Trash2
 } from "lucide-react";
 import { useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
@@ -121,7 +122,7 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
 };
 
 const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload }) => {
-  const { goals } = useGoals(); // Access goals here if needed for context
+  const { goals } = useGoals(); 
   const goalCalories = goals?.calories ?? 0;
 
   if (active && payload && payload.length) {
@@ -134,9 +135,12 @@ const CustomDonutTooltip: FC<TooltipProps<number, string>> = ({ active, payload 
       displayName = 'Consumed';
     } else if (name === 'Empty') {
       displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+    } else if (name === 'Remaining' && goalCalories > 0) {
+      displayName = 'Remaining in Goal';
     }
 
-    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1) // Check if it's the placeholder for empty chart
+
+    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1) 
       ? '0 kcal' 
       : `${Math.round(value || 0)} kcal`;
 
@@ -165,7 +169,6 @@ export default function DashboardPage() {
   if (goalCalories > 0) {
     percentAchieved = Math.round((consumedCalories / goalCalories) * 100);
   } else if (consumedCalories > 0) {
-     // No goal, but calories consumed. Can't calculate percentage of goal.
   }
   
   const chartData = [];
@@ -205,7 +208,7 @@ export default function DashboardPage() {
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
 
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
+    <div className="flex flex-col gap-6 p-4 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -217,7 +220,7 @@ export default function DashboardPage() {
           ) : (
             <>
               <Avatar className="h-10 w-10">
-                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} data-ai-hint="user avatar" />
+                <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
                 <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
               </Avatar>
               <h1 className="text-xl font-semibold">Hi, {userProfile.name}</h1>
@@ -376,7 +379,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
