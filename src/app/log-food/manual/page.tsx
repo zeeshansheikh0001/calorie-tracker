@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
-import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCross, Leaf, Activity, ShieldCheck } from "lucide-react";
+import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCrossed, Leaf, Activity, ShieldCheck } from "lucide-react";
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
 
@@ -217,7 +217,7 @@ export default function ManualLogPage() {
                       {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0 &&<NutritionDisplayItem icon={Leaf} label="Dietary Fiber" value={estimatedNutrition.fiberEstimate.toFixed(1)} unit="g" color="text-lime-600" />}
                       {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0 && <NutritionDisplayItem icon={Activity} label="Sugars" value={estimatedNutrition.sugarEstimate.toFixed(1)} unit="g" color="text-fuchsia-500" />}
                       {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0 && <NutritionDisplayItem icon={Heart} label="Cholesterol" value={estimatedNutrition.cholesterolEstimate.toFixed(0)} unit="mg" color="text-purple-500" />}
-                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0 && <NutritionDisplayItem icon={UtensilsCross} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
+                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0 && <NutritionDisplayItem icon={UtensilsCrossed} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
                     </div>
                   </div>
                 ) : null}
