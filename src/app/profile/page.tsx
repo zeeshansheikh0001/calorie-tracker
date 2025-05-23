@@ -6,91 +6,157 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Settings, LogOut, Edit3, Shield, Bell, HeartPulse } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import type { UserProfile } from "@/types";
+import { 
+  Settings, 
+  LogOut, 
+  Edit3, 
+  Shield, 
+  Bell, 
+  HeartPulse, 
+  UserCircle2, 
+  ChevronRight,
+  Package,
+  CircleDollarSign,
+  Lock,
+  Languages,
+  Pencil,
+  EllipsisVertical
+} from "lucide-react";
+import type { UserProfile as UserProfileType } from "@/types"; // Renamed to avoid conflict
+import { useUserProfile } from "@/hooks/use-user-profile"; // For avatar
+import { cn } from "@/lib/utils";
 
-const DEFAULT_USER_PROFILE: UserProfile = {
-  name: "Alex Johnson",
-  email: "alex.johnson@example.com",
-  avatarUrl: "https://placehold.co/120x120.png", // Default placeholder
+const DEFAULT_USER_PROFILE_DATA: UserProfileType = {
+  name: "Md Abu Ubayda", // Hardcoded to match image
+  email: "md.ubayda@example.com", // Placeholder email
+  avatarUrl: "https://placehold.co/120x120.png", 
+};
+
+interface ListItemProps {
+  href: string;
+  icon: React.ElementType;
+  iconBgClass: string;
+  iconClass?: string;
+  text: string;
+  isLink?: boolean;
+}
+
+const ListItem: React.FC<ListItemProps> = ({ href, icon: Icon, iconBgClass, iconClass = "text-current", text, isLink = true }) => {
+  const content = (
+    <div className="flex items-center justify-between py-3.5 px-3 rounded-lg hover:bg-muted/30 transition-colors w-full">
+      <div className="flex items-center gap-4">
+        <div className={cn("p-2.5 rounded-full flex items-center justify-center", iconBgClass)}>
+          <Icon className={cn("h-5 w-5", iconClass)} />
+        </div>
+        <span className="text-sm font-medium text-foreground">{text}</span>
+      </div>
+      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+    </div>
+  );
+
+  if (isLink) {
+    return (
+      <Link href={href} passHref>
+        {content}
+      </Link>
+    );
+  }
+  return <button className="w-full text-left">{content}</button>;
 };
 
 export default function ProfilePage() {
-  const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
-
-  useEffect(() => {
-    const storedProfile = localStorage.getItem("userProfile");
-    if (storedProfile) {
-      try {
-        const parsedProfile: UserProfile = JSON.parse(storedProfile);
-        // Ensure avatarUrl is part of the loaded profile or fallback to default
-        setUserProfile({ ...DEFAULT_USER_PROFILE, ...parsedProfile });
-      } catch (e) {
-        console.error("Failed to parse user profile from localStorage", e);
-        setUserProfile(DEFAULT_USER_PROFILE); // Fallback to default
-      }
-    } else {
-      setUserProfile(DEFAULT_USER_PROFILE);
-    }
-  }, []);
+  // useUserProfile hook is used here primarily for the avatar, as name/phone are hardcoded from image
+  const { userProfile: dynamicUserProfile, isLoading: isLoadingProfile } = useUserProfile();
+  
+  // For display, use hardcoded name & phone from image, avatar from hook/default
+  const displayProfile = {
+    name: "Md Abu Ubayda",
+    phone: "+88001712346789",
+    avatarUrl: dynamicUserProfile.avatarUrl || DEFAULT_USER_PROFILE_DATA.avatarUrl,
+  };
 
   return (
-    <div className="container mx-auto max-w-xl py-8 px-4">
-      <Card className="shadow-xl rounded-xl overflow-hidden">
-        <CardHeader className="items-center text-center pt-8 pb-6 bg-gradient-to-b from-muted/30 to-transparent">
-          <Avatar className="h-32 w-32 mb-4 border-4 border-background shadow-lg">
-            <AvatarImage src={userProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
-            <AvatarFallback className="text-4xl">
-              {userProfile.name?.charAt(0).toUpperCase() || "A"}
-            </AvatarFallback>
-          </Avatar>
-          <CardTitle className="text-3xl font-bold">{userProfile.name}</CardTitle>
-          <CardDescription className="text-base">{userProfile.email}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2 p-4 md:p-6">
-          <div>
-            <Link href="/profile/edit" passHref>
-              <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-                <Edit3 className="h-5 w-5 text-primary" />
-                Edit Profile
-              </Button>
-            </Link>
-            <Link href="/goals" passHref>
-              <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-                <HeartPulse className="h-5 w-5 text-primary" />
-                My Goals
-              </Button>
-            </Link>
-          </div>
-          
-          {/* The Separator previously below "My Goals" is removed */}
-          
-          <Link href="/reminders" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-              <Bell className="h-5 w-5 text-primary" />
-              Notification Settings
+    <div className="min-h-screen bg-background">
+      {/* Top Green Section */}
+      <div className="bg-emerald-700 text-white pt-6 sm:pt-8">
+        <div className="container mx-auto px-4 sm:px-6">
+          {/* Header */}
+          <div className="flex justify-between items-center pb-6">
+            <h1 className="text-xl sm:text-2xl font-semibold">Profile</h1>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+              <EllipsisVertical className="h-6 w-6" />
             </Button>
-          </Link>
-          
-          <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-            <Settings className="h-5 w-5 text-primary" />
-            App Settings
-          </Button>
-          
-          <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
-            <Shield className="h-5 w-5 text-primary" />
-            Privacy & Security
-          </Button>
-          
-          <Separator className="my-4" />
-          
-          <Button variant="destructive" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-destructive/90 rounded-lg">
-            <LogOut className="h-5 w-5" />
-            Log Out
-          </Button>
-        </CardContent>
-      </Card>
+          </div>
+
+          {/* User Info */}
+          <div className="flex flex-col items-center pt-2 pb-12 relative">
+            <div className="relative">
+              <Avatar className="h-24 w-24 text-3xl border-4 border-emerald-600 shadow-lg">
+                <AvatarImage src={displayProfile.avatarUrl} alt={displayProfile.name} data-ai-hint="user portrait" />
+                <AvatarFallback>{displayProfile.name?.charAt(0).toUpperCase() || "A"}</AvatarFallback>
+              </Avatar>
+              <Link href="/profile/edit" passHref>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="absolute bottom-[-4px] right-[-4px] bg-orange-500 hover:bg-orange-600 text-white rounded-full h-8 w-8 p-1.5 shadow-md border-2 border-emerald-700"
+                  aria-label="Edit profile image"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold mt-4">{displayProfile.name}</h2>
+            <p className="text-sm text-emerald-200 mt-1">{displayProfile.phone}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Card Section */}
+      <div className="bg-card text-card-foreground rounded-t-3xl shadow-2xl p-5 sm:p-6 mt-[-28px] relative z-10 container mx-auto max-w-3xl">
+        <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account Overview</h3>
+        <div className="space-y-1.5">
+          <ListItem 
+            href="/profile/edit" 
+            icon={UserCircle2} 
+            iconBgClass="bg-blue-100"
+            iconClass="text-blue-500"
+            text="My Profile" 
+          />
+          <ListItem 
+            href="#" 
+            icon={Package} 
+            iconBgClass="bg-green-100"
+            iconClass="text-green-600"
+            text="My Orders" 
+            isLink={false} // Example: make it a button if not a link yet
+          />
+          <ListItem 
+            href="#" 
+            icon={CircleDollarSign} 
+            iconBgClass="bg-purple-100"
+            iconClass="text-purple-600"
+            text="Refund" 
+            isLink={false}
+          />
+          <ListItem 
+            href="#" 
+            icon={Lock} 
+            iconBgClass="bg-orange-100"
+            iconClass="text-orange-500"
+            text="Change Password" 
+            isLink={false}
+          />
+          <ListItem 
+            href="#" 
+            icon={Languages} 
+            iconBgClass="bg-pink-100"
+            iconClass="text-pink-500"
+            text="Change Language" 
+            isLink={false}
+          />
+        </div>
+      </div>
     </div>
   );
 }
