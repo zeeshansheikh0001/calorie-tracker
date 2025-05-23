@@ -132,33 +132,42 @@ export default function DashboardPage() {
 
   const consumedCalories = dailyLog?.calories ?? 0;
   const goalCalories = goals?.calories ?? 0;
-  const percentAchieved = goalCalories > 0 ? Math.round((consumedCalories / goalCalories) * 100) : 0;
+  
+  let percentAchieved = 0;
+  if (goalCalories > 0) {
+    percentAchieved = Math.round((consumedCalories / goalCalories) * 100);
+  } else if (consumedCalories > 0) {
+     // No goal, but calories consumed. Can't calculate percentage of goal.
+     // Keep percentAchieved at 0 or handle as a special case if needed.
+  }
   
   const chartData = [];
-  if (consumedCalories > 0 && goalCalories >= 0) { 
-     chartData.push({ name: 'Consumed', value: consumedCalories });
-  } else if (consumedCalories === 0 && goalCalories === 0) {
-     chartData.push({ name: 'Consumed', value: 0.001 }); 
-     chartData.push({ name: 'Remaining', value: 0.999 });
-  } else if (consumedCalories === 0 && goalCalories > 0) {
-     chartData.push({ name: 'Consumed', value: 0.001 }); 
-     chartData.push({ name: 'Remaining', value: goalCalories });
-  }
-
-
-  if (goalCalories > consumedCalories && consumedCalories > 0) {
-    chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories });
-  } else if (goalCalories > 0 && consumedCalories === 0) {
-    // Already handled by the case above (goalCalories > 0 and consumedCalories === 0.001)
-  } else if (goalCalories === 0 && consumedCalories === 0 && chartData.length === 1 && chartData[0].name === 'Consumed') {
-    chartData.push({ name: 'Remaining', value: 0.999 });
-  }
-
-
   const COLORS = {
-    Consumed: 'hsl(var(--primary))', 
-    Remaining: 'hsl(var(--muted))', 
+    Consumed: 'hsl(var(--card))', // Bright white/light blue arc
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for track
+    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)',
+    ConsumedNoGoal: 'hsl(var(--accent))',
   };
+
+  if (goalCalories > 0) {
+    if (consumedCalories > 0) {
+      chartData.push({ name: 'Consumed', value: consumedCalories, fill: COLORS.Consumed });
+      if (consumedCalories < goalCalories) {
+        chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories, fill: COLORS.Remaining });
+      }
+    } else { // consumedCalories === 0
+      chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
+    }
+  } else { // goalCalories === 0
+    if (consumedCalories > 0) {
+      chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
+    } else {
+      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
+    }
+  }
+  if (chartData.length === 0) { // Fallback if all conditions above led to empty data
+    chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
+  }
 
 
   const todayCalories = dailyLog?.calories ?? 0;
@@ -206,17 +215,16 @@ export default function DashboardPage() {
           {isDataLoading ? (
             <div className="flex flex-row items-start gap-3 min-h-[120px]">
               <div className="flex-1 space-y-2">
-                <Skeleton className="h-5 w-24" /> {/* Title: Your Progress */}
-                <Skeleton className="h-8 w-16" /> {/* Percentage: e.g., 75% */}
-                <Skeleton className="h-4 w-20" /> {/* Date: e.g., Today / 19 September */}
+                <Skeleton className="h-5 w-24" /> 
+                <Skeleton className="h-8 w-16" /> 
+                <Skeleton className="h-4 w-20" /> 
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0"> {/* Chart placeholder */}
+              <div className="w-[120px] h-[120px] flex-shrink-0"> 
                 <Skeleton className="h-full w-full rounded-full bg-sky-200 dark:bg-sky-800" />
               </div>
             </div>
           ) : (
             <div className="flex flex-row items-start gap-3">
-              {/* Left side: Title, Percentage, Date */}
               <div className="flex-1 space-y-1 text-left">
                 <div className="flex items-center justify-start gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
@@ -249,7 +257,6 @@ export default function DashboardPage() {
                 </Popover>
               </div>
 
-              {/* Right side: Donut Chart */}
               <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -261,28 +268,29 @@ export default function DashboardPage() {
                       outerRadius="95%" 
                       dataKey="value"
                       stroke="none"
-                      paddingAngle={chartData.length > 1 && chartData.some(d => d.name === 'Consumed' && d.value > 0.001) && chartData.some(d => d.name === 'Remaining' && d.value > 0) ? 8 : 0}
+                      paddingAngle={chartData.length > 1 && consumedCalories > 0 && (goalCalories - consumedCalories) > 0 ? 8 : 0}
                       isAnimationActive={true}
                     >
                       {chartData.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
-                          fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Remaining} 
+                          fill={entry.fill || COLORS.Remaining} 
                           cornerRadius={10} 
                         />
                       ))}
                       <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />
                     </Pie>
-                    <Tooltip formatter={(value, name) => [`${Math.round(value as number)} kcal`, name === "Consumed" ? "Consumed" : "Goal Remaining"]} />
+                    <Tooltip formatter={(value) => [`${Math.round(value as number)} kcal`, ""]} />
                   </PieChart>
                 </ResponsiveContainer>
                  {consumedCalories > 0 && goalCalories > 0 && (
                     <div 
-                        className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-md"
+                        className="absolute w-4 h-4 bg-yellow-400 rounded-full shadow-md"
                         style={{
-                            top: 'calc(50% - 6px)', 
-                            left: 'calc(50% - 6px)', 
-                            transform: `rotate(${ (percentAchieved / 100) * 360 - 90}deg) translate(calc(0.92 * 50%)) rotate(-${(percentAchieved / 100) * 360 - 90}deg) `, 
+                            top: 'calc(50% - 8px)', // Adjusted for w-4 h-4
+                            left: 'calc(50% - 8px)', // Adjusted for w-4 h-4
+                            transform: `rotate(${ (Math.min(100, percentAchieved) / 100) * 360 - 90}deg) translate(calc(0.85 * 60px)) rotate(-${(Math.min(100, percentAchieved) / 100) * 360 - 90}deg) `, 
+                            display: consumedCalories > 0 && goalCalories > 0 ? 'block' : 'none',
                         }}
                     />
                  )}
