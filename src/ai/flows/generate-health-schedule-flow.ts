@@ -11,7 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateHealthScheduleInputSchema = z.object({
+const GenerateHealthScheduleInputSchema = z.object({
   calorieGoal: z.number().min(0).describe('Target daily calorie intake (kcal).'),
   proteinGoal: z.number().min(0).describe('Target daily protein intake (grams).'),
   fatGoal: z.number().min(0).describe('Target daily fat intake (grams).'),
@@ -36,7 +36,7 @@ export const GenerateHealthScheduleInputSchema = z.object({
 });
 export type GenerateHealthScheduleInput = z.infer<typeof GenerateHealthScheduleInputSchema>;
 
-export const GenerateHealthScheduleOutputSchema = z.object({
+const GenerateHealthScheduleOutputSchema = z.object({
   dailyScheduleTitle: z.string().describe('A catchy and personalized title for the daily health plan (e.g., "Your Personalized Vitality Plan for Today!").'),
   introduction: z.string().optional().describe("A brief introductory or motivational message for the user's schedule."),
   mealTimingsAndPortions: z
