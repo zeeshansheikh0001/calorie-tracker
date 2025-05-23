@@ -155,7 +155,7 @@ export default function AiFeaturesPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
-            <Accordion type="multiple" collapsible className="w-full space-y-3">
+            <Accordion type="multiple" className="w-full space-y-3">
               <AccordionItem value="goals-macros">
                 <AccordionTrigger className="text-lg font-medium hover:no-underline px-3 py-3 bg-muted/50 rounded-md">Nutritional Goals & Macros</AccordionTrigger>
                 <AccordionContent className="pt-4 px-1 space-y-4">
