@@ -138,14 +138,13 @@ export default function DashboardPage() {
     percentAchieved = Math.round((consumedCalories / goalCalories) * 100);
   } else if (consumedCalories > 0) {
      // No goal, but calories consumed. Can't calculate percentage of goal.
-     // Keep percentAchieved at 0 or handle as a special case if needed.
   }
   
   const chartData = [];
   const COLORS = {
     Consumed: 'hsl(var(--card))', 
     Remaining: 'hsla(var(--primary-hsl), 0.25)', 
-    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)',
+    Empty: 'hsla(var(--muted-foreground-hsl), 0.1)', // Should be --muted not --muted-foreground
     ConsumedNoGoal: 'hsl(var(--accent))',
   };
 
@@ -162,10 +161,11 @@ export default function DashboardPage() {
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
     } else {
-      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
+      // Represent a full empty track if no goal and no consumption
+      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
     }
   }
-  if (chartData.length === 0) { // Fallback if all conditions above led to empty data
+  if (chartData.length === 0) { // Fallback if all conditions above led to empty data (e.g. goal is 0 and consumed is 0)
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -216,7 +216,7 @@ export default function DashboardPage() {
             <div className="flex flex-row items-start gap-3 min-h-[120px]">
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-24" /> 
-                <Skeleton className="h-8 w-16" /> 
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" /> 
                 <Skeleton className="h-4 w-20" /> 
               </div>
               <div className="w-[120px] h-[120px] flex-shrink-0"> 
@@ -278,9 +278,36 @@ export default function DashboardPage() {
                           cornerRadius={10} 
                         />
                       ))}
-                      <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />
+                      {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${Math.round(value as number)} kcal`, ""]} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--popover))",
+                        borderColor: "hsl(var(--border))",
+                        borderRadius: "var(--radius)",
+                        padding: "0.5rem 0.75rem",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+                      }}
+                      formatter={(value: number, name: string, entry: any) => {
+                        const originalName = entry.payload.name;
+                        let displayName = originalName;
+                        if (originalName === 'ConsumedNoGoal') {
+                          displayName = 'Consumed';
+                        } else if (originalName === 'Empty') {
+                          displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+                        }
+                    
+                        const displayValue = (originalName === 'Empty' && value === 1 && goalCalories === 0)
+                          ? '0 kcal' 
+                          : `${Math.round(value)} kcal`;
+                    
+                        return [displayValue, displayName];
+                      }}
+                      wrapperStyle={{
+                        outline: "none",
+                      }}
+                      cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -350,7 +377,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-4">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
