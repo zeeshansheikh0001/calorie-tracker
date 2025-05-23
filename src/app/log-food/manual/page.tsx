@@ -139,15 +139,19 @@ export default function ManualLogPage() {
           Back
         </Button>
       <Card className="max-w-2xl mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="text-2xl font-bold flex items-center">
             <Utensils className="mr-2 h-6 w-6 text-primary" />
             Log Food Manually (AI Assisted)
           </CardTitle>
-          <CardDescription>
-            Describe your meal for AI-powered estimates. Log for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
-            <br />
-            For best results, include quantities (e.g., "200g chicken breast", "1 medium apple").
+          <CardDescription className="mt-1 space-y-1">
+            <p>Describe your meal, and our AI will estimate its nutritional content.</p>
+            <p className="text-xs text-muted-foreground">
+              Logging for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
+            </p>
+            <p className="text-xs text-muted-foreground italic">
+              Tip: For best results, include quantities (e.g., "200g chicken breast", "1 medium apple").
+            </p>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
