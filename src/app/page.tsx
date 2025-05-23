@@ -158,7 +158,7 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
 };
 
 
-const mockBlogData: BlogPost[] = [
+export const mockBlogData: BlogPost[] = [
   {
     id: "1",
     title: "The Surprising Benefits of Morning Workouts",
@@ -195,6 +195,7 @@ const mockBlogData: BlogPost[] = [
 
 
 const BlogCard: FC<BlogPost> = ({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
+  const { toast } = useToast();
   return (
     <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
       <div className="relative w-full h-40">
@@ -309,10 +310,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 text-foreground" style={{background: `url("/your-image-in-public-folder.jpg") center center / cover no-repeat`, /* Add your image path here */ }}>
-         {/* Comment: Place your background image in the 'public' folder and update the path above. E.g., url('/my-background.png') */}
+       <Card className="shadow-lg rounded-2xl p-4 text-foreground" 
+             style={{
+                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // TODO: Place your image in the 'public' folder and update path
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center', 
+                backgroundRepeat: 'no-repeat' 
+             }}
+             data-ai-hint="tech background">
           {isDataLoading ? (
-             <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> {/* Added overlay for better text visibility on image */}
+             <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg">
               <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24 bg-white/30" />
                 <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 bg-white/30" />
@@ -321,7 +328,7 @@ export default function DashboardPage() {
               <Skeleton className="w-[120px] h-[120px] flex-shrink-0 bg-white/30 rounded-full" />
             </div>
           ) : (
-            <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> {/* Added overlay for better text visibility on image */}
+            <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> 
               <div className="flex-1 space-y-1 text-left">
                 <div className="flex items-center gap-2 text-sm text-white/80">
                   <BarChart2 className="h-5 w-5" />
@@ -334,7 +341,7 @@ export default function DashboardPage() {
                   <PopoverTrigger asChild>
                      <Button variant="ghost" className="flex items-center gap-1 text-sm text-white/90 hover:text-white px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
-                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
+                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -590,3 +597,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
