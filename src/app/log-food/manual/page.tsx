@@ -24,6 +24,7 @@ export default function ManualLogPage() {
   const [isSubmittingLog, setIsSubmittingLog] = useState(false);
   const [isAiEstimating, setIsAiEstimating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [showNutritionFields, setShowNutritionFields] = useState(false);
 
   const { addFoodEntry, currentSelectedDate } = useDailyLog();
   const { toast } = useToast();
@@ -32,10 +33,12 @@ export default function ManualLogPage() {
   const handleAiEstimate = async () => {
     if (!foodName.trim()) {
       setAiError("Please enter a food description first.");
+      setShowNutritionFields(false);
       return;
     }
     setIsAiEstimating(true);
     setAiError(null);
+    setShowNutritionFields(false); // Hide fields during new estimation
     try {
       const input: AnalyzeFoodTextInput = { description: foodName };
       const result: AnalyzeFoodTextOutput = await analyzeFoodText(input);
@@ -44,6 +47,7 @@ export default function ManualLogPage() {
       setProtein(result.proteinEstimate.toString());
       setFat(result.fatEstimate.toString());
       setCarbs(result.carbEstimate.toString());
+      setShowNutritionFields(true); // Show fields after successful estimation
 
       toast({
         title: "AI Estimation Complete",
@@ -55,6 +59,7 @@ export default function ManualLogPage() {
       console.error("AI estimation error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during AI estimation.";
       setAiError(errorMessage);
+      setShowNutritionFields(false);
       toast({
         title: "AI Estimation Failed",
         description: errorMessage,
@@ -91,6 +96,7 @@ export default function ManualLogPage() {
     setProtein("");
     setFat("");
     setCarbs("");
+    setShowNutritionFields(false); // Hide fields after logging, requiring new AI estimate
     setIsSubmittingLog(false);
     // Optionally navigate back or allow multiple entries
     // router.push("/"); 
@@ -109,7 +115,7 @@ export default function ManualLogPage() {
             Log Food Manually
           </CardTitle>
           <CardDescription>
-            Describe your meal to get AI-powered nutritional estimates, or enter values directly. Log for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
+            Describe your meal to get AI-powered nutritional estimates. Log for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -119,7 +125,11 @@ export default function ManualLogPage() {
               <Input
                 id="foodName"
                 value={foodName}
-                onChange={(e) => setFoodName(e.target.value)}
+                onChange={(e) => {
+                  setFoodName(e.target.value);
+                  if(showNutritionFields) setShowNutritionFields(false); // Hide fields if food name changes after an estimate
+                  setAiError(null); // Clear previous AI error if user types new food name
+                }}
                 placeholder="e.g., Chicken salad, or 2 slices of pizza"
                 className="mt-1"
                 required
@@ -149,81 +159,84 @@ export default function ManualLogPage() {
               </Alert>
             )}
 
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="calories" className="text-sm font-medium flex items-center">
-                   <Flame className="mr-2 h-4 w-4 text-red-500" /> Calories (kcal)
-                </Label>
-                <Input
-                  id="calories"
-                  type="number"
-                  value={calories}
-                  onChange={(e) => setCalories(e.target.value)}
-                  placeholder="e.g., 350"
-                  className="mt-1"
-                  min="0"
-                  step="any"
-                  required
-                />
+            {showNutritionFields && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in-0 slide-in-from-bottom-3 duration-300">
+                <div>
+                  <Label htmlFor="calories" className="text-sm font-medium flex items-center">
+                    <Flame className="mr-2 h-4 w-4 text-red-500" /> Calories (kcal)
+                  </Label>
+                  <Input
+                    id="calories"
+                    type="number"
+                    value={calories}
+                    onChange={(e) => setCalories(e.target.value)}
+                    placeholder="e.g., 350"
+                    className="mt-1"
+                    min="0"
+                    step="any"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="protein" className="text-sm font-medium flex items-center">
+                    <Drumstick className="mr-2 h-4 w-4 text-sky-500" /> Protein (g)
+                  </Label>
+                  <Input
+                    id="protein"
+                    type="number"
+                    value={protein}
+                    onChange={(e) => setProtein(e.target.value)}
+                    placeholder="e.g., 30"
+                    className="mt-1"
+                    min="0"
+                    step="any"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="fat" className="text-sm font-medium flex items-center">
+                    <Droplets className="mr-2 h-4 w-4 text-amber-500" /> Fat (g)
+                  </Label>
+                  <Input
+                    id="fat"
+                    type="number"
+                    value={fat}
+                    onChange={(e) => setFat(e.target.value)}
+                    placeholder="e.g., 15"
+                    className="mt-1"
+                    min="0"
+                    step="any"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="carbs" className="text-sm font-medium flex items-center">
+                    <Wheat className="mr-2 h-4 w-4 text-emerald-500" /> Carbohydrates (g)
+                  </Label>
+                  <Input
+                    id="carbs"
+                    type="number"
+                    value={carbs}
+                    onChange={(e) => setCarbs(e.target.value)}
+                    placeholder="e.g., 25"
+                    className="mt-1"
+                    min="0"
+                    step="any"
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="protein" className="text-sm font-medium flex items-center">
-                  <Drumstick className="mr-2 h-4 w-4 text-sky-500" /> Protein (g)
-                </Label>
-                <Input
-                  id="protein"
-                  type="number"
-                  value={protein}
-                  onChange={(e) => setProtein(e.target.value)}
-                  placeholder="e.g., 30"
-                  className="mt-1"
-                  min="0"
-                  step="any"
-                />
-              </div>
-              <div>
-                <Label htmlFor="fat" className="text-sm font-medium flex items-center">
-                   <Droplets className="mr-2 h-4 w-4 text-amber-500" /> Fat (g)
-                </Label>
-                <Input
-                  id="fat"
-                  type="number"
-                  value={fat}
-                  onChange={(e) => setFat(e.target.value)}
-                  placeholder="e.g., 15"
-                  className="mt-1"
-                  min="0"
-                  step="any"
-                />
-              </div>
-              <div>
-                <Label htmlFor="carbs" className="text-sm font-medium flex items-center">
-                  <Wheat className="mr-2 h-4 w-4 text-emerald-500" /> Carbohydrates (g)
-                </Label>
-                <Input
-                  id="carbs"
-                  type="number"
-                  value={carbs}
-                  onChange={(e) => setCarbs(e.target.value)}
-                  placeholder="e.g., 25"
-                  className="mt-1"
-                  min="0"
-                  step="any"
-                />
-              </div>
-            </div>
+            )}
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={isSubmittingLog || isAiEstimating} className="w-full sm:w-auto">
-              {isSubmittingLog ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              Add to Log
-            </Button>
-          </CardFooter>
+          {showNutritionFields && (
+            <CardFooter>
+              <Button type="submit" disabled={isSubmittingLog || isAiEstimating || !foodName.trim() || !calories.trim()} className="w-full sm:w-auto">
+                {isSubmittingLog ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Add to Log
+              </Button>
+            </CardFooter>
+          )}
         </form>
       </Card>
     </div>
