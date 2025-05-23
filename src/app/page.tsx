@@ -22,12 +22,14 @@ import {
   Utensils,
   Loader2,
   Trash2,
+  BarChart2,
+  ChevronDown,
 } from "lucide-react";
 import { useEffect, useState, type FC } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
-import { useUserProfile } from "@/hooks/use-user-profile"; 
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { format, isToday } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label } from 'recharts';
@@ -56,7 +58,7 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
     >
       <Trash2 className="h-4 w-4" />
     </Button>
-    <CardContent className="p-4 space-y-3 mr-8"> 
+    <CardContent className="p-4 space-y-3 mr-8">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
         <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
@@ -92,27 +94,30 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
-  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
-    <Icon className="h-6 w-6 mx-auto mb-1" style={{ color: `hsl(${iconColorVariable})` }} />
-    <p className="text-lg font-bold" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
-    <p className="text-xs text-muted-foreground">{label}</p>
-  </Card>
+    <Card className="p-3 shadow-md hover:shadow-lg transition-shadow text-center bg-card rounded-xl">
+      <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
+        <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
+      </div>
+      <p className="text-lg font-bold mt-1" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </Card>
 );
 
-interface DonutCenterLabelProps {
+
+interface CaloriesCenterLabelProps {
   viewBox?: { cx?: number; cy?: number };
-  percentage: number;
+  value: number;
 }
 
-const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) => {
+const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) => {
   if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') {
     return null;
   }
   const { cx, cy } = viewBox;
   return (
-    <text x={cx} y={cy} fill="hsl(var(--primary-foreground))" textAnchor="middle" dominantBaseline="central">
-      <tspan fontSize="2.25rem" fontWeight="bold">{`${percentage}%`}</tspan>
-      <tspan x={cx} dy="1.5em" fontSize="0.75rem" opacity="0.8">ACHIEVED</tspan>
+    <text x={cx} y={cy} fill="hsl(var(--foreground))" textAnchor="middle" dominantBaseline="central">
+      <tspan x={cx} y={cy - 5} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
+      <tspan x={cx} y={cy + 15} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
     </text>
   );
 };
@@ -121,7 +126,7 @@ const DonutCenterLabel: FC<DonutCenterLabelProps> = ({ viewBox, percentage }) =>
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
-  const { userProfile, isLoading: isLoadingProfile } = useUserProfile(); 
+  const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
 
@@ -130,24 +135,31 @@ export default function DashboardPage() {
   const percentAchieved = goalCalories > 0 ? Math.round((consumedCalories / goalCalories) * 100) : 0;
   
   const chartData = [];
-  if (consumedCalories > 0 && goalCalories > 0) {
+  if (consumedCalories > 0 && goalCalories >= 0) { // Ensure goalCalories can be 0 if consumed is > 0
      chartData.push({ name: 'Consumed', value: consumedCalories });
-  } else if (consumedCalories > 0 && goalCalories === 0) { 
-     chartData.push({ name: 'Consumed', value: consumedCalories });
+  } else if (consumedCalories === 0 && goalCalories === 0) {
+     // Add a small value to show an empty track if both are 0, and another for the remaining part
+     chartData.push({ name: 'Consumed', value: 0.001 }); 
+     chartData.push({ name: 'Remaining', value: 0.999 });
+  } else if (consumedCalories === 0 && goalCalories > 0) {
+     chartData.push({ name: 'Consumed', value: 0.001 }); // Small value for consumed if goal exists
+     chartData.push({ name: 'Remaining', value: goalCalories });
   }
 
 
-  if (goalCalories > consumedCalories && goalCalories > 0) {
+  if (goalCalories > consumedCalories && consumedCalories > 0) {
     chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories });
-  } else if (goalCalories === 0 && consumedCalories === 0) { 
-    chartData.push({ name: 'Empty', value: 1 }); 
+  } else if (goalCalories > 0 && consumedCalories === 0) {
+    // Already handled by the case above (goalCalories > 0 and consumedCalories === 0.001)
+  } else if (goalCalories === 0 && consumedCalories === 0 && chartData.length === 1 && chartData[0].name === 'Consumed') {
+    // This handles the case where only consumed was 0.001, needs a remaining part to make a full circle for empty state.
+    chartData.push({ name: 'Remaining', value: 0.999 });
   }
 
 
   const COLORS = {
-    Consumed: 'hsl(var(--accent))', 
-    Remaining: 'hsla(var(--primary-foreground-hsl-raw), 0.3)', 
-    Empty: 'hsla(var(--primary-foreground-hsl-raw), 0.3)',
+    Consumed: 'hsl(var(--card))', // White or card background color
+    Remaining: 'hsl(var(--muted))', // Light grey or muted color
   };
 
 
@@ -157,6 +169,12 @@ export default function DashboardPage() {
   const todayFat = dailyLog?.fat ?? 0;
 
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
+
+  const formattedSelectedDate = currentSelectedDate
+  ? isToday(currentSelectedDate)
+    ? "Today"
+    : format(currentSelectedDate, "dd MMMM")
+  : "Select Date";
 
   return (
     <div className="flex flex-col gap-6 p-4 md:p-6 max-w-3xl mx-auto">
@@ -185,79 +203,90 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Smart Calorie Tracker Card with Donut Chart */}
-       <Card 
-          className="shadow-xl text-primary-foreground p-0 rounded-2xl overflow-hidden relative"
-        >
-          {isDataLoading ? ( 
-            <div 
-              className="min-h-[220px] sm:min-h-[240px] flex flex-col justify-center items-center" 
-              style={{
-                // Ensure you have an image at this path in your public folder
-                backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                position: 'relative',
-              }}
-              data-ai-hint="health fitness abstract"
-            >
-              <div className="absolute inset-0 bg-black/30 z-0"></div> 
-              <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-                <Skeleton className="h-6 w-3/5 mb-1 bg-white/40" />
-                <Skeleton className="h-4 w-2/5 mb-3 bg-white/40" />
-                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 flex items-center justify-center">
-                  <Loader2 className="h-10 w-10 text-white/60 animate-spin" />
-                </div>
+      {/* Your Progress Card */}
+       <Card className="shadow-lg rounded-2xl p-4 sm:p-6 bg-sky-100 dark:bg-sky-900/50 text-foreground">
+          {isDataLoading ? (
+            <div className="flex flex-col md:flex-row items-center gap-6 min-h-[200px]">
+              <div className="flex-1 space-y-3 w-full md:w-auto">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-16 w-24" />
+                <Skeleton className="h-6 w-28" />
+              </div>
+              <div className="w-full md:w-1/3 flex justify-center items-center">
+                <Skeleton className="h-32 w-32 rounded-full" />
               </div>
             </div>
           ) : (
-            <div 
-              style={{ 
-                // Ensure you have an image at this path in your public folder
-                backgroundImage: `url('/your-image-in-public-folder.jpg')`, 
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                position: 'relative', 
-              }}
-              data-ai-hint="health fitness abstract"
-              className="min-h-[220px] sm:min-h-[240px]"
-            >
-              <div className="absolute inset-0 bg-black/30 z-0"></div> 
-              <div className="relative z-10 flex flex-col h-full"> 
-                <CardHeader className="pb-2 pt-4 px-4">
-                  <CardTitle className="text-lg font-semibold flex items-center justify-between">
-                    <span>Daily Calories</span>
-                    <span className="text-sm opacity-90">{Math.round(consumedCalories)} / {Math.round(goalCalories)} kcal</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 flex-grow h-[150px] sm:h-[170px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={chartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="70%"
-                        outerRadius="90%"
-                        dataKey="value"
-                        stroke="none"
-                        paddingAngle={chartData.length > 1 && chartData[0].value > 0 && chartData.some(d => d.name === 'Remaining' && d.value > 0) ? 5 : 0}
-                        isAnimationActive={true}
-                      >
-                        {chartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Empty} />
-                        ))}
-                        {goalCalories > 0 && <Label content={<DonutCenterLabel percentage={percentAchieved} />} position="center" />}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value) => [`${Math.round(value as number)} kcal`, ""]}
-                        wrapperStyle={{zIndex: 1000}}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+              {/* Left side: Title, Percentage, Date */}
+              <div className="flex-1 space-y-1 text-center md:text-left w-full">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground">
+                  <BarChart2 className="h-5 w-5" />
+                  <span>Your Progress</span>
+                </div>
+                <div className="text-5xl font-bold text-foreground">
+                  {goalCalories > 0 ? `${percentAchieved}%` : "-"}
+                </div>
+                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary px-1">
+                      <span>{formattedSelectedDate}</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={currentSelectedDate || undefined}
+                      onSelect={(newDate) => {
+                        if (newDate) {
+                          selectDateForLog(newDate);
+                          setIsCalendarOpen(false);
+                        }
+                      }}
+                      initialFocus
+                      disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Right side: Donut Chart */}
+              <div className="w-full md:w-auto h-36 md:h-40 flex justify-center items-center relative mt-4 md:mt-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="75%" // Adjusted for thicker donut
+                      outerRadius="95%" // Adjusted for thicker donut
+                      dataKey="value"
+                      stroke="none"
+                      paddingAngle={chartData.length > 1 && chartData.some(d => d.name === 'Consumed' && d.value > 0.001) && chartData.some(d => d.name === 'Remaining' && d.value > 0) ? 8 : 0}
+                      isAnimationActive={true}
+                      cornerRadius={10} // For rounded ends
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS] || COLORS.Remaining} />
+                      ))}
+                      <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />
+                    </Pie>
+                    <Tooltip formatter={(value, name) => [`${Math.round(value as number)} kcal`, name === "Consumed" ? "Consumed" : "Goal Remaining"]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                 {/* Small yellow icon placeholder - this part is tricky with recharts */}
+                 {consumedCalories > 0 && goalCalories > 0 && (
+                    <div 
+                        className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-md"
+                        style={{
+                            top: 'calc(50% - 6px)', // Approximate
+                            left: 'calc(50% - 6px)', // Approximate
+                            transform: `rotate(${ (percentAchieved / 100) * 360 - 90}deg) translate(calc(0.85 * 50%)) rotate(-${(percentAchieved / 100) * 360 - 90}deg) `, // Very approximate logic for icon position
+                            // More precise positioning would require complex calculations based on arc end point
+                        }}
+                    />
+                 )}
               </div>
             </div>
           )}
@@ -266,7 +295,7 @@ export default function DashboardPage() {
 
       {/* Action Buttons */}
        <div className="grid grid-cols-3 gap-3">
-        {isDataLoading ? ( 
+        {isDataLoading ? (
             <>
                 {[1,2,3].map(i => (
                   <Card key={`skel-action-${i}`} className="shadow-lg h-full">
@@ -289,7 +318,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/log-food/photo" passHref> 
+        <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
                <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
@@ -299,7 +328,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-         <Link href="/log-food/manual" passHref> 
+         <Link href="/log-food/manual" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
             <CardContent className="p-4 flex flex-row items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
@@ -315,7 +344,7 @@ export default function DashboardPage() {
 
       {/* Today's Summary */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center mb-2"> 
+        <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-semibold">
             Summary for{" "}
             {currentSelectedDate
@@ -324,41 +353,14 @@ export default function DashboardPage() {
                 : format(currentSelectedDate, "MMM d, yyyy")
               : "the selected date"}
           </h2>
-          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary">
-                <CalendarDays className="h-4 w-4" />
-                <span>
-                  {currentSelectedDate
-                    ? isToday(currentSelectedDate)
-                      ? "Today"
-                      : format(currentSelectedDate, "MMM d, yyyy")
-                    : "Select Date"}
-                </span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={currentSelectedDate || undefined}
-                onSelect={(newDate) => {
-                  if (newDate) {
-                    selectDateForLog(newDate);
-                    setIsCalendarOpen(false);
-                  }
-                }}
-                initialFocus
-                disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
-              />
-            </PopoverContent>
-          </Popover>
+           {/* Calendar popover already exists in the Your Progress card now, remove duplicate or keep if intended elsewhere */}
         </div>
-        <div className="grid grid-cols-2 gap-4">
-         {isDataLoading ? ( 
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+         {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
                  <Card key={`skel-summary-${i}`} className="p-3 shadow-md rounded-xl text-center">
-                    <Skeleton className="h-6 w-6 mx-auto mb-1 rounded-full" />
+                    <Skeleton className="h-8 w-8 mx-auto mb-1 rounded-lg" />
                     <Skeleton className="h-5 w-10 mx-auto mb-1" />
                     <Skeleton className="h-3 w-8 mx-auto" />
                   </Card>
@@ -395,17 +397,17 @@ export default function DashboardPage() {
         </div>
         {isLoadingLog ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2].map(i => ( 
+            {[1, 2].map(i => (
               <Card key={`skel-meal-${i}`} className="shadow-lg rounded-xl">
                 <CardContent className="p-4 space-y-3 mr-8">
                   <div className="flex justify-between items-start">
-                    <Skeleton className="h-6 w-3/4" /> 
-                    <Skeleton className="h-6 w-1/4" /> 
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-6 w-1/4" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    <Skeleton className="h-12 w-full rounded-md" /> 
-                    <Skeleton className="h-12 w-full rounded-md" /> 
-                    <Skeleton className="h-12 w-full rounded-md" /> 
+                    <Skeleton className="h-12 w-full rounded-md" />
+                    <Skeleton className="h-12 w-full rounded-md" />
+                    <Skeleton className="h-12 w-full rounded-md" />
                   </div>
                 </CardContent>
               </Card>
@@ -447,7 +449,7 @@ export default function DashboardPage() {
           <Lightbulb className="h-5 w-5 text-yellow-500" />
           <h2 className="text-xl font-semibold">Smart Insights</h2>
         </div>
-        <Card 
+        <Card
             className="shadow-lg p-5 rounded-xl"
             style={{ background: 'linear-gradient(100deg, hsl(180, 80%, 95%) 0%, hsl(200, 80%, 95%) 100%)' }}
         >
@@ -470,6 +472,5 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
     
+
