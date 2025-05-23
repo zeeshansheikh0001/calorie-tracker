@@ -96,7 +96,7 @@ export default function ManualLogPage() {
     setIsSubmittingLog(true);
 
     const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
-      name: foodName || "Unnamed Food",
+      name: foodName || "Unnamed Food", // Use the foodName from input as the primary name
       calories: estimatedNutrition.calorieEstimate,
       protein: estimatedNutrition.proteinEstimate,
       fat: estimatedNutrition.fatEstimate,
@@ -117,7 +117,7 @@ export default function ManualLogPage() {
   };
 
   const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType) => {
-    if (!content) return null;
+    if (!content || (typeof content === 'string' && content.trim() === '')) return null;
     const IconComponent = icon;
     return (
       <div className="mt-4">
@@ -146,6 +146,8 @@ export default function ManualLogPage() {
           </CardTitle>
           <CardDescription>
             Describe your meal for AI-powered estimates. Log for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
+            <br />
+            For best results, include quantities (e.g., "200g chicken breast", "1 medium apple").
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -193,10 +195,12 @@ export default function ManualLogPage() {
               <div className="mt-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
                 <div>
                   <h3 className="text-lg font-semibold text-primary mb-1">Estimated Nutritional Information</h3>
-                  <p className="text-xs text-muted-foreground flex items-center mb-3">
-                      <Info className="mr-1.5 h-3.5 w-3.5" />
-                      {estimatedNutrition.estimatedQuantityNote}
-                  </p>
+                  {estimatedNutrition.estimatedQuantityNote && (
+                     <p className="text-xs text-muted-foreground flex items-center mb-3">
+                        <Info className="mr-1.5 h-3.5 w-3.5" />
+                        {estimatedNutrition.estimatedQuantityNote}
+                    </p>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
                     <NutritionDisplayItem icon={Flame} label="Calories" value={estimatedNutrition.calorieEstimate.toFixed(0)} unit="kcal" color="text-red-500" />
                     <NutritionDisplayItem icon={Drumstick} label="Protein" value={estimatedNutrition.proteinEstimate.toFixed(1)} unit="g" color="text-sky-500" />
@@ -213,32 +217,45 @@ export default function ManualLogPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-primary mb-2">Detailed Nutritional Breakdown</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
-                      {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate > 0 && <NutritionDisplayItem icon={Droplets} label="Saturated Fat" value={estimatedNutrition.saturatedFatEstimate.toFixed(1)} unit="g" color="text-orange-400" />}
-                      {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0 &&<NutritionDisplayItem icon={Leaf} label="Dietary Fiber" value={estimatedNutrition.fiberEstimate.toFixed(1)} unit="g" color="text-lime-600" />}
-                      {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0 && <NutritionDisplayItem icon={Activity} label="Sugars" value={estimatedNutrition.sugarEstimate.toFixed(1)} unit="g" color="text-fuchsia-500" />}
-                      {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0 && <NutritionDisplayItem icon={Heart} label="Cholesterol" value={estimatedNutrition.cholesterolEstimate.toFixed(0)} unit="mg" color="text-purple-500" />}
-                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0 && <NutritionDisplayItem icon={UtensilsCrossed} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
+                      {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate >= 0 && <NutritionDisplayItem icon={Droplets} label="Saturated Fat" value={estimatedNutrition.saturatedFatEstimate.toFixed(1)} unit="g" color="text-orange-400" />}
+                      {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate >= 0 && <NutritionDisplayItem icon={Leaf} label="Dietary Fiber" value={estimatedNutrition.fiberEstimate.toFixed(1)} unit="g" color="text-lime-600" />}
+                      {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate >= 0 && <NutritionDisplayItem icon={Activity} label="Sugars" value={estimatedNutrition.sugarEstimate.toFixed(1)} unit="g" color="text-fuchsia-500" />}
+                      {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate >= 0 && <NutritionDisplayItem icon={Heart} label="Cholesterol" value={estimatedNutrition.cholesterolEstimate.toFixed(0)} unit="mg" color="text-purple-500" />}
+                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate >= 0 && <NutritionDisplayItem icon={UtensilsCrossed} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
                     </div>
                   </div>
                 ) : null}
                 
                 {renderTextSection("How Ingredients Influence Nutrition", estimatedNutrition.commonIngredientsInfluence, Brain)}
                 
-                {estimatedNutrition.healthBenefits && estimatedNutrition.healthBenefits.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
-                      <ShieldCheck className="mr-2 h-5 w-5 text-primary/80" />
-                      Potential Health Benefits
-                    </h3>
-                    <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm">
-                      {estimatedNutrition.healthBenefits.map((benefit, index) => (
-                        <li key={index}>
-                          {benefit}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {(() => {
+                  const benefits = estimatedNutrition.healthBenefits;
+                  // Ensure benefits is an array for mapping, treat non-empty string as a single benefit
+                  const benefitsToRender = Array.isArray(benefits)
+                    ? benefits.filter(b => typeof b === 'string' && b.trim() !== '') // Filter out empty strings
+                    : typeof benefits === 'string' && benefits.trim() !== ''
+                      ? [benefits]
+                      : [];
+
+                  if (benefitsToRender.length > 0) {
+                    return (
+                      <div className="mt-4">
+                        <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
+                          <ShieldCheck className="mr-2 h-5 w-5 text-primary/80" />
+                          Potential Health Benefits
+                        </h3>
+                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm">
+                          {benefitsToRender.map((benefit, index) => (
+                            <li key={index}>
+                              {benefit}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                  return null; // Don't render the block if there are no benefits to display
+                })()}
 
                 {renderTextSection("Tips for a Healthier Version", estimatedNutrition.healthierTips, Leaf)}
                 {renderTextSection("Estimation Disclaimer", estimatedNutrition.estimationDisclaimer, Info)}
@@ -261,3 +278,4 @@ export default function ManualLogPage() {
     </div>
   );
 }
+
