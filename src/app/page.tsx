@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,8 +23,8 @@ import {
   BarChart2,
   ChevronDown,
   Trash2,
-  BookOpen, // Added for Blog section
-  ArrowRight, // Added for Blog "Read More"
+  BookOpen,
+  ArrowRight,
 } from "lucide-react";
 import { useState, type FC, useEffect } from "react";
 import type { FoodEntry as LoggedFoodEntry } from "@/types";
@@ -36,6 +36,7 @@ import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipProps } from 'recharts';
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface MealCardProps {
@@ -95,13 +96,13 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
-    <Card className="p-3 shadow-md hover:shadow-lg transition-shadow bg-card rounded-xl text-center">
+  <Card className="p-3 shadow-md hover:shadow-lg transition-shadow bg-card rounded-xl text-center">
       <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
       </div>
       <p className="text-lg font-bold mt-1" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
-    </Card>
+  </Card>
 );
 
 
@@ -117,8 +118,8 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
   const { cx, cy } = viewBox;
   return (
     <text x={cx} y={cy} fill="hsl(var(--foreground))" textAnchor="middle" dominantBaseline="central">
-      <tspan x={cx} y={cy - 5} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
-      <tspan x={cx} y={cy + 15} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
+      <tspan x={cx} y={cy - 8} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
+      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
     </text>
   );
 };
@@ -130,7 +131,7 @@ interface CustomDonutTooltipProps extends TooltipProps<number, string> {
 const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
-    const value = payload[0].value;
+    const value = payload[0].value || 0; // Ensure value is a number
     const name = data.name;
 
     let displayName = name;
@@ -144,10 +145,10 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
 
     const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
       ? '0 kcal'
-      : `${Math.round(value || 0)} kcal`;
+      : `${Math.round(value)} kcal`;
 
     return (
-      <div className="rounded-lg border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>
+      <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>
         <p className="font-semibold">{displayName}</p>
         <p className="text-muted-foreground">{displayValue}</p>
       </div>
@@ -162,36 +163,45 @@ interface BlogCardProps {
   excerpt: string;
   imageUrl: string;
   imageHint?: string;
-  readMoreLink: string;
+  readMoreLink: string; // Will be used for toast for now
 }
 
-const BlogCard: FC<BlogCardProps> = ({ title, excerpt, imageUrl, imageHint, readMoreLink }) => (
-  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col">
-    <div className="relative w-full h-48">
-      <Image
-        src={imageUrl}
-        alt={title}
-        layout="fill"
-        objectFit="cover"
-        className="group-hover:scale-105 transition-transform duration-300"
-        data-ai-hint={imageHint || "health fitness"}
-      />
-    </div>
-    <CardHeader className="pb-2">
-      <CardTitle className="text-lg font-semibold line-clamp-2">{title}</CardTitle>
-    </CardHeader>
-    <CardContent className="flex-grow pb-3">
-      <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
-    </CardContent>
-    <CardFooter className="pt-0 pb-4">
-      <Link href={readMoreLink} passHref>
-        <Button variant="link" className="p-0 text-primary hover:text-primary/80">
-          Read More <ArrowRight className="ml-2 h-4 w-4" />
+const BlogCard: FC<BlogCardProps> = ({ title, excerpt, imageUrl, imageHint, readMoreLink }) => {
+  const { toast } = useToast();
+
+  const handleReadMore = () => {
+    toast({
+      title: "Coming Soon!",
+      description: "Full blog post functionality is on the way.",
+    });
+  };
+
+  return (
+    <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
+      <div className="relative w-full h-40">
+        <Image
+          src={imageUrl}
+          alt={title}
+          layout="fill"
+          objectFit="cover"
+          className="group-hover:scale-105 transition-transform duration-300"
+          data-ai-hint={imageHint || "health fitness"}
+        />
+      </div>
+      <CardHeader className="pb-2 pt-4">
+        <CardTitle className="text-md font-semibold line-clamp-2 h-12">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow pb-3">
+        <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
+      </CardContent>
+      <CardFooter className="pt-0 pb-4">
+        <Button variant="link" className="p-0 text-primary hover:text-primary/80 text-sm" onClick={handleReadMore}>
+          Read More <ArrowRight className="ml-1.5 h-4 w-4" />
         </Button>
-      </Link>
-    </CardFooter>
-  </Card>
-);
+      </CardFooter>
+    </Card>
+  );
+};
 
 const mockBlogData: BlogCardProps[] = [
   {
@@ -246,10 +256,10 @@ export default function DashboardPage() {
 
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', // White/light color from theme for the arc
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for the track
-    Empty: 'hsla(var(--muted-foreground), 0.1)', // Very light gray for empty state
-    ConsumedNoGoal: 'hsl(var(--accent))', // Accent color if goal is 0 but calories consumed
+    Consumed: 'hsl(var(--card))',
+    Remaining: 'hsla(var(--primary-hsl), 0.25)',
+    Empty: 'hsla(var(--muted-foreground), 0.1)',
+    ConsumedNoGoal: 'hsl(var(--accent))',
   };
 
   if (goalCalories > 0) {
@@ -259,18 +269,16 @@ export default function DashboardPage() {
         chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories, fill: COLORS.Remaining });
       }
     } else {
-      // Consumed is 0, but goal exists
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { // No goal set
+  } else { 
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
     } else {
-      // No goal and no consumption
-      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); // Push a minimal value for chart rendering
+      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
     }
   }
-  // Ensure chartData always has something to render to avoid Recharts errors with empty data
+  
   if (chartData.length === 0) {
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
@@ -317,7 +325,7 @@ export default function DashboardPage() {
       {/* Your Progress Card */}
        <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-             <div className="flex flex-row items-start gap-3">
+            <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24" />
                 <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
@@ -339,7 +347,7 @@ export default function DashboardPage() {
                   <PopoverTrigger asChild>
                      <Button variant="ghost" className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
-                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "dd MMMM")) : "Select Date"}</span>
+                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -457,7 +465,7 @@ export default function DashboardPage() {
               : "the selected date"}
           </h2>
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-4">
          {isDataLoading ? (
             <>
               {[1, 2, 3, 4].map(i => (
@@ -551,7 +559,7 @@ export default function DashboardPage() {
           <BookOpen className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold">Health & Wellness Reads</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex overflow-x-auto space-x-4 pb-4 pt-2">
           {mockBlogData.map((blog) => (
             <BlogCard
               key={blog.id}
@@ -595,3 +603,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
