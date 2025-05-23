@@ -121,8 +121,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Bottom Card Section */}
-      <div className="bg-card text-card-foreground rounded-t-3xl shadow-2xl p-5 sm:p-6 mt-[-28px] relative z-10 container mx-auto max-w-3xl">
-        <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account & Settings</h3>
+      <div className="bg-card text-card-foreground rounded-t-3xl p-5 sm:p-6 mt-[-28px] relative z-10 container mx-auto max-w-3xl">
+        <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account &amp; Settings</h3>
         <div className="space-y-1.5">
           <ListItem 
             href="/profile/edit" 
