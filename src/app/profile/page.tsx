@@ -50,14 +50,14 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-2 p-4 md:p-6">
           <Link href="/profile/edit" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
               <Edit3 className="h-5 w-5 text-primary" />
               Edit Profile
             </Button>
           </Link>
           
           <Link href="/goals" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
               <HeartPulse className="h-5 w-5 text-primary" />
               My Goals
             </Button>
@@ -66,25 +66,25 @@ export default function ProfilePage() {
           <Separator className="my-4" />
           
           <Link href="/reminders" passHref>
-            <Button variant="outline" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+            <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
               <Bell className="h-5 w-5 text-primary" />
               Notification Settings
             </Button>
           </Link>
           
-          <Button variant="outline" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+          <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
             <Settings className="h-5 w-5 text-primary" />
             App Settings
           </Button>
           
-          <Button variant="outline" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
+          <Button variant="outline" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-muted/50 rounded-lg">
             <Shield className="h-5 w-5 text-primary" />
             Privacy & Security
           </Button>
           
           <Separator className="my-4" />
           
-          <Button variant="destructive" className="w-full justify-start gap-3 py-6 text-base transition-colors duration-150 hover:bg-destructive/90 rounded-lg">
+          <Button variant="destructive" className="w-full justify-start gap-3 py-3 text-base transition-colors duration-150 hover:bg-destructive/90 rounded-lg">
             <LogOut className="h-5 w-5" />
             Log Out
           </Button>
@@ -93,3 +93,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
