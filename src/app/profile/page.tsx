@@ -7,73 +7,81 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { 
-  Settings, 
-  LogOut, 
-  Edit3, 
-  Shield, 
-  Bell, 
-  HeartPulse, 
   UserCircle2, 
+  HeartPulse,
+  Bell,
+  Settings,
+  LogOut,
   ChevronRight,
-  Package,
-  CircleDollarSign,
-  Lock,
-  Languages,
   Pencil,
   EllipsisVertical
 } from "lucide-react";
-import type { UserProfile as UserProfileType } from "@/types"; // Renamed to avoid conflict
-import { useUserProfile } from "@/hooks/use-user-profile"; // For avatar
+import type { UserProfile as UserProfileType } from "@/types"; 
+import { useUserProfile } from "@/hooks/use-user-profile"; 
 import { cn } from "@/lib/utils";
 
 const DEFAULT_USER_PROFILE_DATA: UserProfileType = {
-  name: "Md Abu Ubayda", // Hardcoded to match image
-  email: "md.ubayda@example.com", // Placeholder email
+  name: "Md Abu Ubayda", 
+  email: "md.ubayda@example.com", 
   avatarUrl: "https://placehold.co/120x120.png", 
 };
 
 interface ListItemProps {
-  href: string;
+  href?: string;
   icon: React.ElementType;
   iconBgClass: string;
   iconClass?: string;
   text: string;
   isLink?: boolean;
+  onClick?: () => void;
+  isDestructive?: boolean;
 }
 
-const ListItem: React.FC<ListItemProps> = ({ href, icon: Icon, iconBgClass, iconClass = "text-current", text, isLink = true }) => {
-  const content = (
-    <div className="flex items-center justify-between py-3.5 px-3 rounded-lg hover:bg-muted/30 transition-colors w-full">
+const ListItem: React.FC<ListItemProps> = ({ href, icon: Icon, iconBgClass, iconClass = "text-current", text, isLink = true, onClick, isDestructive = false }) => {
+  const itemContent = (
+    <div className={cn(
+        "flex items-center justify-between py-3.5 px-3 rounded-lg hover:bg-muted/30 transition-colors w-full",
+        isDestructive && "hover:bg-destructive/10"
+      )}>
       <div className="flex items-center gap-4">
         <div className={cn("p-2.5 rounded-full flex items-center justify-center", iconBgClass)}>
-          <Icon className={cn("h-5 w-5", iconClass)} />
+          <Icon className={cn("h-5 w-5", iconClass, isDestructive && "text-destructive")} />
         </div>
-        <span className="text-sm font-medium text-foreground">{text}</span>
+        <span className={cn("text-sm font-medium text-foreground", isDestructive && "text-destructive")}>{text}</span>
       </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+      {!isDestructive && <ChevronRight className="h-5 w-5 text-muted-foreground" />}
     </div>
   );
 
-  if (isLink) {
+  if (isLink && href) {
     return (
       <Link href={href} passHref>
-        {content}
+        {itemContent}
       </Link>
     );
   }
-  return <button className="w-full text-left">{content}</button>;
+  return <button className="w-full text-left" onClick={onClick}>{itemContent}</button>;
 };
 
 export default function ProfilePage() {
-  // useUserProfile hook is used here primarily for the avatar, as name/phone are hardcoded from image
   const { userProfile: dynamicUserProfile, isLoading: isLoadingProfile } = useUserProfile();
   
-  // For display, use hardcoded name & phone from image, avatar from hook/default
   const displayProfile = {
     name: "Md Abu Ubayda",
     phone: "+88001712346789",
     avatarUrl: dynamicUserProfile.avatarUrl || DEFAULT_USER_PROFILE_DATA.avatarUrl,
   };
+
+  const handleLogout = () => {
+    // Placeholder for actual logout logic
+    console.log("Logout clicked");
+    alert("Logout functionality is not yet implemented.");
+  };
+  
+  const handleAppSettings = () => {
+    alert("App Settings page is not yet implemented.");
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -114,7 +122,7 @@ export default function ProfilePage() {
 
       {/* Bottom Card Section */}
       <div className="bg-card text-card-foreground rounded-t-3xl shadow-2xl p-5 sm:p-6 mt-[-28px] relative z-10 container mx-auto max-w-3xl">
-        <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account Overview</h3>
+        <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account & Settings</h3>
         <div className="space-y-1.5">
           <ListItem 
             href="/profile/edit" 
@@ -124,36 +132,34 @@ export default function ProfilePage() {
             text="My Profile" 
           />
           <ListItem 
-            href="#" 
-            icon={Package} 
-            iconBgClass="bg-green-100"
-            iconClass="text-green-600"
-            text="My Orders" 
-            isLink={false} // Example: make it a button if not a link yet
+            href="/goals"
+            icon={HeartPulse} 
+            iconBgClass="bg-red-100"
+            iconClass="text-red-500"
+            text="My Goals" 
           />
           <ListItem 
-            href="#" 
-            icon={CircleDollarSign} 
-            iconBgClass="bg-purple-100"
-            iconClass="text-purple-600"
-            text="Refund" 
+            href="/reminders" 
+            icon={Bell} 
+            iconBgClass="bg-yellow-100"
+            iconClass="text-yellow-600"
+            text="Notification Settings" 
+          />
+           <ListItem 
+            icon={Settings} 
+            iconBgClass="bg-gray-100"
+            iconClass="text-gray-500"
+            text="App Settings" 
             isLink={false}
+            onClick={handleAppSettings}
           />
           <ListItem 
-            href="#" 
-            icon={Lock} 
-            iconBgClass="bg-orange-100"
-            iconClass="text-orange-500"
-            text="Change Password" 
+            icon={LogOut} 
+            iconBgClass="bg-red-100"
+            text="Log Out" 
             isLink={false}
-          />
-          <ListItem 
-            href="#" 
-            icon={Languages} 
-            iconBgClass="bg-pink-100"
-            iconClass="text-pink-500"
-            text="Change Language" 
-            isLink={false}
+            onClick={handleLogout}
+            isDestructive={true}
           />
         </div>
       </div>
