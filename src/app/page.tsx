@@ -335,7 +335,7 @@ export default function DashboardPage() {
         <>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
+            <CardContent className="p-4 flex flex-col items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}>
                 <Camera className="h-6 w-6 text-primary" />
               </div>
@@ -345,7 +345,7 @@ export default function DashboardPage() {
         </Link>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
+            <CardContent className="p-4 flex flex-col items-center gap-3">
                <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
                 <UploadCloud className="h-6 w-6" style={{color: 'hsl(145, 58%, 40%)'}} />
               </div>
@@ -355,7 +355,7 @@ export default function DashboardPage() {
         </Link>
          <Link href="/log-food/manual" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
+            <CardContent className="p-4 flex flex-col items-center gap-3">
               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
                 <FilePenLine className="h-6 w-6" style={{color: 'hsl(340, 72%, 62%)'}} />
               </div>
