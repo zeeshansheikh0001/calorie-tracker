@@ -39,6 +39,9 @@ const AnalyzeFoodPhotoOutputSchema = z.object({
     .string()
     .array()
     .describe('List of common names of the primary food item(s) or dish(es) identified (e.g., "Pizza", "Chicken Biryani"). Empty array if not a food item or if names cannot be determined.'),
+  estimatedQuantityNote: z
+    .string()
+    .describe("A clear statement of the visually estimated quantity for which the nutritional estimate is provided (e.g., 'Estimates for approx. 150g of chicken as shown.', 'Estimates for 1 medium apple depicted.'). Empty if not a food item or quantity cannot be reasonably estimated from the photo.")
 });
 export type AnalyzeFoodPhotoOutput = z.infer<typeof AnalyzeFoodPhotoOutputSchema>;
 
@@ -55,13 +58,16 @@ First, determine if the image contains a food item.
 
 If the image IS a food item:
 - Set 'isFoodItem' to true.
-- Provide highly accurate estimates for its nutritional information (calorie count, protein, fat, carbohydrates in grams).
+- Visually estimate the quantity or portion size of the food item(s) shown (e.g., "approx. 150g", "1 cup", "2 slices").
+- Provide highly accurate estimates for its nutritional information (calorie count, protein, fat, carbohydrates in grams) BASED ON THE VISUALLY ESTIMATED QUANTITY.
+- Populate the 'estimatedQuantityNote' field with a clear statement about the visually estimated quantity used for the nutritional estimation (e.g., "Estimates based on the visually estimated portion of approx. 150g of chicken.", "Nutritional details for the single apple shown.").
 - Identify the common name(s) of the primary food item(s) or dish(es) in the meal (e.g., "Pizza", "Chicken Biryani", "Apple Pie"). List these in the 'ingredients' array. If it's a single dish, provide its name as a single element array. If multiple distinct dishes are clearly visible, list their common names. Avoid listing individual raw ingredients unless it's a very simple, unmixed food like "Apple". If no specific dish name can be determined, provide a general category like "Mixed Salad" or "Fruit Bowl".
 
 If the image IS NOT a food item:
 - Set 'isFoodItem' to false.
 - Set 'calorieEstimate', 'proteinEstimate', 'fatEstimate', and 'carbEstimate' to 0.
 - Set 'ingredients' to an empty array.
+- Set 'estimatedQuantityNote' to "Not a food item." or an empty string.
 
 Analyze the following photo: {{media url=photoDataUri}}
 
@@ -72,7 +78,8 @@ Format your response as a JSON object:
   "proteinEstimate": number,
   "fatEstimate": number,
   "carbEstimate": number,
-  "ingredients": string[] // This should be an array of dish names, e.g., ["Chicken Curry", "Rice"] or ["Vegetable Stir-fry"]
+  "ingredients": string[],
+  "estimatedQuantityNote": string
 }`,
 });
 
@@ -87,4 +94,3 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
     return output!;
   }
 );
-
