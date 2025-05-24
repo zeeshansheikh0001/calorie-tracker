@@ -28,7 +28,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { useState, type FC, useEffect } from "react";
+import { useState, type FC, useEffect, ReactNode } from "react";
 import type { FoodEntry as LoggedFoodEntry, BlogPost } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
@@ -39,6 +39,22 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipP
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import React from "react"; // Added React import for React.memo
+import dynamic from "next/dynamic"; // Added dynamic import
+
+// Dynamically import CalorieDonutChart
+const CalorieDonutChart = dynamic(
+  () => import('@/components/dashboard/calorie-donut-chart'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-36 h-36 md:w-32 md:h-32 flex justify-center items-center relative">
+        <Skeleton className="w-full h-full rounded-full" />
+        <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    )
+  }
+);
 
 
 interface MealCardProps {
@@ -51,7 +67,7 @@ interface MealCardProps {
   onDelete: (id: string) => void;
 }
 
-const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, carbs, onDelete }) => (
+const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, protein, fat, carbs, onDelete }) => (
   <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl relative">
     <Button
       variant="ghost"
@@ -87,7 +103,8 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
       </div>
     </CardContent>
   </Card>
-);
+));
+MealCard.displayName = 'MealCard';
 
 
 interface SummaryCardProps {
@@ -97,7 +114,7 @@ interface SummaryCardProps {
   iconColorVariable: string;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
+const SummaryCard: React.FC<SummaryCardProps> = React.memo(({ icon: Icon, value, label, iconColorVariable }) => (
   <Card className="p-3 shadow-md hover:shadow-lg transition-shadow bg-card rounded-xl text-center">
       <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
@@ -105,7 +122,77 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, ico
       <p className="text-lg font-bold mt-1" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
   </Card>
-);
+));
+SummaryCard.displayName = 'SummaryCard';
+
+
+export const mockBlogData: BlogPost[] = [
+  {
+    id: "1",
+    title: "The Surprising Benefits of Morning Workouts",
+    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "morning workout",
+    readMoreLink: "/blog/1",
+  },
+  {
+    id: "2",
+    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
+    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "healthy food",
+    readMoreLink: "/blog/2",
+  },
+  {
+    id: "3",
+    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
+    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "mindful eating",
+    readMoreLink: "/blog/3",
+  },
+  {
+    id: "4",
+    title: "Hydration Secrets: Are You Drinking Enough Water?",
+    excerpt: "Uncover the importance of hydration for overall health and performance.",
+    imageUrl: "https://placehold.co/600x400.png",
+    imageHint: "water hydration",
+    readMoreLink: "/blog/4",
+  },
+];
+
+
+const BlogCard: FC<BlogPost> = React.memo(({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
+  const { toast } = useToast();
+  return (
+    <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
+      <div className="relative w-full h-40">
+        <Image
+          src={imageUrl}
+          alt={title}
+          layout="fill"
+          objectFit="cover"
+          className="group-hover:scale-105 transition-transform duration-300"
+          data-ai-hint={imageHint || "health fitness"}
+        />
+      </div>
+      <CardHeader className="pb-2 pt-4">
+        <CardTitle className="text-md font-semibold line-clamp-2 h-12">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow pb-3">
+        <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
+      </CardContent>
+      <CardFooter className="pt-0 pb-4">
+        <Link href={readMoreLink} passHref>
+          <Button variant="link" className="p-0 text-primary hover:text-primary/80 text-sm">
+            Read More <ArrowRight className="ml-1.5 h-4 w-4" />
+          </Button>
+        </Link>
+      </CardFooter>
+    </Card>
+  );
+});
+BlogCard.displayName = 'BlogCard';
 
 
 interface CaloriesCenterLabelProps {
@@ -159,80 +246,12 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
   return null;
 };
 
-
-export const mockBlogData: BlogPost[] = [
-  {
-    id: "1",
-    title: "The Surprising Benefits of Morning Workouts",
-    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "morning workout",
-    readMoreLink: "/blog/1",
-  },
-  {
-    id: "2",
-    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
-    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "healthy food",
-    readMoreLink: "/blog/2",
-  },
-  {
-    id: "3",
-    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
-    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "mindful eating",
-    readMoreLink: "/blog/3",
-  },
-  {
-    id: "4",
-    title: "Hydration Secrets: Are You Drinking Enough Water?",
-    excerpt: "Uncover the importance of hydration for overall health and performance.",
-    imageUrl: "https://placehold.co/600x400.png",
-    imageHint: "water hydration",
-    readMoreLink: "/blog/4",
-  },
-];
-
-
-const BlogCard: FC<BlogPost> = ({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
-  const { toast } = useToast();
-  return (
-    <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
-      <div className="relative w-full h-40">
-        <Image
-          src={imageUrl}
-          alt={title}
-          layout="fill"
-          objectFit="cover"
-          className="group-hover:scale-105 transition-transform duration-300"
-          data-ai-hint={imageHint || "health fitness"}
-        />
-      </div>
-      <CardHeader className="pb-2 pt-4">
-        <CardTitle className="text-md font-semibold line-clamp-2 h-12">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow pb-3">
-        <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
-      </CardContent>
-      <CardFooter className="pt-0 pb-4">
-        <Link href={readMoreLink} passHref>
-          <Button variant="link" className="p-0 text-primary hover:text-primary/80 text-sm">
-            Read More <ArrowRight className="ml-1.5 h-4 w-4" />
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
-  );
-};
-
-
 export default function DashboardPage() {
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [showAllMeals, setShowAllMeals] = useState(false);
 
 
   const consumedCalories = dailyLog?.calories ?? 0;
@@ -245,10 +264,10 @@ export default function DashboardPage() {
 
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', // Light color for consumed arc
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for track
-    Empty: 'hsla(var(--muted-foreground), 0.1)', // Muted for empty state
-    ConsumedNoGoal: 'hsl(var(--accent))', // Accent if no goal but consumed
+    Consumed: 'hsl(var(--card))', 
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', 
+    Empty: 'hsla(var(--muted-foreground), 0.1)', 
+    ConsumedNoGoal: 'hsl(var(--accent))', 
   };
 
   if (goalCalories > 0) {
@@ -257,18 +276,18 @@ export default function DashboardPage() {
       if (consumedCalories < goalCalories) {
         chartData.push({ name: 'Remaining', value: Math.max(0, goalCalories - consumedCalories), fill: COLORS.Remaining });
       }
-    } else { // No consumption, goal exists
+    } else { 
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { // No goal set
+  } else { 
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
-    } else { // No goal, no consumption
+    } else { 
       chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
     }
   }
 
-  if (chartData.length === 0) { // Fallback if logic above results in empty
+  if (chartData.length === 0) { 
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -279,6 +298,8 @@ export default function DashboardPage() {
   const todayFat = dailyLog?.fat ?? 0;
 
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
+
+  const displayedFoodEntries = showAllMeals ? foodEntries : foodEntries.slice(0, 3);
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-3xl mx-auto">
@@ -306,7 +327,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/reminders" legacyBehavior>
+           <Link href="/reminders" legacyBehavior>
             <Button variant="ghost" size="icon" className="rounded-full">
               <Bell className="h-5 w-5 text-muted-foreground" />
             </Button>
@@ -320,17 +341,18 @@ export default function DashboardPage() {
              <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-10 w-20" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
                 <Skeleton className="h-4 w-20" />
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center">
+              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
                 <Skeleton className="w-full h-full rounded-full" />
+                <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
               </div>
             </div>
           ) : (
             <div className="flex flex-row items-start gap-3"> 
               <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-start">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
@@ -341,7 +363,7 @@ export default function DashboardPage() {
                   <PopoverTrigger asChild>
                      <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
-                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d")) : "Select Date"}</span>
+                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -352,6 +374,7 @@ export default function DashboardPage() {
                       onSelect={(newDate) => {
                         if (newDate) {
                           selectDateForLog(newDate);
+                          setShowAllMeals(false); // Reset view more on date change
                           setIsCalendarOpen(false);
                         }
                       }}
@@ -363,35 +386,11 @@ export default function DashboardPage() {
               </div>
 
               <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="75%"
-                      outerRadius="95%"
-                      dataKey="value"
-                      stroke="none"
-                      paddingAngle={chartData.length > 1 && consumedCalories > 0 && (goalCalories - consumedCalories) > 0 ? 8 : 0}
-                      isAnimationActive={true}
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.fill}
-                          cornerRadius={10}
-                        />
-                      ))}
-                       {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
-                    </Pie>
-                    <Tooltip
-                      content={<CustomDonutTooltip goalCalories={goalCalories}/>}
-                      wrapperStyle={{ outline: "none" }}
-                      cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                 <CalorieDonutChart 
+                    chartData={chartData} 
+                    consumedCalories={consumedCalories} 
+                    goalCalories={goalCalories} 
+                  />
               </div>
             </div>
           )}
@@ -518,19 +517,32 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : foodEntries.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {foodEntries.map((entry: LoggedFoodEntry) => (
-              <MealCard
-                key={entry.id}
-                id={entry.id}
-                name={entry.name}
-                calories={entry.calories}
-                protein={entry.protein}
-                fat={entry.fat}
-                carbs={entry.carbs}
-                onDelete={deleteFoodEntry}
-              />
-            ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {displayedFoodEntries.map((entry: LoggedFoodEntry) => (
+                <MealCard
+                    key={entry.id}
+                    id={entry.id}
+                    name={entry.name}
+                    calories={entry.calories}
+                    protein={entry.protein}
+                    fat={entry.fat}
+                    carbs={entry.carbs}
+                    onDelete={deleteFoodEntry}
+                />
+                ))}
+            </div>
+            {foodEntries.length > 3 && (
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllMeals(!showAllMeals)}
+                  className="w-full sm:w-auto"
+                >
+                  {showAllMeals ? "View Less" : "View More"}
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <Card className="shadow-lg rounded-xl">

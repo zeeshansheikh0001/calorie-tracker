@@ -7,80 +7,51 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Target, Save, CheckCircle, Flame, Drumstick, Droplets, Wheat, Loader2 } from "lucide-react";
+import { Target, Save, CheckCircle, Flame, Drumstick, Droplets, Wheat } from "lucide-react";
 import type { Goal } from "@/types";
-import { useGoals } from "@/hooks/use-goals";
-import { Skeleton } from "@/components/ui/skeleton";
+
+const initialGoals: Goal = {
+  calories: 2000,
+  protein: 150,
+  fat: 70,
+  carbs: 250,
+};
 
 export default function GoalsPage() {
-  const { goals: initialGoals, updateGoals, isLoading: isLoadingGoalsHook } = useGoals();
-  const [goals, setGoalsState] = useState<Goal>(initialGoals); // Local form state
-  const [isSaving, setIsSaving] = useState(false);
+  const [goals, setGoals] = useState<Goal>(initialGoals);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Sync local form state when initialGoals from hook load/change
-    if (!isLoadingGoalsHook) {
-      setGoalsState(initialGoals);
+    const storedGoals = localStorage.getItem("userGoals");
+    if (storedGoals) {
+      setGoals(JSON.parse(storedGoals));
     }
-  }, [initialGoals, isLoadingGoalsHook]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setGoalsState((prevGoals) => ({
+    setGoals((prevGoals) => ({
       ...prevGoals,
       [name]: value === "" ? 0 : parseInt(value, 10) || 0,
     }));
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    try {
-      await updateGoals(goals); // This is now an async function
+    setIsLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      localStorage.setItem("userGoals", JSON.stringify(goals));
       toast({
         title: "Goals Updated!",
         description: "Your nutritional goals have been saved successfully.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
-    } catch (error) {
-      console.error("Failed to update goals:", error);
-      toast({
-        title: "Update Failed",
-        description: "Could not save your goals. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+      setIsLoading(false);
+    }, 500);
   };
-
-  if (isLoadingGoalsHook && !initialGoals.calories) { // Show skeleton if loading and no initial data yet
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <Card className="max-w-xl mx-auto shadow-xl">
-          <CardHeader>
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-full mt-1" />
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {[1,2,3,4].map(i => (
-                <div key={i}>
-                  <Skeleton className="h-5 w-24 mb-1" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Skeleton className="h-10 w-28" />
-          </CardFooter>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -162,11 +133,11 @@ export default function GoalsPage() {
           <CardFooter>
             <Button 
               type="submit" 
-              disabled={isSaving || isLoadingGoalsHook} 
+              disabled={isLoading} 
               className="w-full sm:w-auto transition-transform hover:scale-105 active:scale-95"
             >
-              {isSaving ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {isLoading ? (
+                <Save className="mr-2 h-4 w-4 animate-pulse" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}

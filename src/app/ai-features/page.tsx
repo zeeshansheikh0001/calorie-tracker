@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent, useEffect } from "react";
+import React, { useState, type FormEvent, useEffect } from "react"; // Added React import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,35 +60,34 @@ const primaryFocusOptions = [
     { value: "flexibility_mobility", label: "Flexibility & Mobility" },
 ];
 
+const ScheduleSection: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; className?: string }> = React.memo(({ title, icon: Icon, children, className }) => (
+    <Card className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold flex items-center text-primary">
+          <Icon className="mr-2 h-5 w-5" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm">
+        {children}
+      </CardContent>
+    </Card>
+));
+ScheduleSection.displayName = 'ScheduleSection';
+
 
 export default function AiFeaturesPage() {
-  const { goals, isLoading: isLoadingGoals } = useGoals(); // Use goals from hook
-
   const [formState, setFormState] = useState<GenerateHealthScheduleInput>({
-    calorieGoal: goals.calories || 2000,
-    proteinGoal: goals.protein || 150,
-    fatGoal: goals.fat || 70,
-    carbGoal: goals.carbs || 200,
+    calorieGoal: 2000,
+    proteinGoal: 150,
+    fatGoal: 70,
+    carbGoal: 200,
     weightGoalType: "maintain_weight",
     activityLevel: "moderately_active",
     dietaryPreferences: [],
     primaryFocus: "general_health",
     sleepHoursGoal: 8,
   });
-
-  useEffect(() => {
-    if (!isLoadingGoals) {
-      setFormState(prev => ({
-        ...prev,
-        calorieGoal: goals.calories || 2000,
-        proteinGoal: goals.protein || 150,
-        fatGoal: goals.fat || 70,
-        carbGoal: goals.carbs || 200,
-      }));
-    }
-  }, [goals, isLoadingGoals]);
-
-
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<GenerateHealthScheduleOutput | null>(null);
@@ -101,12 +100,26 @@ export default function AiFeaturesPage() {
 
 
   const { toast } = useToast();
-  const { getLogDataForDate, isLoading: isLoadingDailyLog } = useDailyLog();
-  // const { goals, isLoading: isLoadingGoals } is already defined above
+  const { getLogDataForDate, isLoading: isLoadingDailyLog } = useDailyLog(); 
+  const { goals, isLoading: isLoadingGoals } = useGoals();
 
   useEffect(() => {
+    // Initialize summaryDate to today on client side
     setSummaryDate(new Date());
   }, []);
+
+  // Pre-fill form with goals from hook when goals are loaded
+   useEffect(() => {
+    if (goals && !isLoadingGoals) {
+      setFormState(prev => ({
+        ...prev,
+        calorieGoal: goals.calories,
+        proteinGoal: goals.protein,
+        fatGoal: goals.fat,
+        carbGoal: goals.carbs,
+      }));
+    }
+  }, [goals, isLoadingGoals]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -141,10 +154,7 @@ export default function AiFeaturesPage() {
 
     try {
       if (formState.calorieGoal <= 0) {
-        setScheduleError("Calorie goal must be greater than 0.");
-        toast({ title: "Invalid Input", description: "Calorie goal must be greater than 0.", variant: "destructive" });
-        setIsLoadingSchedule(false);
-        return;
+        throw new Error("Calorie goal must be greater than 0.");
       }
       const result = await generateHealthSchedule(formState);
       setSchedule(result);
@@ -166,57 +176,55 @@ export default function AiFeaturesPage() {
   };
 
   const handleGenerateSummary = async () => {
-    if (!summaryDate) {
-      setSummaryError("Please select a date for the summary.");
-      toast({ title: "Date Not Selected", description: "Please select a date to generate the summary.", variant: "destructive" });
-      return;
-    }
-    
     setIsLoadingSummary(true);
     setSummaryError(null);
     setSummary(null);
 
+    if (!summaryDate) {
+      setSummaryError("No date selected for summary. Please select a date.");
+      toast({
+        title: "Date Not Selected",
+        description: "Please select a date to generate the summary.",
+        variant: "destructive",
+      });
+      setIsLoadingSummary(false);
+      return;
+    }
+    
+    // Fetch log data for the specific summaryDate using the updated synchronous hook
+    const { entries: foodEntriesForSummary } = getLogDataForDate(summaryDate);
+
+
+    if (foodEntriesForSummary.length === 0) {
+       toast({
+        title: "No Food Logged",
+        description: `No food items have been logged for ${format(summaryDate, "MMM d, yyyy")}. Summary cannot be generated.`,
+        variant: "default" // Changed to default as it's informational
+      });
+      setIsLoadingSummary(false);
+      return;
+    }
+
+    const shortFoodEntries: FoodEntryShort[] = foodEntriesForSummary.map(entry => ({
+      name: entry.name,
+      calories: entry.calories,
+      protein: entry.protein,
+      fat: entry.fat,
+      carbs: entry.carbs,
+    }));
+
+    const input: SummarizeDailyLogInput = {
+      foodEntries: shortFoodEntries,
+      userGoals: {
+        calories: goals.calories,
+        protein: goals.protein,
+        fat: goals.fat,
+        carb: goals.carbs, // Corrected from carbGoal
+      },
+      date: format(summaryDate, "MMM d, yyyy"),
+    };
+
     try {
-      const logDataForSummaryDate = await getLogDataForDate(summaryDate); // Now async
-      const foodEntriesForSummary = logDataForSummaryDate.entries;
-
-      if (foodEntriesForSummary.length === 0) {
-        toast({
-          title: "No Food Logged",
-          description: `No food items have been logged for ${format(summaryDate, "MMM d, yyyy")}. AI summary is based on logged food.`,
-          variant: "default"
-        });
-        // Optionally set a specific summary state for no food logged
-        setSummary({
-          date: format(summaryDate, "MMM d, yyyy"),
-          overallAssessment: "No food logged for this day.",
-          consumedItemsSummary: "No items to summarize.",
-          nutritionalAnalysis: "Unable to analyze nutrition without logged food items.",
-          actionableSuggestions: ["Log your meals to get a summary and suggestions!"]
-        });
-        setIsLoadingSummary(false);
-        return;
-      }
-
-      const shortFoodEntries: FoodEntryShort[] = foodEntriesForSummary.map(entry => ({
-        name: entry.name,
-        calories: entry.calories,
-        protein: entry.protein,
-        fat: entry.fat,
-        carbs: entry.carbs,
-      }));
-
-      const input: SummarizeDailyLogInput = {
-        foodEntries: shortFoodEntries,
-        userGoals: { // Use current goals from hook
-          calories: goals.calories,
-          protein: goals.protein,
-          fat: goals.fat,
-          carb: goals.carbs,
-        },
-        date: format(summaryDate, "MMM d, yyyy"),
-      };
-
       const result = await summarizeDailyLog(input);
       setSummary(result);
       toast({
@@ -236,34 +244,24 @@ export default function AiFeaturesPage() {
     }
   };
 
-
-  const ScheduleSection: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; className?: string }> = ({ title, icon: Icon, children, className }) => (
-    <Card className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center text-primary">
-          <Icon className="mr-2 h-5 w-5" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm">
-        {children}
-      </CardContent>
-    </Card>
-  );
-
-  if (isLoadingGoals || isLoadingDailyLog) { // Check isLoadingDailyLog as well
+   if (isLoadingGoals || isLoadingDailyLog) { // Check if initial goals or daily log data is loading
     return (
-        <div className="container mx-auto py-8 px-4 space-y-10">
-            <Card className="w-full mx-auto shadow-xl">
-                <CardHeader><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-full mt-2" /></CardHeader>
-                <CardContent className="space-y-6"><Skeleton className="h-40 w-full" /></CardContent>
-                <CardFooter><Skeleton className="h-10 w-1/3" /></CardFooter>
-            </Card>
-             <Card className="w-full mx-auto shadow-xl">
-                <CardHeader><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-full mt-2" /></CardHeader>
-                <CardContent className="space-y-4"><Skeleton className="h-10 w-1/2" /><Skeleton className="h-10 w-1/3" /></CardContent>
-            </Card>
-        </div>
+      <div className="container mx-auto py-8 px-4 space-y-10">
+        <Card className="w-full mx-auto shadow-xl">
+          <CardHeader>
+            <Skeleton className="h-8 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-48" />
+          </CardFooter>
+        </Card>
+      </div>
     );
   }
 
@@ -278,7 +276,7 @@ export default function AiFeaturesPage() {
           </div>
           <CardDescription>
             Fill in your details, and our AI will generate a tailored daily health schedule for you.
-            Your current nutritional goals are pre-filled.
+            The more accurate your input, the better the plan! (Current goals pre-filled below)
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleGenerateScheduleSubmit}>
@@ -441,8 +439,7 @@ export default function AiFeaturesPage() {
             <CardTitle className="text-2xl font-bold">AI Daily Food Log Summary</CardTitle>
           </div>
           <CardDescription>
-             Select a date and get an AI-powered summary with personalized suggestions for your food log.
-             User nutritional goals for comparison are taken from your saved goals.
+            Select a date and get an AI-powered summary with personalized suggestions for your food log.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -453,6 +450,7 @@ export default function AiFeaturesPage() {
                 <Button
                   variant={"outline"}
                   className="w-full sm:w-auto justify-start text-left font-normal mt-1"
+                  disabled={isLoadingDailyLog}
                 >
                   <CalendarDays className="mr-2 h-4 w-4" />
                   {summaryDate ? format(summaryDate, "PPP") : <span>Pick a date</span>}
@@ -473,7 +471,7 @@ export default function AiFeaturesPage() {
               </PopoverContent>
             </Popover>
           </div>
-          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || isLoadingGoals || !summaryDate} className="w-full sm:w-auto">
+          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !summaryDate || isLoadingGoals || isLoadingDailyLog} className="w-full sm:w-auto">
             {isLoadingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
           </Button>

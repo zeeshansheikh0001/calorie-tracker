@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react"; // Removed FC as it's not used
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,17 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
-  EllipsisVertical,
-  Loader2
+  EllipsisVertical
 } from "lucide-react";
 import type { UserProfile as UserProfileType } from "@/types"; 
 import { useUserProfile } from "@/hooks/use-user-profile"; 
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
+
+const DEFAULT_USER_PROFILE_DATA: UserProfileType = {
+  name: "Md Abu Ubayda", 
+  email: "md.ubayda@example.com", 
+  avatarUrl: "https://placehold.co/120x120.png", 
+};
 
 interface ListItemProps {
   href?: string;
@@ -60,14 +64,18 @@ const ListItem: React.FC<ListItemProps> = ({ href, icon: Icon, iconBgClass, icon
 };
 
 export default function ProfilePage() {
-  const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
+  const { userProfile: dynamicUserProfile, isLoading: isLoadingProfile } = useUserProfile();
   
-  // Hardcoded phone for UI replication, actual data should come from profile
-  const displayPhone = "+88001712346789"; 
+  const displayProfile = {
+    name: "Md Abu Ubayda",
+    phone: "+88001712346789", // As per image
+    avatarUrl: dynamicUserProfile.avatarUrl || DEFAULT_USER_PROFILE_DATA.avatarUrl,
+  };
 
   const handleLogout = () => {
+    // Placeholder for actual logout logic
     console.log("Logout clicked");
-    alert("Logout functionality using Firebase Auth needs to be implemented.");
+    alert("Logout functionality is not yet implemented.");
   };
   
   const handleAppSettings = () => {
@@ -76,9 +84,11 @@ export default function ProfilePage() {
 
 
   return (
-    <div className="bg-background">
+    <div className="bg-background"> {/* Removed min-h-screen */}
+      {/* Top Green Section */}
       <div className="bg-emerald-700 text-white pt-6 sm:pt-8">
         <div className="container mx-auto px-4 sm:px-6">
+          {/* Header */}
           <div className="flex justify-between items-center pb-6">
             <h1 className="text-xl sm:text-2xl font-semibold">Profile</h1>
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
@@ -86,39 +96,31 @@ export default function ProfilePage() {
             </Button>
           </div>
 
+          {/* User Info */}
           <div className="flex flex-col items-center pt-2 pb-12 relative">
-            {isLoadingProfile ? (
-              <>
-                <Skeleton className="h-24 w-24 rounded-full border-4 border-emerald-600 shadow-lg" />
-                <Skeleton className="h-6 w-32 mt-4" />
-                <Skeleton className="h-4 w-24 mt-1" />
-              </>
-            ) : (
-              <>
-                <div className="relative">
-                  <Avatar className="h-24 w-24 text-3xl border-4 border-emerald-600 shadow-lg">
-                    <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} data-ai-hint="user portrait" />
-                    <AvatarFallback>{userProfile.name?.charAt(0).toUpperCase() || "A"}</AvatarFallback>
-                  </Avatar>
-                  <Link href="/profile/edit" passHref>
-                    <Button
-                      variant="default"
-                      size="icon"
-                      className="absolute bottom-[-4px] right-[-4px] bg-orange-500 hover:bg-orange-600 text-white rounded-full h-8 w-8 p-1.5 shadow-md border-2 border-emerald-700"
-                      aria-label="Edit profile image"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-                <h2 className="text-lg sm:text-xl font-semibold mt-4">{userProfile.name}</h2>
-                <p className="text-sm text-emerald-200 mt-1">{displayPhone}</p> 
-              </>
-            )}
+            <div className="relative">
+              <Avatar className="h-24 w-24 text-3xl border-4 border-emerald-600 shadow-lg">
+                <AvatarImage src={displayProfile.avatarUrl} alt={displayProfile.name} data-ai-hint="user portrait" />
+                <AvatarFallback>{displayProfile.name?.charAt(0).toUpperCase() || "A"}</AvatarFallback>
+              </Avatar>
+              <Link href="/profile/edit" passHref>
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="absolute bottom-[-4px] right-[-4px] bg-orange-500 hover:bg-orange-600 text-white rounded-full h-8 w-8 p-1.5 shadow-md border-2 border-emerald-700"
+                  aria-label="Edit profile image"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <h2 className="text-lg sm:text-xl font-semibold mt-4">{displayProfile.name}</h2>
+            <p className="text-sm text-emerald-200 mt-1">{displayProfile.phone}</p>
           </div>
         </div>
       </div>
 
+      {/* Bottom Card Section */}
       <div className="bg-card text-card-foreground rounded-t-3xl p-5 sm:p-6 mt-[-28px] relative z-10 container mx-auto max-w-3xl">
         <h3 className="text-base sm:text-lg font-semibold mb-4 text-foreground">Account &amp; Settings</h3>
         <div className="space-y-1.5">

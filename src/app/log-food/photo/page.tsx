@@ -1,14 +1,14 @@
 
 "use client";
 
-import { useState, type ChangeEvent, useEffect, useRef } from "react";
+import { useState, type ChangeEvent, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation"; // Import useRouter
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft } from "lucide-react"; // Add ChevronLeft
+import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft, Info } from "lucide-react"; // Add ChevronLeft
 import Image from "next/image";
 import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInput } from "@/ai/flows/analyze-food-photo";
 import NutritionDisplay from "@/components/food/nutrition-display";
@@ -50,7 +50,7 @@ export default function LogFoodByPhotoPage() {
     let startCameraTimeoutId: NodeJS.Timeout | null = null;
   
     const cleanupVideoEventListeners = () => {
-      const videoNode = videoRef.current;
+      const videoNode = videoRef.current; // Get current ref inside this scope
       if (videoNode) {
         videoNode.onloadedmetadata = null;
         videoNode.onplaying = null;
@@ -59,10 +59,16 @@ export default function LogFoodByPhotoPage() {
     };
   
     const performCleanup = () => {
-      const videoNode = videoRef.current;
+      const videoNode = videoRef.current; // Get current ref inside this scope
       console.log("Camera: Full cleanup called");
-      if (startCameraTimeoutId) clearTimeout(startCameraTimeoutId);
-      if (readinessTimeout) clearTimeout(readinessTimeout);
+      if (startCameraTimeoutId) {
+        clearTimeout(startCameraTimeoutId);
+        startCameraTimeoutId = null;
+      }
+      if (readinessTimeout) {
+        clearTimeout(readinessTimeout);
+        readinessTimeout = null;
+      }
       
       cleanupVideoEventListeners();
       
@@ -87,10 +93,10 @@ export default function LogFoodByPhotoPage() {
     };
   
     const startCamera = async () => {
-      const videoNode = videoRef.current;
+      const videoNode = videoRef.current; // Get current ref inside this scope
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
-        toast({ variant: 'destructive', title: 'Camera Init Error', description: 'Camera component element not found. Please try switching tabs or refreshing.' });
+        toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
         setHasCameraPermission(false);
         setIsCameraLoading(false);
         return;
@@ -105,11 +111,12 @@ export default function LogFoodByPhotoPage() {
       setZoomCapabilities(null);
   
       const onMetadataLoaded = () => {
-        if (!videoNode) return;
-        console.log("Camera: onloadedmetadata. Dimensions:", videoNode.videoWidth, videoNode.videoHeight);
-        if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
-          if (videoNode.onplaying) videoNode.onplaying(new Event('playing'));
-          else if(videoNode.paused === false) { 
+        const currentVideoNode = videoRef.current; // Re-fetch ref in case it changed
+        if (!currentVideoNode) return;
+        console.log("Camera: onloadedmetadata. Dimensions:", currentVideoNode.videoWidth, currentVideoNode.videoHeight);
+        if (currentVideoNode.videoWidth > 0 && currentVideoNode.videoHeight > 0) {
+          if (currentVideoNode.onplaying) currentVideoNode.onplaying(new Event('playing'));
+          else if(currentVideoNode.paused === false) { 
              if (readinessTimeout) clearTimeout(readinessTimeout);
              console.log("Camera: Video ready and playing (metadata).");
              setIsStreamActive(true);
@@ -121,9 +128,10 @@ export default function LogFoodByPhotoPage() {
       };
   
       const onPlaying = () => {
-        if (!videoNode) return;
+        const currentVideoNode = videoRef.current; // Re-fetch ref
+        if (!currentVideoNode) return;
         console.log("Camera: onplaying.");
-        if (videoNode.videoWidth > 0 && videoNode.videoHeight > 0) {
+        if (currentVideoNode.videoWidth > 0 && currentVideoNode.videoHeight > 0) {
           if (readinessTimeout) clearTimeout(readinessTimeout);
           console.log("Camera: Video ready and playing.");
           setIsStreamActive(true);
@@ -182,7 +190,7 @@ export default function LogFoodByPhotoPage() {
             setHasCameraPermission(false);
             setIsCameraLoading(false);
           }
-        }, 10000);
+        }, 10000); // 10 seconds timeout
   
         await videoNode.play();
         console.log("Camera: videoNode.play() called.");
@@ -213,7 +221,8 @@ export default function LogFoodByPhotoPage() {
     }
   
     return performCleanup;
-  }, [tabMode, previewUrl, toast, attemptId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabMode, previewUrl, attemptId]); // Removed toast from dependencies to avoid potential loops
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -479,6 +488,9 @@ export default function LogFoodByPhotoPage() {
                         autoPlay
                         playsInline
                         muted
+                        onCanPlay={() => console.log("Video: onCanPlay triggered")}
+                        onPlaying={() => console.log("Video: onPlaying triggered")}
+                        onError={(e) => console.error("Video: onError triggered", e)}
                       />
                       {isCameraLoading && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4">
