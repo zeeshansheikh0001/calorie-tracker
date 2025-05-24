@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/theme-toggle"; // Added
 import {
   Bell,
   Camera,
@@ -302,44 +303,42 @@ export default function DashboardPage() {
             </>
           )}
         </div>
-        <Link href="/reminders" legacyBehavior>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href="/reminders" legacyBehavior>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Bell className="h-5 w-5 text-muted-foreground" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 text-foreground" 
-             style={{
-                backgroundImage: `url("/your-image-in-public-folder.jpg")`, // TODO: Place your image in the 'public' folder and update path
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center', 
-                backgroundRepeat: 'no-repeat' 
-             }}
-             data-ai-hint="tech background">
+       <Card className="shadow-lg rounded-2xl p-4 text-foreground">
           {isDataLoading ? (
-             <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg">
+            <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
-                <Skeleton className="h-5 w-24 bg-white/30" />
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 bg-white/30" />
-                <Skeleton className="h-4 w-20 bg-white/30" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
+                <Skeleton className="h-4 w-20" />
               </div>
-              <Skeleton className="w-[120px] h-[120px] flex-shrink-0 bg-white/30 rounded-full" />
+              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center">
+                <Skeleton className="w-full h-full rounded-full" />
+              </div>
             </div>
           ) : (
-            <div className="flex flex-row items-start gap-3 bg-black/30 p-2 rounded-lg"> 
+            <div className="flex flex-row items-start gap-3"> 
               <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center gap-2 text-sm text-white/80">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-3xl font-bold text-primary">
                   {goalCalories > 0 ? `${percentAchieved}%` : "-"}
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
-                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-white/90 hover:text-white px-1 py-0.5 h-auto">
+                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
                        <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
@@ -597,5 +596,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
