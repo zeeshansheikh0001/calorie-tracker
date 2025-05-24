@@ -1,78 +1,99 @@
+
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, Save, CheckCircle } from "lucide-react";
+import { BellRing, Save, CheckCircle, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { useReminderSettings, type ReminderSettings } from "@/hooks/use-reminder-settings";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface ReminderSettings {
-  logMeals: boolean;
-  logMealsTime: string;
-  drinkWater: boolean;
-  drinkWaterFrequency: string; // e.g., "every_2_hours"
-  weighIn: boolean;
-  weighInDay: string; // e.g., "monday"
-  weighInTime: string;
-}
-
-const initialSettings: ReminderSettings = {
-  logMeals: true,
-  logMealsTime: "19:00",
-  drinkWater: false,
-  drinkWaterFrequency: "every_2_hours",
-  weighIn: false,
-  weighInDay: "monday",
-  weighInTime: "08:00",
-};
 
 export default function RemindersPage() {
-  const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
-  const [isLoading, setIsLoading] = useState(false);
+  const { settings: initialSettings, updateReminderSettings, isLoading: isLoadingHook } = useReminderSettings();
+  const [settings, setSettingsState] = useState<ReminderSettings>(initialSettings); // Local form state
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // In a real app, load settings from localStorage or backend
-  // useEffect(() => { ... load settings ... }, []);
+  useEffect(() => {
+    if (!isLoadingHook) {
+      setSettingsState(initialSettings);
+    }
+  }, [initialSettings, isLoadingHook]);
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
-    setSettings((prev) => ({ ...prev, [name]: checked }));
+    setSettingsState((prev) => ({ ...prev, [name]: checked }));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSettings((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setSettingsState((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
   
   const handleSelectChange = (value: string, name: keyof ReminderSettings) => {
-    setSettings((prev) => ({ ...prev, [name]: value }));
+    setSettingsState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, save settings and schedule actual notifications
-      console.log("Reminder settings saved:", settings);
-      localStorage.setItem("reminderSettings", JSON.stringify(settings));
+    setIsSaving(true);
+    try {
+      await updateReminderSettings(settings);
       toast({
         title: "Reminders Updated!",
         description: "Your reminder preferences have been saved.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
-      setIsLoading(false);
-    }, 500);
+    } catch (error) {
+      console.error("Failed to update reminder settings:", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not save reminder settings. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoadingHook && !initialSettings.logMealsTime) { // Basic check for initial load
+     return (
+      <div className="container mx-auto py-8 px-4">
+        <Card className="max-w-xl mx-auto shadow-xl">
+          <CardHeader>
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-full mt-1" />
+          </CardHeader>
+          <CardContent className="space-y-8">
+            {[1,2,3].map(i => (
+              <div key={i} className="space-y-3 p-4 border border-border rounded-lg bg-card">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-6 w-12" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-36" />
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -191,9 +212,9 @@ export default function RemindersPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-              {isLoading ? (
-                <Save className="mr-2 h-4 w-4 animate-pulse" />
+            <Button type="submit" disabled={isSaving || isLoadingHook} className="w-full sm:w-auto">
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
