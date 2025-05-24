@@ -26,14 +26,14 @@ const UserGoalsSchema = z.object({
   carb: z.number().min(0).describe('Target daily carbohydrate intake (grams).'), // Corrected from carbGoal
 });
 
-export const SummarizeDailyLogInputSchema = z.object({
+const SummarizeDailyLogInputSchema = z.object({
   foodEntries: z.array(FoodEntryShortSchema).describe('A list of food items consumed by the user on a specific day.'),
   userGoals: UserGoalsSchema.describe("The user's nutritional goals for the day."),
   date: z.string().describe("The date for which the summary is being generated, in YYYY-MM-DD format or human-readable like 'Today' or 'May 23, 2025'.")
 });
 export type SummarizeDailyLogInput = z.infer<typeof SummarizeDailyLogInputSchema>;
 
-export const SummarizeDailyLogOutputSchema = z.object({
+const SummarizeDailyLogOutputSchema = z.object({
   date: z.string().describe("The date for which the summary is provided, matching the input date format."),
   overallAssessment: z.string().describe("A brief, encouraging overall assessment of the day's intake. (e.g., 'Good progress today!' or 'Room for improvement on...')"),
   consumedItemsSummary: z.string().describe("A concise textual summary of the main food items consumed. (e.g., 'You had oatmeal for breakfast, a chicken salad for lunch, and salmon for dinner, along with an apple snack.'). Do not list every single item if many, but summarize the types of meals."),
