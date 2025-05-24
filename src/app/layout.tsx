@@ -40,7 +40,6 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
         >
           <AppLayout>{children}</AppLayout>
           <Toaster />
