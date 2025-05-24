@@ -77,7 +77,10 @@ IMPORTANT INSTRUCTIONS:
         *   For single, common ingredients (like "beef", "apple", "chicken breast"), assume a standard reference quantity (e.g., 100g for raw meats/grains, 1 medium for fruits/vegetables unless it's clearly something like "a handful of berries").
         *   For dishes (like "pizza", "pasta with meatballs"), assume a typical single serving size.
         *   Leverage your extensive knowledge of food composition and typical recipes to make the most reasonable assumption for quantity.
-2.  **Mandatory \`estimatedQuantityNote\`**: You MUST clearly state the quantity for which your nutritional estimate is provided in the 'estimatedQuantityNote' field. This field is CRUCIAL for user understanding. Examples: "Estimates for 100g raw lean beef.", "Estimates for 1 medium apple (approx. 150g).", "Estimates for 1 serving (approx. 2 cups cooked) of pasta with 3 meatballs."
+2.  **Mandatory \`estimatedQuantityNote\`**: This field is CRUCIAL for user understanding. You MUST clearly state the quantity for which your nutritional estimate is provided.
+    *   If the user specified a quantity (e.g., "150g salmon"), your note should be like: "Estimates are for your specified quantity of 150g salmon."
+    *   If you assumed a quantity for a general item (e.g., user typed "salmon" and you assumed 100g), your note should be like: "Estimates based on an assumed quantity of 100g raw salmon." or "Estimates for 1 medium apple (approx. 150g)."
+    *   If the description is too vague for any quantity assumption, state that in the note: "Unable to determine quantity or provide accurate estimates due to vague description."
 3.  **UTMOST PRECISION REQUIRED**: All numerical estimations MUST be as precise as possible. Your main function is to calculate these values accurately. If a detailed nutrient (like saturated fat, fiber, etc.) cannot be reasonably estimated or is not applicable, set its value to 0.
 4.  **Comprehensive Analysis (Secondary to Precision)**:
     *   \`commonIngredientsInfluence\`: Briefly explain how the main components of the described food (if it's a dish) influence its overall nutritional profile. If not applicable, leave empty.
