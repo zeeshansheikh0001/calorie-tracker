@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from '@/components/theme-provider';
+import React from 'react';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -20,22 +22,29 @@ export const metadata: Metadata = {
   description: 'Track your calories and nutrition smartly.',
 };
 
-// This RootLayout is a Server Component.
-// It doesn't directly receive or use route `params` or `searchParams` in its props.
-// If child pages (which are Client Components in this app) needed route parameters,
-// they would typically use hooks like `useParams()` or `useSearchParams()` from `next/navigation`.
-// The "params enumerated" warning might stem from Next.js internals or library interactions
-// in development mode if not directly from user code misusing params in a Server Component.
 export default function RootLayout({
   children,
+  params, // Explicitly destructure params
 }: Readonly<{
   children: React.ReactNode;
+  params: { [key: string]: string | string[] | undefined }; // Add type for params
 }>) {
+  // The "params enumerated" warning can sometimes be an internal Next.js development mode issue.
+  // By explicitly acknowledging `params` here, we might influence how Next.js's tooling perceives it,
+  // even though `params` are not directly used in this root layout's rendering logic.
+  // If params were to be used, it would be with: const unwrapped = React.use(params);
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <AppLayout>{children}</AppLayout>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AppLayout>{children}</AppLayout>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
