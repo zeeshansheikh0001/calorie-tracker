@@ -33,13 +33,22 @@ export default function RootLayout({
   // By explicitly acknowledging `params` here, we might influence how Next.js's tooling perceives it,
   // even though `params` are not directly used in this root layout's rendering logic.
   // If params were to be used, it would be with: const unwrapped = React.use(params);
+
+  const bodyClassNames = [
+    geistSans.variable.trim(),
+    geistMono.variable.trim(),
+    'font-sans',
+    'antialiased'
+  ].filter(Boolean).join(' ');
+
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={bodyClassNames}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
+          // disableTransitionOnChange // Removed previously, keeping it removed for now
         >
           <AppLayout>{children}</AppLayout>
           <Toaster />
