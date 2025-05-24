@@ -2,19 +2,19 @@
 "use client";
 
 import { useState, type ChangeEvent, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut } from "lucide-react";
+import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft } from "lucide-react"; // Add ChevronLeft
 import Image from "next/image";
 import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInput } from "@/ai/flows/analyze-food-photo";
 import NutritionDisplay from "@/components/food/nutrition-display";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { Slider } from "@/components/ui/slider";
-// import { Label } from "@/components/ui/label"; // Label might not be needed if crop controls are removed
 
 
 export default function LogFoodByPhotoPage() {
@@ -25,6 +25,7 @@ export default function LogFoodByPhotoPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { addFoodEntry } = useDailyLog();
+  const router = useRouter(); // Initialize useRouter
 
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
@@ -41,7 +42,6 @@ export default function LogFoodByPhotoPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // const imgRef = useRef<HTMLImageElement>(null); // No longer needed for crop
 
 
   useEffect(() => {
@@ -420,6 +420,10 @@ export default function LogFoodByPhotoPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      <Button variant="ghost" onClick={() => router.back()} className="mb-4 group text-sm">
+        <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+        Back
+      </Button>
       <Card className="max-w-2xl mx-auto shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center">
