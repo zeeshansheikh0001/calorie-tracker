@@ -3,61 +3,40 @@
 
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Save, User, Mail, ArrowLeft, UploadCloud } from "lucide-react";
+import { Save, User, Mail, ArrowLeft, UploadCloud, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type { UserProfile } from "@/types";
-
-const DEFAULT_USER_PROFILE: UserProfile = {
-  name: "Alex Johnson",
-  email: "alex.johnson@example.com",
-  avatarUrl: "https://placehold.co/120x120.png",
-};
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EditProfilePage() {
+  const { userProfile: initialProfile, updateUserProfile, isLoading: isLoadingProfile } = useUserProfile();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(DEFAULT_USER_PROFILE.avatarUrl);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [imageFile, setImageFile] = useState<File | null>(null); // Not strictly needed if only DataURI is stored
+  const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    const storedProfile = localStorage.getItem("userProfile");
-    if (storedProfile) {
-      try {
-        const profile: UserProfile = JSON.parse(storedProfile);
-        setName(profile.name);
-        setEmail(profile.email);
-        setAvatarUrl(profile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl);
-        setImagePreview(profile.avatarUrl || null);
-      } catch (e) {
-        console.error("Failed to parse user profile from localStorage", e);
-        setName(DEFAULT_USER_PROFILE.name);
-        setEmail(DEFAULT_USER_PROFILE.email);
-        setAvatarUrl(DEFAULT_USER_PROFILE.avatarUrl);
-        setImagePreview(DEFAULT_USER_PROFILE.avatarUrl || null);
-      }
-    } else {
-      setName(DEFAULT_USER_PROFILE.name);
-      setEmail(DEFAULT_USER_PROFILE.email);
-      setAvatarUrl(DEFAULT_USER_PROFILE.avatarUrl);
-      setImagePreview(DEFAULT_USER_PROFILE.avatarUrl || null);
+    if (!isLoadingProfile && initialProfile) {
+      setName(initialProfile.name);
+      setEmail(initialProfile.email);
+      setImagePreview(initialProfile.avatarUrl || null);
     }
-  }, []);
+  }, [initialProfile, isLoadingProfile]);
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
+      // setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -66,9 +45,9 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSaving(true);
 
     if (!name.trim() || !email.trim()) {
       toast({
@@ -76,26 +55,58 @@ export default function EditProfilePage() {
         description: "Name and email cannot be empty.",
         variant: "destructive",
       });
-      setIsLoading(false);
+      setIsSaving(false);
       return;
     }
 
-    const updatedProfile: UserProfile = { 
-      name, 
-      email, 
-      avatarUrl: imagePreview || avatarUrl // Prefer new preview, fallback to old URL
-    };
-    localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
-
-    setTimeout(() => {
+    try {
+      const updatedProfileData: UserProfile = { 
+        name, 
+        email, 
+        avatarUrl: imagePreview || initialProfile.avatarUrl // Use new preview, or fallback to existing
+      };
+      await updateUserProfile(updatedProfileData);
       toast({
         title: "Profile Updated!",
         description: "Your profile details have been saved.",
       });
-      setIsLoading(false);
       router.push("/profile"); 
-    }, 500);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not save profile changes. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoadingProfile) {
+    return (
+      <div className="container mx-auto max-w-xl py-8 px-4">
+        <Card className="shadow-xl rounded-xl overflow-hidden">
+          <CardHeader>
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-3/4 mt-1" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+              <Skeleton className="h-32 w-32 rounded-full" />
+              <Skeleton className="h-5 w-40" />
+            </div>
+            <Separator />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-28" />
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-xl py-8 px-4">
@@ -117,7 +128,7 @@ export default function EditProfilePage() {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-32 w-32 border-4 border-muted shadow-md">
-                <AvatarImage src={imagePreview || DEFAULT_USER_PROFILE.avatarUrl} alt={name} data-ai-hint="user avatar" />
+                <AvatarImage src={imagePreview || undefined} alt={name} data-ai-hint="user avatar" />
                 <AvatarFallback className="text-4xl">
                   {name?.charAt(0).toUpperCase() || "A"}
                 </AvatarFallback>
@@ -131,7 +142,7 @@ export default function EditProfilePage() {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="sr-only" // Hidden, triggered by label
+                className="sr-only"
               />
             </div>
 
@@ -167,9 +178,9 @@ export default function EditProfilePage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-              {isLoading ? (
-                <Save className="mr-2 h-4 w-4 animate-pulse" />
+            <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
