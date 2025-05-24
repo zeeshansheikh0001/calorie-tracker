@@ -47,7 +47,7 @@ export function ThemeToggle() {
         layout
         transition={spring}
         className={cn(
-          "pointer-events-none absolute left-0 inline-block h-[24px] w-[24px] transform rounded-full bg-background shadow-lg ring-0 transition-transform duration-200 ease-in-out flex items-center justify-center",
+          "pointer-events-none absolute left-0 inline-block h-[24px] w-[24px] transform rounded-full bg-background shadow-lg ring-0 flex items-center justify-center", // Removed: transition-transform duration-200 ease-in-out
           isDarkMode ? "translate-x-[24px]" : "translate-x-[0.5px]"
         )}
       >
