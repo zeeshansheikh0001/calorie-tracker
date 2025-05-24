@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ThemeToggle } from "@/components/theme-toggle"; // Added
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Bell,
   Camera,
@@ -26,6 +26,7 @@ import {
   Trash2,
   BookOpen,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { useState, type FC, useEffect } from "react";
 import type { FoodEntry as LoggedFoodEntry, BlogPost } from "@/types";
@@ -244,30 +245,30 @@ export default function DashboardPage() {
 
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))',
-    Remaining: 'hsla(var(--primary-hsl), 0.25)',
-    Empty: 'hsla(var(--muted-foreground), 0.1)',
-    ConsumedNoGoal: 'hsl(var(--accent))',
+    Consumed: 'hsl(var(--card))', // Light color for consumed arc
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for track
+    Empty: 'hsla(var(--muted-foreground), 0.1)', // Muted for empty state
+    ConsumedNoGoal: 'hsl(var(--accent))', // Accent if no goal but consumed
   };
 
   if (goalCalories > 0) {
     if (consumedCalories > 0) {
       chartData.push({ name: 'Consumed', value: consumedCalories, fill: COLORS.Consumed });
       if (consumedCalories < goalCalories) {
-        chartData.push({ name: 'Remaining', value: goalCalories - consumedCalories, fill: COLORS.Remaining });
+        chartData.push({ name: 'Remaining', value: Math.max(0, goalCalories - consumedCalories), fill: COLORS.Remaining });
       }
-    } else {
+    } else { // No consumption, goal exists
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { 
+  } else { // No goal set
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
-    } else {
-      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty }); 
+    } else { // No goal, no consumption
+      chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
     }
   }
-  
-  if (chartData.length === 0) {
+
+  if (chartData.length === 0) { // Fallback if logic above results in empty
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -314,12 +315,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 text-foreground">
+       <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
           {isDataLoading ? (
-            <div className="flex flex-row items-start gap-3">
+             <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
+                <Skeleton className="h-10 w-20" />
                 <Skeleton className="h-4 w-20" />
               </div>
               <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center">
@@ -378,7 +379,7 @@ export default function DashboardPage() {
                       {chartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={entry.fill || COLORS.Remaining}
+                          fill={entry.fill}
                           cornerRadius={10}
                         />
                       ))}
@@ -455,7 +456,7 @@ export default function DashboardPage() {
               ? isToday(currentSelectedDate)
                 ? "Today"
                 : format(currentSelectedDate, "MMM d, yyyy")
-              : "the selected date"}
+              : "Selected Date"}
           </h2>
         </div>
         <div className="grid grid-cols-2 gap-4">
