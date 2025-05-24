@@ -29,7 +29,7 @@ export function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <>
-      <main className="flex-1 bg-background pb-20 md:pb-0 overflow-hidden">
+      <main className="flex-1 bg-background pb-20 overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname} 
