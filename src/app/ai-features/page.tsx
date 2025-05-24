@@ -10,14 +10,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2, AlertCircle, ListChecks, Utensils, Dumbbell, Droplets, BedDouble, Brain, Info, BarChart3, Edit3 } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle, ListChecks, Utensils, Dumbbell, Droplets, BedDouble, Brain, Info, BarChart3, Edit3, CalendarDays, ChevronDown } from "lucide-react";
 import { generateHealthSchedule, type GenerateHealthScheduleInput, type GenerateHealthScheduleOutput } from "@/ai/flows/generate-health-schedule-flow";
 import { summarizeDailyLog, type SummarizeDailyLogInput, type SummarizeDailyLogOutput } from "@/ai/flows/summarize-daily-log-flow";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import type { FoodEntryShort } from "@/types";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 
 
 const activityLevels = [
@@ -77,10 +79,18 @@ export default function AiFeaturesPage() {
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummarizeDailyLogOutput | null>(null);
+  const [summaryDate, setSummaryDate] = useState<Date | undefined>();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
 
   const { toast } = useToast();
-  const { foodEntries, dailyLog, currentSelectedDate } = useDailyLog();
+  const { getLogDataForDate } = useDailyLog(); // Use getLogDataForDate
   const { goals } = useGoals();
+
+  useEffect(() => {
+    // Initialize summaryDate to today on client side
+    setSummaryDate(new Date());
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -141,23 +151,32 @@ export default function AiFeaturesPage() {
     setSummaryError(null);
     setSummary(null);
 
-    if (!currentSelectedDate) {
-      setSummaryError("No date selected for summary.");
+    if (!summaryDate) {
+      setSummaryError("No date selected for summary. Please select a date.");
+      toast({
+        title: "Date Not Selected",
+        description: "Please select a date to generate the summary.",
+        variant: "destructive",
+      });
       setIsLoadingSummary(false);
       return;
     }
     
-    if (foodEntries.length === 0) {
+    const logDataForSummaryDate = getLogDataForDate(summaryDate);
+    const foodEntriesForSummary = logDataForSummaryDate.entries;
+
+
+    if (foodEntriesForSummary.length === 0) {
        toast({
         title: "No Food Logged",
-        description: `No food items have been logged for ${format(currentSelectedDate, "MMM d, yyyy")}. Summary cannot be generated.`,
+        description: `No food items have been logged for ${format(summaryDate, "MMM d, yyyy")}. Summary cannot be generated.`,
         variant: "default"
       });
       setIsLoadingSummary(false);
       return;
     }
 
-    const shortFoodEntries: FoodEntryShort[] = foodEntries.map(entry => ({
+    const shortFoodEntries: FoodEntryShort[] = foodEntriesForSummary.map(entry => ({
       name: entry.name,
       calories: entry.calories,
       protein: entry.protein,
@@ -171,9 +190,9 @@ export default function AiFeaturesPage() {
         calories: goals.calories,
         protein: goals.protein,
         fat: goals.fat,
-        carb: goals.carbs, // Note: schema expects 'carb', hook provides 'carbs'
+        carb: goals.carbs,
       },
-      date: format(currentSelectedDate, "MMM d, yyyy"),
+      date: format(summaryDate, "MMM d, yyyy"),
     };
 
     try {
@@ -386,15 +405,42 @@ export default function AiFeaturesPage() {
             <CardTitle className="text-2xl font-bold">AI Daily Food Log Summary</CardTitle>
           </div>
           <CardDescription>
-            Get an AI-powered summary and personalized suggestions for your food log on the currently selected date (from Home page).
+            Select a date and get an AI-powered summary with personalized suggestions for your food log.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !currentSelectedDate} className="w-full sm:w-auto">
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="summaryDate">Date for Summary</Label>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className="w-full sm:w-auto justify-start text-left font-normal mt-1"
+                >
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {summaryDate ? format(summaryDate, "PPP") : <span>Pick a date</span>}
+                  <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={summaryDate}
+                  onSelect={(date) => {
+                    setSummaryDate(date);
+                    setIsCalendarOpen(false);
+                  }}
+                  initialFocus
+                  disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !summaryDate} className="w-full sm:w-auto">
             {isLoadingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-            Generate Summary for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : "Selected Date"}
+            Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
           </Button>
-           {!currentSelectedDate && <p className="text-sm text-muted-foreground mt-2">Please select a date on the Home page first.</p>}
+           {!summaryDate && <p className="text-sm text-muted-foreground mt-2">Please select a date for the summary.</p>}
         </CardContent>
         
         {summaryError && (

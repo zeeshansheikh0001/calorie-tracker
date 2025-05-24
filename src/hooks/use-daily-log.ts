@@ -165,6 +165,31 @@ export function useDailyLog() {
     }
   }, [currentSelectedDateInternal]);
 
+  const getLogDataForDate = useCallback((dateToFetch: Date): { summary: DailyLogEntry | null; entries: FoodEntry[] } => {
+    try {
+      const storageKey = getStorageKeyForDate(dateToFetch);
+      const storedLog = localStorage.getItem(storageKey);
+      if (storedLog) {
+        const parsedLog: { summary: DailyLogEntry; entries: FoodEntry[] } = JSON.parse(storedLog);
+        return parsedLog;
+      } else {
+        // If no log exists for the date, return an empty state for that date
+        const formattedDate = format(dateToFetch, 'yyyy-MM-dd');
+        return {
+          summary: { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 },
+          entries: []
+        };
+      }
+    } catch (error) {
+      console.error("Failed to fetch log data from localStorage for date:", format(dateToFetch, 'yyyy-MM-dd'), error);
+      const formattedDate = format(dateToFetch, 'yyyy-MM-dd');
+      return {
+        summary: { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 },
+        entries: []
+      };
+    }
+  }, []);
+
   return { 
     dailyLog, 
     foodEntries, 
@@ -174,6 +199,7 @@ export function useDailyLog() {
     isLoading, 
     currentSelectedDate: currentSelectedDateInternal, 
     selectDateForLog, 
-    refreshLog: () => { if (currentSelectedDateInternal) loadLogForDate(currentSelectedDateInternal); }
+    refreshLog: () => { if (currentSelectedDateInternal) loadLogForDate(currentSelectedDateInternal); },
+    getLogDataForDate
   };
 }
