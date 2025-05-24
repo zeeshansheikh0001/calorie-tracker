@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useEffect, useState, useRef, type FC } from "react";
-import { Html5QrcodeScanner, Html5QrcodeScanType, type Html5QrcodeResult, Html5QrcodeScannerState } from "html5-qrcode";
+import { useEffect, useState, useRef, type FC, useCallback } from "react";
+import type { Html5QrcodeResult, Html5QrcodeScannerState } from "html5-qrcode";
+import dynamic from 'next/dynamic'; // For dynamic import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -23,7 +24,21 @@ import {
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useToast } from "@/hooks/use-toast";
 import type { FoodEntry } from "@/types";
-// import { cn } from "@/lib/utils"; // cn might not be used anymore in this version
+
+
+// Dynamically import Html5QrcodeScanner
+const DynamicHtml5QrcodeScanner = dynamic(
+  () => import('html5-qrcode').then(mod => mod.Html5QrcodeScanner),
+  { 
+    ssr: false,
+    loading: () => <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /> <p className="ml-2">Loading Scanner...</p></div>
+  }
+);
+const DynamicHtml5QrcodeScanType = dynamic(
+  () => import('html5-qrcode').then(mod => mod.Html5QrcodeScanType),
+  { ssr: false }
+);
+
 
 interface ScannedProductInfo {
   id: string;
@@ -43,7 +58,7 @@ interface NutritionInfoItemProps {
   color?: string;
 }
 
-const NutritionInfoItem: FC<NutritionInfoItemProps> = ({ icon: Icon, label, value, color = "text-foreground" }) => (
+const NutritionInfoItem: FC<NutritionInfoItemProps> = React.memo(({ icon: Icon, label, value, color = "text-foreground" }) => (
   <div className={`flex items-center space-x-2 p-2.5 rounded-lg bg-secondary/30 shadow-sm transition-all hover:shadow-md`}>
     <div className={`p-1.5 rounded-md bg-background/70 ${color}`}>
       <Icon className={`h-5 w-5 flex-shrink-0`} />
@@ -53,7 +68,8 @@ const NutritionInfoItem: FC<NutritionInfoItemProps> = ({ icon: Icon, label, valu
       <p className={`font-semibold text-sm ${color}`}>{value}</p>
     </div>
   </div>
-);
+));
+NutritionInfoItem.displayName = 'NutritionInfoItem';
 
 
 export default function LogFoodByBarcodePage() {
@@ -63,15 +79,135 @@ export default function LogFoodByBarcodePage() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [hasLogged, setHasLogged] = useState(false);
+  const [attemptId, setAttemptId] = useState(0); // For retrying scanner initialization
 
   const { addFoodEntry } = useDailyLog();
   const { toast } = useToast();
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<any | null>(null); // Use 'any' for dynamically imported type
+  const [Html5QrcodeScannerState, setHtml5QrcodeScannerState] = useState<any>(null);
 
   useEffect(() => {
-    let localScannerInstance: Html5QrcodeScanner | null = null;
+    import('html5-qrcode').then(mod => {
+      setHtml5QrcodeScannerState(mod.Html5QrcodeScannerState);
+    }).catch(err => console.error("Failed to load Html5QrcodeScannerState", err));
+  }, []);
 
-    if (isScanning) {
+
+  const onScanSuccess = useCallback((decodedTextOriginal: string, result: Html5QrcodeResult) => {
+    console.log(`Barcode Scanner: Scan successful - ${decodedTextOriginal}`, result);
+    const decodedText = decodedTextOriginal.trim(); 
+    
+    setIsScanning(false); 
+    setScannedBarcode(decodedText);
+    
+    (async () => {
+      setIsLoadingProduct(true);
+      setProductInfo(null);
+      setScanError(null); 
+      try {
+        const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
+        
+        if (!response.ok) {
+          let errorMessage = `API request failed with status ${response.status}.`;
+          if (response.status === 404) {
+            errorMessage = `Product with barcode ${decodedText} not found in the Open Food Facts database. This community-driven database may not list all products.`;
+          }
+          console.warn("Error fetching product data (response not ok):", errorMessage);
+          setScanError(errorMessage);
+          toast({
+            title: response.status === 404 ? "Product Not Found" : "API Error",
+            description: errorMessage,
+            variant: "destructive",
+            action: <AlertCircle className="text-red-500" />
+          });
+          setIsLoadingProduct(false);
+          return; 
+        }
+
+        const data = await response.json();
+
+        if (data.status === 0 || !data.product) {
+          const errorMessage = `Product with barcode ${decodedText} not found in Open Food Facts database, or data is unavailable. This community database may not have all products.`;
+          console.warn("Product data issue (status 0 or no product):", errorMessage, data);
+          setScanError(errorMessage);
+          toast({
+            title: "Product Data Not Available",
+            description: errorMessage,
+            variant: "destructive", 
+            action: <AlertCircle className="text-red-500" />
+          });
+          setIsLoadingProduct(false);
+          return; 
+        }
+
+        const product = data.product;
+        const nutriments = product.nutriments || {};
+
+        const getNutrientValue = (nutrientKey: string): number => {
+          const value = nutriments[nutrientKey];
+          return typeof value === 'number' ? value : 0;
+        };
+        
+        let calories = getNutrientValue('energy-kcal_100g');
+        if (calories === 0 && nutriments['energy_100g']) { 
+           const energyKj = getNutrientValue('energy_100g');
+           if (energyKj > 0) {
+               calories = Math.round(energyKj / 4.184);
+           }
+        }
+
+        const fetchedProductInfo: ScannedProductInfo = {
+          id: decodedText,
+          name: product.product_name_en || product.product_name || product.generic_name || `Product ${decodedText}`,
+          calories: calories,
+          protein: getNutrientValue('proteins_100g'),
+          fat: getNutrientValue('fat_100g'),
+          carbs: getNutrientValue('carbohydrates_100g'),
+        };
+        
+        setProductInfo(fetchedProductInfo);
+
+        if (fetchedProductInfo.calories === 0 && !fetchedProductInfo.name.toLowerCase().includes('product ')) {
+           console.warn(`Product ${fetchedProductInfo.name} found, but nutritional data might be incomplete.`);
+           toast({
+               title: "Nutritional Data May Be Incomplete",
+               description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero. Values are typically per 100g/ml.`,
+               variant: "default", 
+           });
+        } else {
+          toast({
+            title: "Product Found!",
+            description: `Details for ${fetchedProductInfo.name} loaded. Values are typically per 100g/ml.`,
+            action: <PackageSearch className="text-green-500" />
+          });
+        }
+
+      } catch (error: any) {
+        console.error("Error fetching product data (catch block):", error);
+        const errorMessage = error.message || "Failed to fetch product information. Check your internet connection.";
+        setScanError(errorMessage);
+        toast({
+          title: "Product Fetch Error",
+          description: errorMessage,
+          variant: "destructive",
+          action: <AlertCircle className="text-red-500" />
+        });
+      } finally {
+        setIsLoadingProduct(false);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast, addFoodEntry]); // Dependencies that onScanSuccess closes over
+
+  const onScanFailure = useCallback((error: string) => {
+    // console.warn(`Barcode Scanner: Scan Failure - ${error}`); 
+  }, []);
+
+
+  useEffect(() => {
+    let localScannerInstance: any | null = null;
+
+    if (isScanning && DynamicHtml5QrcodeScanner && DynamicHtml5QrcodeScanType && Html5QrcodeScannerState) {
       console.log("Barcode Scanner: useEffect - isScanning is true. Attempting to initialize.");
       setScanError(null);
       setProductInfo(null);
@@ -86,20 +222,18 @@ export default function LogFoodByBarcodePage() {
         return;
       }
       
-      // Attempt to clear stale scanner from ref if it exists and is active
       if (scannerRef.current) {
         console.warn("Barcode Scanner: useEffect - scannerRef.current was not null. Attempting to clear stale instance from ref.");
         const staleScanner = scannerRef.current;
-        scannerRef.current = null; // Nullify ref immediately
+        scannerRef.current = null; 
         try {
           if (staleScanner.getState() === Html5QrcodeScannerState.SCANNING || staleScanner.getState() === Html5QrcodeScannerState.PAUSED) {
-            staleScanner.clear().catch(err => console.error("Barcode Scanner: Error clearing stale scanner from ref:", err));
+            staleScanner.clear().catch((err: Error) => console.error("Barcode Scanner: Error clearing stale scanner from ref:", err));
           }
         } catch (e) {
           console.error("Barcode Scanner: Exception clearing stale scanner from ref:", e);
         }
       }
-
 
       const verbose = false;
       const qrboxFunction = (viewfinderWidth: number, viewfinderHeight: number) => {
@@ -108,125 +242,15 @@ export default function LogFoodByBarcodePage() {
         const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
         return { width: qrboxSize, height: qrboxSize };
       };
-
-      const onScanSuccess = (decodedTextOriginal: string, result: Html5QrcodeResult) => {
-        console.log(`Barcode Scanner: Scan successful - ${decodedTextOriginal}`, result);
-        const decodedText = decodedTextOriginal.trim(); // Trim the barcode
-        
-        setIsScanning(false); // This will trigger useEffect cleanup for the scanner
-        setScannedBarcode(decodedText);
-        
-        (async () => {
-          setIsLoadingProduct(true);
-          setProductInfo(null);
-          setScanError(null); 
-          try {
-            const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${decodedText}.json`);
-            
-            if (!response.ok) {
-              let errorMessage = `API request failed with status ${response.status}.`;
-              if (response.status === 404) {
-                errorMessage = `Product with barcode ${decodedText} not found in the Open Food Facts database. The database is community-driven and may not include all products.`;
-              }
-              console.warn("Error fetching product data (response not ok):", errorMessage);
-              setScanError(errorMessage);
-              toast({
-                title: response.status === 404 ? "Product Not Found" : "API Error",
-                description: errorMessage,
-                variant: "destructive",
-                action: <AlertCircle className="text-red-500" />
-              });
-              setIsLoadingProduct(false);
-              return; 
-            }
-
-            const data = await response.json();
-
-            if (data.status === 0 || !data.product) {
-              const errorMessage = `Product with barcode ${decodedText} not found in Open Food Facts database, or data is unavailable. This community database may not have all products.`;
-              console.warn("Product data issue (status 0 or no product):", errorMessage, data);
-              setScanError(errorMessage);
-              toast({
-                title: "Product Data Not Available",
-                description: errorMessage,
-                variant: "destructive", 
-                action: <AlertCircle className="text-red-500" />
-              });
-              setIsLoadingProduct(false);
-              return; 
-            }
-
-            const product = data.product;
-            const nutriments = product.nutriments || {};
-
-            const getNutrientValue = (nutrientKey: string): number => {
-              const value = nutriments[nutrientKey];
-              return typeof value === 'number' ? value : 0;
-            };
-            
-            let calories = getNutrientValue('energy-kcal_100g');
-            if (calories === 0 && nutriments['energy_100g']) { 
-               const energyKj = getNutrientValue('energy_100g');
-               if (energyKj > 0) {
-                   calories = Math.round(energyKj / 4.184);
-               }
-            }
-
-            const fetchedProductInfo: ScannedProductInfo = {
-              id: decodedText,
-              name: product.product_name_en || product.product_name || product.generic_name || `Product ${decodedText}`,
-              calories: calories,
-              protein: getNutrientValue('proteins_100g'),
-              fat: getNutrientValue('fat_100g'),
-              carbs: getNutrientValue('carbohydrates_100g'),
-            };
-            
-            setProductInfo(fetchedProductInfo);
-
-            if (fetchedProductInfo.calories === 0 && !fetchedProductInfo.name.toLowerCase().includes('product ')) {
-               console.warn(`Product ${fetchedProductInfo.name} found, but nutritional data might be incomplete.`);
-               toast({
-                   title: "Nutritional Data May Be Incomplete",
-                   description: `Found ${fetchedProductInfo.name}, but some nutritional information (like calories) might be missing or zero. Values are typically per 100g/ml.`,
-                   variant: "default", 
-               });
-            } else {
-              toast({
-                title: "Product Found!",
-                description: `Details for ${fetchedProductInfo.name} loaded. Values are typically per 100g/ml.`,
-                action: <PackageSearch className="text-green-500" />
-              });
-            }
-
-          } catch (error: any) {
-            console.error("Error fetching product data (catch block):", error);
-            const errorMessage = error.message || "Failed to fetch product information. Check your internet connection.";
-            setScanError(errorMessage);
-            toast({
-              title: "Product Fetch Error",
-              description: errorMessage,
-              variant: "destructive",
-              action: <AlertCircle className="text-red-500" />
-            });
-          } finally {
-            setIsLoadingProduct(false);
-          }
-        })();
-      };
-
-      const onScanFailure = (error: string) => {
-        // console.warn(`Barcode Scanner: Scan Failure - ${error}`); 
-        // Don't set scanError here for minor scan failures, only for initialization/major issues.
-      };
       
       try {
-        localScannerInstance = new Html5QrcodeScanner(
+        localScannerInstance = new DynamicHtml5QrcodeScanner(
           qrcodeRegionId,
           {
             fps: 10,
             qrbox: qrboxFunction,
             rememberLastUsedCamera: true,
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+            supportedScanTypes: [DynamicHtml5QrcodeScanType.SCAN_TYPE_CAMERA],
           },
           verbose
         );
@@ -234,17 +258,13 @@ export default function LogFoodByBarcodePage() {
         console.log("Barcode Scanner: Calling localScannerInstance.render().");
         localScannerInstance.render(onScanSuccess, onScanFailure);
         
-        // Only assign to ref if render was called and we are still in scanning mode
-        // This helps if isScanning becomes false quickly after render is called.
         if (isScanning && localScannerInstance) { 
             scannerRef.current = localScannerInstance;
         } else if (localScannerInstance) {
-            // If isScanning became false during/after render call (e.g. user cancelled immediately)
-            // try to clean up the orphaned scanner.
             console.log("Barcode Scanner: isScanning became false during/after render. Clearing orphaned scanner.");
             try {
                 if (localScannerInstance.getState() === Html5QrcodeScannerState.SCANNING || localScannerInstance.getState() === Html5QrcodeScannerState.PAUSED) {
-                   localScannerInstance.clear().catch(e => console.error("Error clearing orphaned scanner post-render:", e));
+                   localScannerInstance.clear().catch((e: Error) => console.error("Error clearing orphaned scanner post-render:", e));
                 }
             } catch(e) {
                  console.error("Exception clearing orphaned scanner post-render:", e);
@@ -255,42 +275,36 @@ export default function LogFoodByBarcodePage() {
           console.error("Barcode Scanner: Error during Html5QrcodeScanner instantiation or render call.", initOrRenderError);
           const errorMessage = (initOrRenderError instanceof Error) ? initOrRenderError.message : String(initOrRenderError);
           setScanError(`Scanner initialization/render error: ${errorMessage}. Check console and camera permissions.`);
-          setIsScanning(false); // This will trigger cleanup in useEffect
+          setIsScanning(false); 
       }
     }
 
     return () => {
       console.log("Barcode Scanner: useEffect cleanup function running.");
-      // Prefer clearing the local instance if it exists, otherwise use the ref.
       const scannerToAttemptClear = localScannerInstance || scannerRef.current;
       
       if (scannerRef.current === scannerToAttemptClear) {
-        // If the scanner we are about to clear is the one in the ref, nullify the ref first.
-        // This is important so that subsequent calls to start scanning don't try to use a ref
-        // to an instance that is in the process of being cleared.
         scannerRef.current = null;
       }
 
-      if (scannerToAttemptClear) {
+      if (scannerToAttemptClear && Html5QrcodeScannerState) {
         console.log("Barcode Scanner: Cleanup - Attempting to clear scanner instance:", scannerToAttemptClear);
         try {
-          // Check scanner state before attempting to clear
           const state = scannerToAttemptClear.getState();
           if (state === Html5QrcodeScannerState.SCANNING || state === Html5QrcodeScannerState.PAUSED) {
             scannerToAttemptClear.clear()
               .then(() => console.log("Barcode Scanner: Cleanup - Scanner cleared successfully. State was:", state))
-              .catch(err => console.error("Barcode Scanner: Cleanup - Error during .clear():", err));
+              .catch((err: Error) => console.error("Barcode Scanner: Cleanup - Error during .clear():", err));
           } else {
             console.log("Barcode Scanner: Cleanup - Scanner not in active state to be cleared. State:", state);
           }
         } catch (e) {
-          // This catch is for errors like `getState()` failing if the instance is already broken.
           console.error("Barcode Scanner: Cleanup - Exception during clear attempt (e.g., getState failed):", e);
         }
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScanning]); // Removed toast from dependencies to avoid re-renders
+  }, [isScanning, attemptId, onScanSuccess, onScanFailure, DynamicHtml5QrcodeScanner, DynamicHtml5QrcodeScanType, Html5QrcodeScannerState]);
 
 
   const handleStartScan = () => {
@@ -301,26 +315,25 @@ export default function LogFoodByBarcodePage() {
     setHasLogged(false);
 
     if (isScanning && scannerRef.current) {
-      // If already scanning (e.g. "Scan Another" clicked while scanner is somehow still active),
-      // force a re-initialization by toggling isScanning.
       console.log("Barcode Scanner: handleStartScan - Already scanning, attempting to force re-initialization.");
-      setIsScanning(false); // This will trigger cleanup in useEffect
+      setIsScanning(false); 
       setTimeout(() => {
-        setIsScanning(true); // This will trigger initialization in useEffect
-      }, 150); // Small delay to allow cleanup to complete
+        setAttemptId(prev => prev + 1);
+        setIsScanning(true);
+      }, 150); 
     } else {
+      setAttemptId(prev => prev + 1);
       setIsScanning(true);
     }
   };
   
   const handleCancelScan = () => {
     console.log("Barcode Scanner: handleCancelScan called.");
-    setIsScanning(false); // This will trigger cleanup in useEffect
+    setIsScanning(false); 
   }
 
   const handleScanAnother = () => {
     console.log("Barcode Scanner: handleScanAnother called.");
-    // Reset state and then re-trigger scanning, similar to handleStartScan
     handleStartScan(); 
   }
 
@@ -339,8 +352,28 @@ export default function LogFoodByBarcodePage() {
       action: <CheckCircle className="text-green-500" />,
     });
     setHasLogged(true);
-    setProductInfo(null); // Clear product info after logging
+    setProductInfo(null); 
   };
+
+  if (!DynamicHtml5QrcodeScanner || !DynamicHtml5QrcodeScanType || !Html5QrcodeScannerState) {
+    return (
+      <div className="container mx-auto py-8 px-4 flex flex-col items-center">
+        <Card className="w-full max-w-md mx-auto shadow-xl overflow-hidden">
+          <CardHeader className="text-center p-6 bg-gradient-to-br from-primary/10 to-background">
+             <ScanLine className="mx-auto h-10 w-10 text-primary mb-2" />
+             <CardTitle className="text-2xl font-bold">Scan Product Barcode</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center h-full min-h-[200px]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" /> 
+              <p className="ml-2">Loading Scanner Library...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto py-8 px-4 flex flex-col items-center">
@@ -354,7 +387,6 @@ export default function LogFoodByBarcodePage() {
         </CardHeader>
 
         <CardContent className="space-y-6 p-4 md:p-6">
-          {/* Scanner UI region */}
           <div className="relative w-full aspect-[4/3] bg-muted/50 rounded-lg border-2 border-dashed border-border flex items-center justify-center overflow-hidden shadow-inner">
             {isScanning ? (
               <div id={qrcodeRegionId} className="w-full h-full" />
@@ -367,7 +399,6 @@ export default function LogFoodByBarcodePage() {
             )}
           </div>
 
-          {/* Error display if scanner fails to init or major scan error */}
           {scanError && !isScanning && !isLoadingProduct && !productInfo && ( 
             <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
@@ -376,7 +407,6 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
 
-          {/* Action Buttons */}
           <div className="space-y-3">
             {!isScanning && !productInfo && !isLoadingProduct && !hasLogged && (
               <Button onClick={handleStartScan} size="lg" className="w-full group transition-transform hover:scale-105 active:scale-95">
@@ -390,7 +420,6 @@ export default function LogFoodByBarcodePage() {
             )}
           </div>
 
-          {/* Loading Product Indicator */}
           {isLoadingProduct && (
             <div className="flex flex-col items-center justify-center p-6 space-y-3 text-center rounded-lg bg-secondary/30 animate-in fade-in-0 zoom-in-95 duration-500">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -399,7 +428,6 @@ export default function LogFoodByBarcodePage() {
             </div>
           )}
           
-          {/* Product Lookup Failed Alert (after scan, if API call fails or product not found) */}
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && scanError && (
             <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
@@ -413,7 +441,6 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
           
-          {/* Fallback for scanned but no error and no product (should be rare with current logic) */}
           {scannedBarcode && !productInfo && !isLoadingProduct && !isScanning && !scanError && (
              <Alert className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <PackageSearch className="h-4 w-4" />
@@ -427,7 +454,6 @@ export default function LogFoodByBarcodePage() {
             </Alert>
           )}
 
-          {/* Product Info Display */}
           {productInfo && (
             <Card className="mt-4 bg-card shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-5 duration-500">
               <CardHeader className="pb-3">
@@ -460,7 +486,6 @@ export default function LogFoodByBarcodePage() {
             </Card>
           )}
 
-           {/* Scan Another Item button after logging */}
            {hasLogged && !isScanning && !productInfo && ( 
              <Button onClick={handleScanAnother} size="lg" className="w-full mt-4">
                 <RefreshCcw className="mr-2 h-5 w-5" /> Scan Another Item
@@ -471,4 +496,6 @@ export default function LogFoodByBarcodePage() {
     </div>
   );
 }
+    
+
     

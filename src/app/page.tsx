@@ -28,7 +28,7 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { useState, type FC, useEffect } from "react";
+import { useState, type FC, useEffect, ReactNode } from "react";
 import type { FoodEntry as LoggedFoodEntry, BlogPost } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
@@ -39,6 +39,22 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipP
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
+import React from "react"; // Added React import for React.memo
+import dynamic from "next/dynamic"; // Added dynamic import
+
+// Dynamically import CalorieDonutChart
+const CalorieDonutChart = dynamic(
+  () => import('@/components/dashboard/calorie-donut-chart'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-36 h-36 md:w-32 md:h-32 flex justify-center items-center relative">
+        <Skeleton className="w-full h-full rounded-full" />
+        <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
+      </div>
+    )
+  }
+);
 
 
 interface MealCardProps {
@@ -51,7 +67,7 @@ interface MealCardProps {
   onDelete: (id: string) => void;
 }
 
-const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, carbs, onDelete }) => (
+const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, protein, fat, carbs, onDelete }) => (
   <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl relative">
     <Button
       variant="ghost"
@@ -87,7 +103,8 @@ const MealCard: React.FC<MealCardProps> = ({ id, name, calories, protein, fat, c
       </div>
     </CardContent>
   </Card>
-);
+));
+MealCard.displayName = 'MealCard';
 
 
 interface SummaryCardProps {
@@ -97,7 +114,7 @@ interface SummaryCardProps {
   iconColorVariable: string;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, iconColorVariable }) => (
+const SummaryCard: React.FC<SummaryCardProps> = React.memo(({ icon: Icon, value, label, iconColorVariable }) => (
   <Card className="p-3 shadow-md hover:shadow-lg transition-shadow bg-card rounded-xl text-center">
       <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
@@ -105,59 +122,8 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, value, label, ico
       <p className="text-lg font-bold mt-1" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
   </Card>
-);
-
-
-interface CaloriesCenterLabelProps {
-  viewBox?: { cx?: number; cy?: number };
-  value: number;
-}
-
-const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) => {
-  if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') {
-    return null;
-  }
-  const { cx, cy } = viewBox;
-  return (
-    <text x={cx} y={cy} fill="hsl(var(--foreground))" textAnchor="middle" dominantBaseline="central">
-      <tspan x={cx} y={cy - 8} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
-      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
-    </text>
-  );
-};
-
-interface CustomDonutTooltipProps extends TooltipProps<number, string> {
-  goalCalories: number;
-}
-
-const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    const value = payload[0].value || 0; 
-    const name = data.name;
-
-    let displayName = name;
-    if (name === 'ConsumedNoGoal') {
-      displayName = 'Consumed';
-    } else if (name === 'Empty') {
-      displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
-    } else if (name === 'Remaining' && goalCalories > 0) {
-      displayName = 'Remaining in Goal';
-    }
-
-    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
-      ? '0 kcal'
-      : `${Math.round(value)} kcal`;
-
-    return (
-      <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>
-        <p className="font-semibold">{displayName}</p>
-        <p className="text-muted-foreground">{displayValue}</p>
-      </div>
-    );
-  }
-  return null;
-};
+));
+SummaryCard.displayName = 'SummaryCard';
 
 
 export const mockBlogData: BlogPost[] = [
@@ -196,8 +162,7 @@ export const mockBlogData: BlogPost[] = [
 ];
 
 
-const BlogCard: FC<BlogPost> = ({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
-  const { toast } = useToast();
+const BlogCard: FC<BlogPost> = React.memo(({ id, title, excerpt, imageUrl, imageHint, readMoreLink }) => {
   return (
     <Card className="shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl overflow-hidden group flex flex-col w-72 flex-shrink-0">
       <div className="relative w-full h-40">
@@ -225,7 +190,8 @@ const BlogCard: FC<BlogPost> = ({ id, title, excerpt, imageUrl, imageHint, readM
       </CardFooter>
     </Card>
   );
-};
+});
+BlogCard.displayName = 'BlogCard';
 
 
 export default function DashboardPage() {
@@ -245,10 +211,10 @@ export default function DashboardPage() {
 
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', // Light color for consumed arc
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', // Translucent primary for track
-    Empty: 'hsla(var(--muted-foreground), 0.1)', // Muted for empty state
-    ConsumedNoGoal: 'hsl(var(--accent))', // Accent if no goal but consumed
+    Consumed: 'hsl(var(--card))', 
+    Remaining: 'hsla(var(--primary-hsl), 0.25)', 
+    Empty: 'hsla(var(--muted-foreground), 0.1)', 
+    ConsumedNoGoal: 'hsl(var(--accent))', 
   };
 
   if (goalCalories > 0) {
@@ -257,18 +223,18 @@ export default function DashboardPage() {
       if (consumedCalories < goalCalories) {
         chartData.push({ name: 'Remaining', value: Math.max(0, goalCalories - consumedCalories), fill: COLORS.Remaining });
       }
-    } else { // No consumption, goal exists
+    } else { 
       chartData.push({ name: 'Remaining', value: goalCalories, fill: COLORS.Remaining });
     }
-  } else { // No goal set
+  } else { 
     if (consumedCalories > 0) {
       chartData.push({ name: 'ConsumedNoGoal', value: consumedCalories, fill: COLORS.ConsumedNoGoal });
-    } else { // No goal, no consumption
+    } else { 
       chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
     }
   }
 
-  if (chartData.length === 0) { // Fallback if logic above results in empty
+  if (chartData.length === 0) { 
     chartData.push({ name: 'Empty', value: 1, fill: COLORS.Empty });
   }
 
@@ -307,7 +273,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link href="/reminders" legacyBehavior>
-            <Button variant="ghost" size="icon" className="rounded-full">
+             <Button variant="ghost" size="icon" className="rounded-full">
               <Bell className="h-5 w-5 text-muted-foreground" />
             </Button>
           </Link>
@@ -320,28 +286,29 @@ export default function DashboardPage() {
              <div className="flex flex-row items-start gap-3">
               <div className="flex-1 space-y-2 text-left">
                 <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-10 w-20" />
+                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
                 <Skeleton className="h-4 w-20" />
               </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center">
+              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0 flex justify-center items-center relative">
                 <Skeleton className="w-full h-full rounded-full" />
+                <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
               </div>
             </div>
           ) : (
-            <div className="flex flex-row items-start gap-3"> 
-              <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4"> 
+              <div className="flex-1 space-y-1 text-center md:text-left">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center md:justify-start">
                   <BarChart2 className="h-5 w-5" />
                   <span>Your Progress</span>
                 </div>
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-4xl sm:text-5xl font-bold text-primary">
                   {goalCalories > 0 ? `${percentAchieved}%` : "-"}
                 </div>
                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
                      <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 h-auto">
                        <CalendarDays className="h-4 w-4" />
-                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d")) : "Select Date"}</span>
+                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -362,36 +329,12 @@ export default function DashboardPage() {
                 </Popover>
               </div>
 
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="75%"
-                      outerRadius="95%"
-                      dataKey="value"
-                      stroke="none"
-                      paddingAngle={chartData.length > 1 && consumedCalories > 0 && (goalCalories - consumedCalories) > 0 ? 8 : 0}
-                      isAnimationActive={true}
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.fill}
-                          cornerRadius={10}
-                        />
-                      ))}
-                       {goalCalories > 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
-                    </Pie>
-                    <Tooltip
-                      content={<CustomDonutTooltip goalCalories={goalCalories}/>}
-                      wrapperStyle={{ outline: "none" }}
-                      cursor={{ fill: 'hsla(var(--primary-hsl), 0.1)' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="w-36 h-36 md:w-32 md:h-32 flex-shrink-0 flex justify-center items-center relative">
+                 <CalorieDonutChart 
+                    chartData={chartData} 
+                    consumedCalories={consumedCalories} 
+                    goalCalories={goalCalories} 
+                  />
               </div>
             </div>
           )}
@@ -597,3 +540,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
