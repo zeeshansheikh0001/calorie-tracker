@@ -5,18 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { FoodEntry, DailyLogEntry } from '@/types';
 import { format } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
-import { db } from '@/lib/firebase'; // Firestore instance
-import { doc, getDoc, setDoc, collection, getDocs, writeBatch, deleteDoc, query, orderBy, Timestamp } from 'firebase/firestore';
 
-// Placeholder for actual user ID - replace with Firebase Auth user.uid
-const userId = "defaultUser"; 
-
-const getFoodEntriesCollectionRef = (date: Date) => 
-  collection(db, `users/${userId}/dailyLogs/${format(date, 'yyyy-MM-dd')}/foodEntries`);
-
-const getDailyLogDocRef = (date: Date) => 
-  doc(db, `users/${userId}/dailyLogs/${format(date, 'yyyy-MM-dd')}`);
-
+const getLocalStorageKey = (base: string, date: Date) => `${base}_${format(date, 'yyyy-MM-dd')}`;
 
 export function useDailyLog() {
   const [currentSelectedDateInternal, setCurrentSelectedDateInternal] = useState<Date | null>(null);
@@ -26,39 +16,32 @@ export function useDailyLog() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Initialize to today on client side to avoid hydration mismatch
     setCurrentSelectedDateInternal(new Date());
   }, []);
 
-  const loadLogForDate = useCallback(async (dateToLoad: Date) => {
+  const loadLogForDate = useCallback((dateToLoad: Date) => {
     setIsLoading(true);
     try {
-      const dailyLogRef = getDailyLogDocRef(dateToLoad);
-      const dailyLogSnap = await getDoc(dailyLogRef);
+      const summaryKey = getLocalStorageKey('dailyLog', dateToLoad);
+      const entriesKey = getLocalStorageKey('foodEntries', dateToLoad);
 
-      let currentSummary: DailyLogEntry;
-      if (dailyLogSnap.exists()) {
-        currentSummary = dailyLogSnap.data() as DailyLogEntry;
+      const storedSummary = localStorage.getItem(summaryKey);
+      const storedEntries = localStorage.getItem(entriesKey);
+
+      if (storedSummary) {
+        setDailyLog(JSON.parse(storedSummary));
       } else {
-        currentSummary = { 
-          date: format(dateToLoad, 'yyyy-MM-dd'), 
-          calories: 0, protein: 0, fat: 0, carbs: 0 
-        };
-        // Optionally save the initial empty log summary
-        // await setDoc(dailyLogRef, currentSummary);
+        setDailyLog({ date: format(dateToLoad, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 });
       }
-      setDailyLog(currentSummary);
 
-      const foodEntriesColRef = getFoodEntriesCollectionRef(dateToLoad);
-      const q = query(foodEntriesColRef, orderBy("timestamp", "asc"));
-      const foodEntriesSnap = await getDocs(q);
-      const loadedEntries = foodEntriesSnap.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as FoodEntry));
-      setFoodEntries(loadedEntries);
-
+      if (storedEntries) {
+        setFoodEntries(JSON.parse(storedEntries).sort((a: FoodEntry, b: FoodEntry) => a.timestamp - b.timestamp));
+      } else {
+        setFoodEntries([]);
+      }
     } catch (error) {
-      console.error("Failed to load daily log from Firestore for date:", format(dateToLoad, 'yyyy-MM-dd'), error);
+      console.error("Failed to load daily log from localStorage", error);
       const formattedDate = format(dateToLoad, 'yyyy-MM-dd');
       setDailyLog({ date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 });
       setFoodEntries([]);
@@ -70,7 +53,7 @@ export function useDailyLog() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]); // Added toast to dependencies
+  }, [toast]);
 
   useEffect(() => {
     if (currentSelectedDateInternal) {
@@ -82,38 +65,31 @@ export function useDailyLog() {
     setCurrentSelectedDateInternal(newDate);
   }, []);
 
-  const addFoodEntry = useCallback(async (newEntryData: Omit<FoodEntry, 'id' | 'timestamp'>) => {
+  const addFoodEntry = useCallback((newEntryData: Omit<FoodEntry, 'id' | 'timestamp'>) => {
     if (!currentSelectedDateInternal) {
       toast({ title: "Error", description: "No date selected to log food.", variant: "destructive" });
       return;
     }
     
-    const newId = doc(collection(db, "_")).id; // Generate a new Firestore ID
+    const newId = Date.now().toString(); // Simple ID for localStorage
     const entryWithMeta: FoodEntry = {
       ...newEntryData,
       id: newId,
-      timestamp: Timestamp.now().toMillis(), // Use Firestore Timestamp
+      timestamp: Date.now(),
     };
 
-    const dailyLogRef = getDailyLogDocRef(currentSelectedDateInternal);
-    const foodEntryRef = doc(getFoodEntriesCollectionRef(currentSelectedDateInternal), newId);
-
-    try {
-      const batch = writeBatch(db);
-      batch.set(foodEntryRef, entryWithMeta);
-
-      // Update summary
-      const dailyLogSnap = await getDoc(dailyLogRef);
-      let currentSummary: DailyLogEntry;
-      if (dailyLogSnap.exists()) {
-        currentSummary = dailyLogSnap.data() as DailyLogEntry;
-      } else {
-        currentSummary = { 
-          date: format(currentSelectedDateInternal, 'yyyy-MM-dd'), 
-          calories: 0, protein: 0, fat: 0, carbs: 0 
-        };
+    setFoodEntries(prevEntries => {
+      const updatedEntries = [...prevEntries, entryWithMeta].sort((a, b) => a.timestamp - b.timestamp);
+      try {
+        localStorage.setItem(getLocalStorageKey('foodEntries', currentSelectedDateInternal), JSON.stringify(updatedEntries));
+      } catch (error) {
+        console.error("Failed to save food entries to localStorage", error);
       }
-      
+      return updatedEntries;
+    });
+
+    setDailyLog(prevLog => {
+      const currentSummary = prevLog || { date: format(currentSelectedDateInternal, 'yyyy-MM-dd'), calories: 0, protein: 0, fat: 0, carbs: 0 };
       const updatedSummary: DailyLogEntry = {
         ...currentSummary,
         calories: currentSummary.calories + newEntryData.calories,
@@ -121,22 +97,14 @@ export function useDailyLog() {
         fat: currentSummary.fat + newEntryData.fat,
         carbs: currentSummary.carbs + newEntryData.carbs,
       };
-      batch.set(dailyLogRef, updatedSummary, { merge: true }); // Merge true to create if not exists or update
+      try {
+        localStorage.setItem(getLocalStorageKey('dailyLog', currentSelectedDateInternal), JSON.stringify(updatedSummary));
+      } catch (error) {
+        console.error("Failed to save daily log summary to localStorage", error);
+      }
+      return updatedSummary;
+    });
 
-      await batch.commit();
-
-      // Optimistically update local state or re-fetch
-      setFoodEntries(prev => [...prev, entryWithMeta].sort((a, b) => a.timestamp - b.timestamp));
-      setDailyLog(updatedSummary);
-
-    } catch (error) {
-      console.error("Failed to save food entry to Firestore", error);
-      toast({
-        title: "Logging Failed",
-        description: "Could not save your meal. Please try again.",
-        variant: "destructive"
-      });
-    }
   }, [currentSelectedDateInternal, toast]);
 
   const deleteFoodEntry = useCallback(async (entryId: string) => {
@@ -151,67 +119,54 @@ export function useDailyLog() {
       return;
     }
     
-    const dailyLogRef = getDailyLogDocRef(currentSelectedDateInternal);
-    const foodEntryRef = doc(getFoodEntriesCollectionRef(currentSelectedDateInternal), entryId);
-
-    try {
-      const batch = writeBatch(db);
-      batch.delete(foodEntryRef);
-
-      // Update summary
-      const dailyLogSnap = await getDoc(dailyLogRef);
-      if (dailyLogSnap.exists()) {
-        let currentSummary = dailyLogSnap.data() as DailyLogEntry;
-        const updatedSummary: DailyLogEntry = {
-          ...currentSummary,
-          calories: Math.max(0, currentSummary.calories - entryToDelete.calories),
-          protein: Math.max(0, currentSummary.protein - entryToDelete.protein),
-          fat: Math.max(0, currentSummary.fat - entryToDelete.fat),
-          carbs: Math.max(0, currentSummary.carbs - entryToDelete.carbs),
-        };
-        batch.set(dailyLogRef, updatedSummary); 
-        setDailyLog(updatedSummary);
-      } else {
-         // Should not happen if entry existed, but handle defensively
-        const formattedDate = format(currentSelectedDateInternal, 'yyyy-MM-dd');
-        const emptySummary = { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 };
-        batch.set(dailyLogRef, emptySummary);
-        setDailyLog(emptySummary);
+    setFoodEntries(prevEntries => {
+      const updatedEntries = prevEntries.filter(entry => entry.id !== entryId);
+      try {
+        localStorage.setItem(getLocalStorageKey('foodEntries', currentSelectedDateInternal), JSON.stringify(updatedEntries));
+      } catch (error) {
+        console.error("Failed to save food entries to localStorage after deletion", error);
       }
-      
-      await batch.commit();
-      
-      setFoodEntries(prevEntries => prevEntries.filter(entry => entry.id !== entryId));
-      
-      setTimeout(() => {
-          toast({
-            title: "Meal Deleted",
-            description: "The meal has been removed from your log.",
-          });
-        }, 0);
+      return updatedEntries;
+    });
 
-    } catch (error) {
-      console.error("Failed to delete food entry from Firestore", error);
-      setTimeout(() => {
+    setDailyLog(prevLog => {
+      if (!prevLog) return null; // Should not happen if an entry was deleted
+      const updatedSummary: DailyLogEntry = {
+        ...prevLog,
+        calories: Math.max(0, prevLog.calories - entryToDelete.calories),
+        protein: Math.max(0, prevLog.protein - entryToDelete.protein),
+        fat: Math.max(0, prevLog.fat - entryToDelete.fat),
+        carbs: Math.max(0, prevLog.carbs - entryToDelete.carbs),
+      };
+      try {
+        localStorage.setItem(getLocalStorageKey('dailyLog', currentSelectedDateInternal), JSON.stringify(updatedSummary));
+      } catch (error) {
+        console.error("Failed to save daily log summary to localStorage after deletion", error);
+      }
+      return updatedSummary;
+    });
+    
+    setTimeout(() => {
         toast({
-          title: "Error Deleting Meal",
-          description: "Could not remove the meal. Please try again.",
-          variant: "destructive",
+          title: "Meal Deleted",
+          description: "The meal has been removed from your log.",
         });
       }, 0);
-    }
+
   }, [currentSelectedDateInternal, foodEntries, toast]);
 
-
-  const getLogDataForDate = useCallback(async (dateToFetch: Date): Promise<{ summary: DailyLogEntry | null; entries: FoodEntry[] }> => {
-    setIsLoading(true); // Optional: set loading state if this function is used for primary display
+  const getLogDataForDate = useCallback((dateToFetch: Date): { summary: DailyLogEntry | null; entries: FoodEntry[] } => {
+    // This function is now synchronous as it reads from localStorage
     try {
-      const dailyLogRef = getDailyLogDocRef(dateToFetch);
-      const dailyLogSnap = await getDoc(dailyLogRef);
+      const summaryKey = getLocalStorageKey('dailyLog', dateToFetch);
+      const entriesKey = getLocalStorageKey('foodEntries', dateToFetch);
+
+      const storedSummary = localStorage.getItem(summaryKey);
+      const storedEntries = localStorage.getItem(entriesKey);
 
       let summary: DailyLogEntry | null = null;
-      if (dailyLogSnap.exists()) {
-        summary = dailyLogSnap.data() as DailyLogEntry;
+      if (storedSummary) {
+        summary = JSON.parse(storedSummary);
       } else {
          summary = { 
           date: format(dateToFetch, 'yyyy-MM-dd'), 
@@ -219,20 +174,17 @@ export function useDailyLog() {
         };
       }
 
-      const foodEntriesColRef = getFoodEntriesCollectionRef(dateToFetch);
-      const q = query(foodEntriesColRef, orderBy("timestamp", "asc"));
-      const foodEntriesSnap = await getDocs(q);
-      const entries = foodEntriesSnap.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as FoodEntry));
+      let entries: FoodEntry[] = [];
+      if (storedEntries) {
+        entries = JSON.parse(storedEntries).sort((a: FoodEntry, b: FoodEntry) => a.timestamp - b.timestamp);
+      }
       
       return { summary, entries };
 
     } catch (error) {
-      console.error("Failed to fetch log data from Firestore for date:", format(dateToFetch, 'yyyy-MM-dd'), error);
+      console.error("Failed to fetch log data from localStorage for date:", format(dateToFetch, 'yyyy-MM-dd'), error);
       const formattedDate = format(dateToFetch, 'yyyy-MM-dd');
-      toast({ // Added toast for error feedback
+      toast({ 
         title: "Error Fetching Log Data",
         description: `Could not retrieve log for ${formattedDate}.`,
         variant: "destructive",
@@ -241,10 +193,8 @@ export function useDailyLog() {
         summary: { date: formattedDate, calories: 0, protein: 0, fat: 0, carbs: 0 },
         entries: []
       };
-    } finally {
-       setIsLoading(false); // Ensure loading is set to false
     }
-  }, [toast]); // Added toast to dependencies
+  }, [toast]); 
 
 
   return { 
@@ -258,6 +208,3 @@ export function useDailyLog() {
     getLogDataForDate
   };
 }
-
-
-    

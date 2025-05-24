@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -24,7 +25,6 @@ export function useGoals() {
       }
     } catch (error) {
       console.error("Failed to load goals from localStorage", error);
-      // Fallback to default goals if parsing fails or localStorage is unavailable
       setGoals(DEFAULT_GOALS);
     } finally {
       setIsLoading(false);

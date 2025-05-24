@@ -6,8 +6,8 @@ import type { UserProfile } from '@/types';
 
 const DEFAULT_USER_PROFILE: UserProfile = {
   name: "Guest User",
-  email: "", // Email is not displayed on homepage header, but good to have a default
-  avatarUrl: "https://placehold.co/100x100.png", // Default placeholder
+  email: "", 
+  avatarUrl: "https://placehold.co/100x100.png", 
 };
 
 const LOCAL_STORAGE_KEY = 'userProfile';
@@ -38,5 +38,21 @@ export function useUserProfile() {
     }
   }, []);
 
-  return { userProfile, isLoading };
+  // This function is not directly used by the profile page to update,
+  // as saving happens in profile/edit/page.tsx.
+  // However, it's good practice to have an update function if this hook were to be used elsewhere for updates.
+  const updateUserProfile = (newProfile: Partial<UserProfile>) => {
+    setUserProfile(prevProfile => {
+      const updatedProfile = { ...prevProfile, ...newProfile };
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProfile));
+      } catch (error) {
+        console.error("Failed to save user profile to localStorage", error);
+      }
+      return updatedProfile;
+    });
+  };
+
+
+  return { userProfile, isLoading, updateUserProfile };
 }

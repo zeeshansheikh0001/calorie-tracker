@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent, useEffect } from "react";
+import React, { useState, type FormEvent, useEffect } from "react"; // Added React import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import type { FoodEntryShort } from "@/types";
 import { format, isToday } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 const activityLevels = [
@@ -59,6 +60,21 @@ const primaryFocusOptions = [
     { value: "flexibility_mobility", label: "Flexibility & Mobility" },
 ];
 
+const ScheduleSection: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; className?: string }> = React.memo(({ title, icon: Icon, children, className }) => (
+    <Card className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold flex items-center text-primary">
+          <Icon className="mr-2 h-5 w-5" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm">
+        {children}
+      </CardContent>
+    </Card>
+));
+ScheduleSection.displayName = 'ScheduleSection';
+
 
 export default function AiFeaturesPage() {
   const [formState, setFormState] = useState<GenerateHealthScheduleInput>({
@@ -84,13 +100,26 @@ export default function AiFeaturesPage() {
 
 
   const { toast } = useToast();
-  const { getLogDataForDate } = useDailyLog(); // Use getLogDataForDate
-  const { goals } = useGoals();
+  const { getLogDataForDate, isLoading: isLoadingDailyLog } = useDailyLog(); 
+  const { goals, isLoading: isLoadingGoals } = useGoals();
 
   useEffect(() => {
     // Initialize summaryDate to today on client side
     setSummaryDate(new Date());
   }, []);
+
+  // Pre-fill form with goals from hook when goals are loaded
+   useEffect(() => {
+    if (goals && !isLoadingGoals) {
+      setFormState(prev => ({
+        ...prev,
+        calorieGoal: goals.calories,
+        proteinGoal: goals.protein,
+        fatGoal: goals.fat,
+        carbGoal: goals.carbs,
+      }));
+    }
+  }, [goals, isLoadingGoals]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -162,15 +191,15 @@ export default function AiFeaturesPage() {
       return;
     }
     
-    const logDataForSummaryDate = getLogDataForDate(summaryDate);
-    const foodEntriesForSummary = logDataForSummaryDate.entries;
+    // Fetch log data for the specific summaryDate using the updated synchronous hook
+    const { entries: foodEntriesForSummary } = getLogDataForDate(summaryDate);
 
 
     if (foodEntriesForSummary.length === 0) {
        toast({
         title: "No Food Logged",
         description: `No food items have been logged for ${format(summaryDate, "MMM d, yyyy")}. Summary cannot be generated.`,
-        variant: "default"
+        variant: "default" // Changed to default as it's informational
       });
       setIsLoadingSummary(false);
       return;
@@ -190,7 +219,7 @@ export default function AiFeaturesPage() {
         calories: goals.calories,
         protein: goals.protein,
         fat: goals.fat,
-        carb: goals.carbs,
+        carb: goals.carbs, // Corrected from carbGoal
       },
       date: format(summaryDate, "MMM d, yyyy"),
     };
@@ -215,21 +244,26 @@ export default function AiFeaturesPage() {
     }
   };
 
-
-  const ScheduleSection: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; className?: string }> = ({ title, icon: Icon, children, className }) => (
-    <Card className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center text-primary">
-          <Icon className="mr-2 h-5 w-5" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="text-sm">
-        {children}
-      </CardContent>
-    </Card>
-  );
-
+   if (isLoadingGoals || isLoadingDailyLog) { // Check if initial goals or daily log data is loading
+    return (
+      <div className="container mx-auto py-8 px-4 space-y-10">
+        <Card className="w-full mx-auto shadow-xl">
+          <CardHeader>
+            <Skeleton className="h-8 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Skeleton className="h-12 w-full rounded-md" />
+            <Skeleton className="h-12 w-full rounded-md" />
+          </CardContent>
+          <CardFooter>
+            <Skeleton className="h-10 w-48" />
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 space-y-10">
@@ -242,7 +276,7 @@ export default function AiFeaturesPage() {
           </div>
           <CardDescription>
             Fill in your details, and our AI will generate a tailored daily health schedule for you.
-            The more accurate your input, the better the plan!
+            The more accurate your input, the better the plan! (Current goals pre-filled below)
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleGenerateScheduleSubmit}>
@@ -326,7 +360,7 @@ export default function AiFeaturesPage() {
             </Accordion>
           </CardContent>
           <CardFooter className="border-t pt-6">
-            <Button type="submit" disabled={isLoadingSchedule} className="w-full sm:w-auto">
+            <Button type="submit" disabled={isLoadingSchedule || isLoadingGoals} className="w-full sm:w-auto">
               {isLoadingSchedule ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               Generate My Health Schedule
             </Button>
@@ -416,6 +450,7 @@ export default function AiFeaturesPage() {
                 <Button
                   variant={"outline"}
                   className="w-full sm:w-auto justify-start text-left font-normal mt-1"
+                  disabled={isLoadingDailyLog}
                 >
                   <CalendarDays className="mr-2 h-4 w-4" />
                   {summaryDate ? format(summaryDate, "PPP") : <span>Pick a date</span>}
@@ -436,7 +471,7 @@ export default function AiFeaturesPage() {
               </PopoverContent>
             </Popover>
           </div>
-          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !summaryDate} className="w-full sm:w-auto">
+          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !summaryDate || isLoadingGoals || isLoadingDailyLog} className="w-full sm:w-auto">
             {isLoadingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
           </Button>
