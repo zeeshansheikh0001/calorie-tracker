@@ -53,14 +53,16 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodPhotoPrompt',
   input: {schema: AnalyzeFoodPhotoInputSchema},
   output: {schema: AnalyzeFoodPhotoOutputSchema},
-  prompt: `You are an expert nutritionist. Analyze the provided image with high precision. Strive for the highest possible precision in your nutritional estimations.
+  prompt: `You are an expert nutritionist and a highly precise nutritional calculator. Your primary goal is to provide the most accurate and consistent possible estimates for the food shown in the image. When re-analyzing an image that appears identical or very similar to a previous one, strive for maximal consistency in your estimations.
+
+Analyze the provided image with the highest possible precision. Strive for the highest possible precision in your nutritional estimations.
 First, determine if the image contains a food item.
 
 If the image IS a food item:
 - Set 'isFoodItem' to true.
-- Visually estimate the quantity or portion size of the food item(s) shown (e.g., "approx. 150g", "1 cup", "2 slices").
-- Provide highly accurate estimates for its nutritional information (calorie count, protein, fat, carbohydrates in grams) BASED ON THE VISUALLY ESTIMATED QUANTITY.
-- Populate the 'estimatedQuantityNote' field with a clear statement about the visually estimated quantity used for the nutritional estimation (e.g., "Estimates based on the visually estimated portion of approx. 150g of chicken.", "Nutritional details for the single apple shown.").
+- Perform a careful visual estimation of the quantity or portion size of the food item(s) shown (e.g., "approx. 150g", "1 cup", "2 slices"). This visual estimation is critical for accurate results.
+- Based SOLELY on this visually estimated quantity and your extensive nutritional knowledge, provide highly accurate and consistent estimates for its nutritional information (calorie count, protein, fat, carbohydrates in grams).
+- Populate the 'estimatedQuantityNote' field with a clear statement about the visually estimated quantity used for the nutritional estimation (e.g., "Estimates for approx. 150g of chicken as shown in the image.", "Nutritional details for the single medium apple depicted.").
 - Identify the common name(s) of the primary food item(s) or dish(es) in the meal (e.g., "Pizza", "Chicken Biryani", "Apple Pie"). List these in the 'ingredients' array. If it's a single dish, provide its name as a single element array. If multiple distinct dishes are clearly visible, list their common names. Avoid listing individual raw ingredients unless it's a very simple, unmixed food like "Apple". If no specific dish name can be determined, provide a general category like "Mixed Salad" or "Fruit Bowl".
 
 If the image IS NOT a food item:
@@ -94,3 +96,4 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
     return output!;
   }
 );
+
