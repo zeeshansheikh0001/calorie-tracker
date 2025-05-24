@@ -15,6 +15,15 @@ export interface FoodEntry {
   timestamp: number; // Unix timestamp
 }
 
+// Used for AI summary flow input, omitting id and timestamp
+export interface FoodEntryShort {
+  name: string;
+  calories: number;
+  protein: number;
+  fat: number;
+  carbs: number;
+}
+
 export interface DailyLogEntry {
   date: string; // YYYY-MM-DD
   calories: number;

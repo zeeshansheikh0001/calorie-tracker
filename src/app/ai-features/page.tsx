@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +10,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2, AlertCircle, ListChecks, Utensils, Dumbbell, Droplets, BedDouble, Brain, Info } from "lucide-react";
+import { Sparkles, Loader2, AlertCircle, ListChecks, Utensils, Dumbbell, Droplets, BedDouble, Brain, Info, BarChart3, Edit3 } from "lucide-react";
 import { generateHealthSchedule, type GenerateHealthScheduleInput, type GenerateHealthScheduleOutput } from "@/ai/flows/generate-health-schedule-flow";
+import { summarizeDailyLog, type SummarizeDailyLogInput, type SummarizeDailyLogOutput } from "@/ai/flows/summarize-daily-log-flow";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useDailyLog } from "@/hooks/use-daily-log";
+import { useGoals } from "@/hooks/use-goals";
+import type { FoodEntryShort } from "@/types";
+import { format } from "date-fns";
 
 
 const activityLevels = [
@@ -65,10 +70,17 @@ export default function AiFeaturesPage() {
     primaryFocus: "general_health",
     sleepHoursGoal: 8,
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<GenerateHealthScheduleOutput | null>(null);
+  
+  const [isLoadingSummary, setIsLoadingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<SummarizeDailyLogOutput | null>(null);
+
   const { toast } = useToast();
+  const { foodEntries, dailyLog, currentSelectedDate } = useDailyLog();
+  const { goals } = useGoals();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -95,14 +107,13 @@ export default function AiFeaturesPage() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleGenerateScheduleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    setIsLoadingSchedule(true);
+    setScheduleError(null);
     setSchedule(null);
 
     try {
-      // Basic validation example
       if (formState.calorieGoal <= 0) {
         throw new Error("Calorie goal must be greater than 0.");
       }
@@ -114,16 +125,77 @@ export default function AiFeaturesPage() {
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      setError(errorMessage);
+      setScheduleError(errorMessage);
       toast({
         title: "Error Generating Schedule",
         description: errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoadingSchedule(false);
     }
   };
+
+  const handleGenerateSummary = async () => {
+    setIsLoadingSummary(true);
+    setSummaryError(null);
+    setSummary(null);
+
+    if (!currentSelectedDate) {
+      setSummaryError("No date selected for summary.");
+      setIsLoadingSummary(false);
+      return;
+    }
+    
+    if (foodEntries.length === 0) {
+       toast({
+        title: "No Food Logged",
+        description: `No food items have been logged for ${format(currentSelectedDate, "MMM d, yyyy")}. Summary cannot be generated.`,
+        variant: "default"
+      });
+      setIsLoadingSummary(false);
+      return;
+    }
+
+    const shortFoodEntries: FoodEntryShort[] = foodEntries.map(entry => ({
+      name: entry.name,
+      calories: entry.calories,
+      protein: entry.protein,
+      fat: entry.fat,
+      carbs: entry.carbs,
+    }));
+
+    const input: SummarizeDailyLogInput = {
+      foodEntries: shortFoodEntries,
+      userGoals: {
+        calories: goals.calories,
+        protein: goals.protein,
+        fat: goals.fat,
+        carb: goals.carbs, // Note: schema expects 'carb', hook provides 'carbs'
+      },
+      date: format(currentSelectedDate, "MMM d, yyyy"),
+    };
+
+    try {
+      const result = await summarizeDailyLog(input);
+      setSummary(result);
+      toast({
+        title: "Daily Summary Generated!",
+        description: `AI analysis for ${result.date} is ready.`,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      setSummaryError(errorMessage);
+      toast({
+        title: "Error Generating Summary",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingSummary(false);
+    }
+  };
+
 
   const ScheduleSection: React.FC<{ title: string; icon: React.ElementType; children: React.ReactNode; className?: string }> = ({ title, icon: Icon, children, className }) => (
     <Card className={`shadow-md hover:shadow-lg transition-shadow duration-300 ${className}`}>
@@ -141,21 +213,22 @@ export default function AiFeaturesPage() {
 
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <Card className="max-w-3xl mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+    <div className="container mx-auto py-8 px-4 space-y-10">
+      {/* AI Health Planner Section */}
+      <Card className="w-full mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
         <CardHeader>
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-8 w-8 text-primary" />
+            <Edit3 className="h-8 w-8 text-primary" />
             <CardTitle className="text-2xl font-bold">Personalized AI Health Planner</CardTitle>
           </div>
           <CardDescription>
-            Fill in your details, and our AI will generate a tailored daily health schedule for you. 
+            Fill in your details, and our AI will generate a tailored daily health schedule for you.
             The more accurate your input, the better the plan!
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleGenerateScheduleSubmit}>
           <CardContent className="space-y-6">
-            <Accordion type="multiple" className="w-full space-y-3">
+            <Accordion type="multiple" className="w-full space-y-3" defaultValue={["goals-macros"]}>
               <AccordionItem value="goals-macros">
                 <AccordionTrigger className="text-lg font-medium hover:no-underline px-3 py-3 bg-muted/50 rounded-md">Nutritional Goals & Macros</AccordionTrigger>
                 <AccordionContent className="pt-4 px-1 space-y-4">
@@ -234,24 +307,24 @@ export default function AiFeaturesPage() {
             </Accordion>
           </CardContent>
           <CardFooter className="border-t pt-6">
-            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            <Button type="submit" disabled={isLoadingSchedule} className="w-full sm:w-auto">
+              {isLoadingSchedule ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
               Generate My Health Schedule
             </Button>
           </CardFooter>
         </form>
       </Card>
 
-      {error && (
-        <Alert variant="destructive" className="mt-6 max-w-3xl mx-auto animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
+      {scheduleError && (
+        <Alert variant="destructive" className="mt-6 w-full mx-auto animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{scheduleError}</AlertDescription>
         </Alert>
       )}
 
-      {schedule && !isLoading && (
-        <Card className="mt-8 max-w-3xl mx-auto shadow-xl animate-in fade-in-0 zoom-in-95 duration-700">
+      {schedule && !isLoadingSchedule && (
+        <Card className="mt-8 w-full mx-auto shadow-xl animate-in fade-in-0 zoom-in-95 duration-700">
           <CardHeader className="bg-primary/10 rounded-t-lg">
             <CardTitle className="text-xl font-bold text-primary flex items-center">
               <ListChecks className="mr-2 h-6 w-6" />
@@ -304,6 +377,66 @@ export default function AiFeaturesPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* AI Daily Food Log Summary Section */}
+      <Card className="w-full mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+        <CardHeader>
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="h-8 w-8 text-primary" />
+            <CardTitle className="text-2xl font-bold">AI Daily Food Log Summary</CardTitle>
+          </div>
+          <CardDescription>
+            Get an AI-powered summary and personalized suggestions for your food log on the currently selected date (from Home page).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleGenerateSummary} disabled={isLoadingSummary || !currentSelectedDate} className="w-full sm:w-auto">
+            {isLoadingSummary ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Generate Summary for {currentSelectedDate ? format(currentSelectedDate, "MMM d") : "Selected Date"}
+          </Button>
+           {!currentSelectedDate && <p className="text-sm text-muted-foreground mt-2">Please select a date on the Home page first.</p>}
+        </CardContent>
+        
+        {summaryError && (
+          <CardFooter className="border-t pt-4">
+            <Alert variant="destructive" className="w-full">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Summary Error</AlertTitle>
+              <AlertDescription>{summaryError}</AlertDescription>
+            </Alert>
+          </CardFooter>
+        )}
+
+        {summary && !isLoadingSummary && (
+          <CardFooter className="border-t pt-6 flex-col items-start space-y-4">
+            <h3 className="text-xl font-semibold text-primary">Summary for {summary.date}</h3>
+            
+            <div>
+              <h4 className="text-md font-semibold flex items-center"><Info className="mr-2 h-4 w-4 text-primary/70" />Overall Assessment:</h4>
+              <p className="text-sm text-muted-foreground pl-6">{summary.overallAssessment}</p>
+            </div>
+
+            <div>
+              <h4 className="text-md font-semibold flex items-center"><Utensils className="mr-2 h-4 w-4 text-primary/70" />Consumed Items:</h4>
+              <p className="text-sm text-muted-foreground pl-6 whitespace-pre-line">{summary.consumedItemsSummary}</p>
+            </div>
+            
+            <div>
+              <h4 className="text-md font-semibold flex items-center"><ListChecks className="mr-2 h-4 w-4 text-primary/70" />Nutritional Analysis:</h4>
+              <p className="text-sm text-muted-foreground pl-6 whitespace-pre-line">{summary.nutritionalAnalysis}</p>
+            </div>
+
+            <div>
+              <h4 className="text-md font-semibold flex items-center"><Brain className="mr-2 h-4 w-4 text-primary/70" />Actionable Suggestions:</h4>
+              <ul className="list-disc pl-10 space-y-1 text-sm text-muted-foreground">
+                {summary.actionableSuggestions.map((suggestion, index) => (
+                  <li key={index}>{suggestion}</li>
+                ))}
+              </ul>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
     </div>
   );
 }
