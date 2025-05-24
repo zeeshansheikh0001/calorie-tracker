@@ -17,6 +17,17 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
+// IMPORTANT: Log the projectId to help debug configuration issues.
+// This log will only appear in the browser's developer console.
+if (typeof window !== 'undefined') { 
+    console.log("Firebase Initializing with Project ID:", firebaseConfig.projectId);
+    if (!firebaseConfig.projectId || firebaseConfig.projectId === "YOUR_FIREBASE_PROJECT_ID" || firebaseConfig.projectId.includes("YOUR_") ) {
+        console.error("🛑 CRITICAL ERROR: Firebase projectId is not configured correctly or is using placeholder values! Please update your .env file with your actual Firebase project credentials. This is likely the cause of the 400 Bad Request error from Firestore.");
+        alert("Firebase Project ID is not configured correctly. Please check your .env file and the browser console for details. Firestore functionality will likely fail.");
+    }
+}
+
+
 // Initialize Firebase
 let app: FirebaseApp;
 let db: Firestore;
