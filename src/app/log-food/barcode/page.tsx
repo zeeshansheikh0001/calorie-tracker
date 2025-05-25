@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useRef, type FC, useCallback } from "react";
@@ -24,6 +23,7 @@ import {
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useToast } from "@/hooks/use-toast";
 import type { FoodEntry } from "@/types";
+import React from 'react';
 
 
 // Dynamically import Html5QrcodeScanner
@@ -65,7 +65,7 @@ const NutritionInfoItem: FC<NutritionInfoItemProps> = React.memo(({ icon: Icon, 
     </div>
     <div>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className={`font-semibold text-sm ${color}`}>{value}</p>
+      <p className={`font-semibold text-sm ${color} text-poppins`}>{value}</p>
     </div>
   </div>
 ));
@@ -380,7 +380,7 @@ export default function LogFoodByBarcodePage() {
       <Card className="w-full max-w-md mx-auto shadow-xl overflow-hidden">
         <CardHeader className="text-center p-6 bg-gradient-to-br from-primary/10 to-background">
           <ScanLine className="mx-auto h-10 w-10 text-primary mb-2" />
-          <CardTitle className="text-2xl font-bold">Scan Product Barcode</CardTitle>
+          <CardTitle className="text-2xl title-poppins">Scan Product Barcode</CardTitle>
           <CardDescription>
             Use your device camera to scan a barcode. Data from Open Food Facts.
           </CardDescription>
@@ -402,7 +402,7 @@ export default function LogFoodByBarcodePage() {
           {scanError && !isScanning && !isLoadingProduct && !productInfo && ( 
             <Alert variant="destructive" className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Scan Error</AlertTitle>
+              <AlertTitle className="heading-poppins">Scan Error</AlertTitle>
               <AlertDescription>{scanError}</AlertDescription>
             </Alert>
           )}
@@ -462,7 +462,7 @@ export default function LogFoodByBarcodePage() {
                      <PackageSearch className="h-7 w-7 text-primary flex-shrink-0" />
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-semibold leading-tight">{productInfo.name}</CardTitle>
+                    <CardTitle className="text-xl font-semibold leading-tight title-poppins">{productInfo.name}</CardTitle>
                     <CardDescription className="text-xs">Barcode: {productInfo.id} (Nutritional data per 100g/ml)</CardDescription>
                   </div>
                 </div>

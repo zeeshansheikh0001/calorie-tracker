@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -80,8 +79,8 @@ const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, prot
     </Button>
     <CardContent className="p-4 space-y-3 mr-8">
       <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-foreground flex-1 truncate" title={name}>{name}</h3>
-        <div className="flex items-center font-bold text-lg" style={{color: 'hsl(var(--text-kcal-raw))'}}>
+        <h3 className="text-lg font-semibold text-foreground flex-1 truncate title-poppins" title={name}>{name}</h3>
+        <div className="flex items-center font-bold text-lg text-poppins" style={{color: 'hsl(var(--text-kcal-raw))'}}>
           <Flame className="h-5 w-5 mr-1.5" />
           {Math.round(calories)}
           <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
@@ -89,16 +88,16 @@ const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, prot
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
         <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
-          <span>Protein</span>
+          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
+          <span className="text-poppins">Protein</span>
         </div>
         <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
-          <span>Fat</span>
+          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
+          <span className="text-poppins">Fat</span>
         </div>
         <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
-          <span>Carbs</span>
+          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
+          <span className="text-poppins">Carbs</span>
         </div>
       </div>
     </CardContent>
@@ -119,8 +118,8 @@ const SummaryCard: React.FC<SummaryCardProps> = React.memo(({ icon: Icon, value,
       <div className="p-2 rounded-lg inline-block mx-auto" style={{ backgroundColor: `hsla(${iconColorVariable}, 0.1)` }}>
         <Icon className="h-6 w-6" style={{ color: `hsl(${iconColorVariable})` }} />
       </div>
-      <p className="text-lg font-bold mt-1" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-bold mt-1 title-poppins" style={{ color: `hsl(${iconColorVariable})` }}>{value}</p>
+      <p className="text-xs text-muted-foreground text-poppins">{label}</p>
   </Card>
 ));
 SummaryCard.displayName = 'SummaryCard';
@@ -177,10 +176,10 @@ const BlogCard: FC<BlogPost> = React.memo(({ id, title, excerpt, imageUrl, image
         />
       </div>
       <CardHeader className="pb-2 pt-4">
-        <CardTitle className="text-md font-semibold line-clamp-2 h-12">{title}</CardTitle>
+        <CardTitle className="text-md font-semibold line-clamp-2 h-12 title-poppins">{title}</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow pb-3">
-        <p className="text-sm text-muted-foreground line-clamp-3">{excerpt}</p>
+        <p className="text-sm text-muted-foreground line-clamp-3 text-poppins">{excerpt}</p>
       </CardContent>
       <CardFooter className="pt-0 pb-4">
         <Link href={readMoreLink} passHref>
@@ -264,8 +263,8 @@ export default function DashboardPage() {
 
   const chartData = [];
   const COLORS = {
-    Consumed: 'hsl(var(--card))', 
-    Remaining: 'hsla(var(--primary-hsl), 0.25)', 
+    Consumed: 'rgba(255, 149, 0, 0.7)', 
+    Remaining: 'hsla(var(--primary-hsl), 0.7)', 
     Empty: 'hsla(var(--muted-foreground), 0.1)', 
     ConsumedNoGoal: 'hsl(var(--accent))', 
   };
@@ -336,65 +335,78 @@ export default function DashboardPage() {
       </div>
 
       {/* Your Progress Card */}
-       <Card className="shadow-lg rounded-2xl p-4 bg-sky-100 dark:bg-sky-900/50 text-foreground">
-          {isDataLoading ? (
-             <div className="flex flex-row items-start gap-3">
-              <div className="flex-1 space-y-2 text-left">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
-                <Skeleton className="w-full h-full rounded-full" />
-                <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-row items-start gap-3"> 
-              <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground justify-start">
-                  <BarChart2 className="h-5 w-5" />
-                  <span>Your Progress</span>
-                </div>
-                <div className="text-3xl font-bold text-primary">
-                  {goalCalories > 0 ? `${percentAchieved}%` : "-"}
-                </div>
-                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                     <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 h-auto">
-                       <CalendarDays className="h-4 w-4" />
-                       <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={currentSelectedDate || undefined}
-                      onSelect={(newDate) => {
-                        if (newDate) {
-                          selectDateForLog(newDate);
-                          setShowAllMeals(false); // Reset view more on date change
-                          setIsCalendarOpen(false);
-                        }
-                      }}
-                      initialFocus
-                      disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+      <Card className="relative shadow-lg rounded-2xl p-4 overflow-hidden text-foreground">
+  {/* Background Image with Decreased Opacity */}
+  <div
+    className="absolute inset-0 bg-cover bg-center opacity-20"
+    style={{
+      backgroundImage: `url('/images/image.png')`,
+    }}
+    aria-hidden="true"
+  />
 
-              <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
-                 <CalorieDonutChart 
-                    chartData={chartData} 
-                    consumedCalories={consumedCalories} 
-                    goalCalories={goalCalories} 
-                  />
-              </div>
-            </div>
-          )}
-        </Card>
+  {/* Foreground Content */}
+  <div className="relative z-10">
+    {isDataLoading ? (
+      <div className="flex flex-row items-start gap-3">
+        <div className="flex-1 space-y-2 text-left">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-10 sm:h-12 w-20 sm:w-24" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
+          <Skeleton className="w-full h-full rounded-full" />
+          <Loader2 className="absolute h-8 w-8 animate-spin text-primary/50" />
+        </div>
+      </div>
+    ) : (
+      <div className="flex flex-row items-start gap-3"> 
+        <div className="flex-1 space-y-1 text-left">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground justify-start">
+            <Image src="/images/progress.png" alt="Camera" width={30} height={30} />
+            <span>Your Progress</span>
+          </div>
+          <div className="text-3xl font-bold text-primary">
+            {goalCalories > 0 ? `${percentAchieved}%` : "-"}
+          </div>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground px-1 py-0.5 h-auto">
+                <CalendarDays className="h-4 w-4" />
+                <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={currentSelectedDate || undefined}
+                onSelect={(newDate) => {
+                  if (newDate) {
+                    selectDateForLog(newDate);
+                    setShowAllMeals(false); // Reset view more on date change
+                    setIsCalendarOpen(false);
+                  }
+                }}
+                initialFocus
+                disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
+          <CalorieDonutChart 
+            chartData={chartData} 
+            consumedCalories={consumedCalories} 
+            goalCalories={goalCalories} 
+          />
+        </div>
+      </div>
+    )}
+  </div>
+</Card>
+
 
 
       {/* Action Buttons */}
@@ -414,9 +426,9 @@ export default function DashboardPage() {
         <>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
-              <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(var(--primary-hsl), 0.1)'}}>
-                <Camera className="h-6 w-6 text-primary" />
+            <CardContent className="p-4 flex flex-col items-center gap-3">
+              <div className="p-2 rounded-full" >
+               <Image src="/images/camera.png" alt="Camera" width={30} height={30} />
               </div>
               <p className="text-sm font-medium">Snap</p>
             </CardContent>
@@ -424,9 +436,9 @@ export default function DashboardPage() {
         </Link>
         <Link href="/log-food/photo" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
-               <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(145, 63%, 42%, 0.1)'}}>
-                <UploadCloud className="h-6 w-6" style={{color: 'hsl(145, 58%, 40%)'}} />
+            <CardContent className="p-4 flex flex-col items-center gap-3">
+               <div className="p-2 rounded-full">
+               <Image src="/images/upload.png" alt="Camera" width={30} height={30} />
               </div>
               <p className="text-sm font-medium">Upload</p>
             </CardContent>
@@ -434,9 +446,9 @@ export default function DashboardPage() {
         </Link>
          <Link href="/log-food/manual" passHref>
           <Card className="shadow-lg hover:shadow-xl transition-shadow cursor-pointer h-full">
-            <CardContent className="p-4 flex flex-row items-center gap-3">
-              <div className="p-2 rounded-full" style={{backgroundColor: 'hsla(340, 82%, 66%, 0.1)'}}>
-                <FilePenLine className="h-6 w-6" style={{color: 'hsl(340, 72%, 62%)'}} />
+            <CardContent className="p-4 flex flex-col items-center gap-3">
+              <div className="p-2 rounded-full">
+              <Image src="/images/manual.png" alt="Camera" width={30} height={30} />
               </div>
               <p className="text-sm font-medium">Manual</p>
             </CardContent>

@@ -131,4 +131,104 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Apply Poppins to headings by default */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-poppins font-semibold;
+  }
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  h3 {
+    @apply text-xl font-semibold;
+  }
+  h4 {
+    @apply text-lg font-semibold;
+  }
+  h5 {
+    @apply text-base font-semibold;
+  }
+  h6 {
+    @apply text-sm font-semibold;
+  }
+}
+
+@layer components {
+  /* Basic Poppins classes */
+  .text-poppins {
+    font-family: var(--font-poppins);
+  }
+  
+  .heading-poppins {
+    font-family: var(--font-poppins);
+    font-weight: 600;
+  }
+  
+  .title-poppins {
+    font-family: var(--font-poppins);
+    font-weight: 700;
+  }
+
+  /* Typography system */
+  .display-large {
+    @apply font-poppins text-4xl md:text-5xl font-bold tracking-tight;
+  }
+  
+  .display-medium {
+    @apply font-poppins text-3xl md:text-4xl font-bold tracking-tight;
+  }
+  
+  .display-small {
+    @apply font-poppins text-2xl md:text-3xl font-bold;
+  }
+  
+  .headline-large {
+    @apply font-poppins text-2xl font-semibold;
+  }
+  
+  .headline-medium {
+    @apply font-poppins text-xl font-semibold;
+  }
+  
+  .headline-small {
+    @apply font-poppins text-lg font-semibold;
+  }
+  
+  .title-large {
+    @apply font-poppins text-lg font-semibold;
+  }
+  
+  .title-medium {
+    @apply font-poppins text-base font-semibold;
+  }
+  
+  .title-small {
+    @apply font-poppins text-sm font-semibold;
+  }
+  
+  .body-large {
+    @apply font-poppins text-base;
+  }
+  
+  .body-medium {
+    @apply font-poppins text-sm;
+  }
+  
+  .body-small {
+    @apply font-poppins text-xs;
+  }
+  
+  .label-large {
+    @apply font-poppins text-sm font-medium;
+  }
+  
+  .label-medium {
+    @apply font-poppins text-xs font-medium;
+  }
+  
+  .label-small {
+    @apply font-poppins text-xs font-medium;
+  }
 }

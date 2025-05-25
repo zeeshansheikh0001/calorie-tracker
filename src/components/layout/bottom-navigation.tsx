@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -36,7 +35,7 @@ export default function BottomNavigationBar() {
               />
               <span
                 className={cn(
-                  "mt-0.5 text-xs",
+                  "mt-0.5 text-xs font-poppins",
                   isActive ? "text-primary font-medium" : "text-muted-foreground"
                 )}
               >
