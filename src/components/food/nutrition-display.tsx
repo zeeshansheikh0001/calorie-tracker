@@ -5,13 +5,12 @@ import type { AnalyzeFoodPhotoOutput } from "@/ai/flows/analyze-food-photo";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles, Orbit,
+  Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles,
   ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionValue, useMotionValue, useTransform, useSpring, useScroll, useMotionTemplate, useInView } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 interface NutritionDisplayProps {
@@ -667,7 +666,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
       transition={{ duration: 0.3 }}
       className="rounded-xl overflow-hidden"
     >
-      <Card3D className="rounded-xl overflow-hidden" rotationIntensity={10} glareIntensity={0.15}>
+      <Card3D className="rounded-xl overflow-hidden" rotationIntensity={0} glareIntensity={0}>
         <Card className="bg-background/80 backdrop-blur-md border-2 border-primary/10 shadow-2xl overflow-hidden relative h-full">
           {/* Animated background elements */}
           <ParticleBackground color="rgba(var(--primary-hsl), 0.1)" count={20} />
@@ -1228,3 +1227,4 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
     </motion.div>
   );
 }
+
