@@ -1,20 +1,23 @@
+
 "use client";
 
 import { useState, type ChangeEvent, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft, Info } from "lucide-react"; // Add ChevronLeft
+import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft, Info } from "lucide-react";
 import Image from "next/image";
 import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInput } from "@/ai/flows/analyze-food-photo";
 import NutritionDisplay from "@/components/food/nutrition-display";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
+import { useGoals } from "@/hooks/use-goals"; // Added
+import type { Goal } from "@/types"; // Added
 import { Slider } from "@/components/ui/slider";
-import { motion, AnimatePresence } from "framer-motion"; // Import framer-motion
+import { motion, AnimatePresence } from "framer-motion";
 
 
 export default function LogFoodByPhotoPage() {
@@ -25,7 +28,8 @@ export default function LogFoodByPhotoPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { addFoodEntry } = useDailyLog();
-  const router = useRouter(); // Initialize useRouter
+  const { goals, isLoading: isLoadingGoals } = useGoals(); // Added
+  const router = useRouter();
 
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
@@ -50,7 +54,7 @@ export default function LogFoodByPhotoPage() {
     let startCameraTimeoutId: NodeJS.Timeout | null = null;
   
     const cleanupVideoEventListeners = () => {
-      const videoNode = videoRef.current; // Get current ref inside this scope
+      const videoNode = videoRef.current;
       if (videoNode) {
         videoNode.onloadedmetadata = null;
         videoNode.onplaying = null;
@@ -59,7 +63,7 @@ export default function LogFoodByPhotoPage() {
     };
   
     const performCleanup = () => {
-      const videoNode = videoRef.current; // Get current ref inside this scope
+      const videoNode = videoRef.current;
       console.log("Camera: Full cleanup called");
       if (startCameraTimeoutId) {
         clearTimeout(startCameraTimeoutId);
@@ -93,7 +97,7 @@ export default function LogFoodByPhotoPage() {
     };
   
     const startCamera = async () => {
-      const videoNode = videoRef.current; // Get current ref inside this scope
+      const videoNode = videoRef.current;
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
         toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
@@ -111,7 +115,7 @@ export default function LogFoodByPhotoPage() {
       setZoomCapabilities(null);
   
       const onMetadataLoaded = () => {
-        const currentVideoNode = videoRef.current; // Re-fetch ref in case it changed
+        const currentVideoNode = videoRef.current;
         if (!currentVideoNode) return;
         console.log("Camera: onloadedmetadata. Dimensions:", currentVideoNode.videoWidth, currentVideoNode.videoHeight);
         if (currentVideoNode.videoWidth > 0 && currentVideoNode.videoHeight > 0) {
@@ -128,7 +132,7 @@ export default function LogFoodByPhotoPage() {
       };
   
       const onPlaying = () => {
-        const currentVideoNode = videoRef.current; // Re-fetch ref
+        const currentVideoNode = videoRef.current;
         if (!currentVideoNode) return;
         console.log("Camera: onplaying.");
         if (currentVideoNode.videoWidth > 0 && currentVideoNode.videoHeight > 0) {
@@ -142,7 +146,8 @@ export default function LogFoodByPhotoPage() {
       };
   
       const onVideoError = (e: Event | string) => {
-        console.error("Camera: videoNode.onerror:", e);
+        const currentVideoNode = videoRef.current;
+        console.error("Camera: videoNode.onerror:", e, currentVideoNode?.error);
         if (readinessTimeout) clearTimeout(readinessTimeout);
         toast({ variant: "destructive", title: "Camera Error", description: "The camera stream encountered an error." });
         performCleanup();
@@ -184,13 +189,14 @@ export default function LogFoodByPhotoPage() {
   
         readinessTimeout = setTimeout(() => {
           console.warn("Camera: Timeout waiting for video metadata/play (10s).");
-          if (!isStreamActive) { 
+          const currentVideoNode = videoRef.current; // Re-check
+          if (!currentVideoNode || !isStreamActive) { 
             toast({ variant: "destructive", title: "Camera Timeout", description: "Camera took too long to initialize. Please check permissions or try another browser." });
             performCleanup();
             setHasCameraPermission(false);
             setIsCameraLoading(false);
           }
-        }, 10000); // 10 seconds timeout
+        }, 10000);
   
         await videoNode.play();
         console.log("Camera: videoNode.play() called.");
@@ -212,7 +218,7 @@ export default function LogFoodByPhotoPage() {
   
     if (tabMode === 'camera' && !previewUrl) {
       startCameraTimeoutId = setTimeout(() => {
-        if (tabMode === 'camera' && !previewUrl) { // Re-check conditions inside timeout
+        if (tabMode === 'camera' && !previewUrl) { 
           startCamera();
         }
       }, 0); 
@@ -222,7 +228,7 @@ export default function LogFoodByPhotoPage() {
   
     return performCleanup;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabMode, previewUrl, attemptId]); // Removed toast from dependencies to avoid potential loops
+  }, [tabMode, previewUrl, attemptId]);
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -295,6 +301,8 @@ export default function LogFoodByPhotoPage() {
       if (previewUrl && previewUrl.startsWith('data:')) {
          photoDataUriToAnalyze = previewUrl;
       } else {
+        // This part seems unlikely to be hit if previewUrl is correctly managed
+        // but kept for robustness if selectedFile is set without previewUrl being a data URI.
         const reader = new FileReader();
         reader.readAsDataURL(selectedFile);
         try {
@@ -317,6 +325,21 @@ export default function LogFoodByPhotoPage() {
       setIsLoading(false);
       return;
     }
+
+    // This is a placeholder and will be commented out for static export.
+    // For a real app, this would be enabled.
+    // setError("AI analysis is disabled for static export. This feature requires a server.");
+    // setIsLoading(false);
+    // setAnalysisResult({
+    //   isFoodItem: false,
+    //   calorieEstimate: 0,
+    //   proteinEstimate: 0,
+    //   fatEstimate: 0,
+    //   carbEstimate: 0,
+    //   ingredients: [],
+    //   estimatedQuantityNote: "AI Analysis Disabled for Static Export"
+    // });
+    // return;
 
     try {
       const input: AnalyzeFoodPhotoInput = { photoDataUri: photoDataUriToAnalyze };
@@ -405,7 +428,7 @@ export default function LogFoodByPhotoPage() {
   const toggleFlash = async () => {
     if (videoTrack && hasFlash) {
       try {
-        // @ts-ignore - The torch property is available but not in TypeScript definitions
+        // @ts-ignore
         await videoTrack.applyConstraints({ advanced: [{ torch: !isFlashOn }] });
         setIsFlashOn(!isFlashOn);
       } catch (err) {
@@ -418,7 +441,7 @@ export default function LogFoodByPhotoPage() {
   const handleZoomChange = async (newZoom: number) => {
     if (videoTrack && zoomCapabilities) {
       try {
-        // @ts-ignore - The zoom property is available but not in TypeScript definitions
+        // @ts-ignore
         await videoTrack.applyConstraints({ advanced: [{ zoom: newZoom }] });
         setZoomLevel(newZoom);
       } catch (err) {
@@ -583,7 +606,7 @@ export default function LogFoodByPhotoPage() {
                     <TabsContent value="upload" className="mt-0">
                       <motion.div 
                         className="mt-2 flex flex-col items-center justify-center px-4 sm:px-6 pt-6 pb-7 border-2 border-dashed rounded-xl border-primary/20 hover:border-primary transition-colors bg-secondary/5"
-                        whileHover={{ boxShadow: "0 0 0 2px rgba(var(--primary), 0.2)", backgroundColor: "rgba(var(--secondary), 0.1)" }}
+                        whileHover={{ boxShadow: "0 0 0 2px hsla(var(--primary-hsl), 0.2)", backgroundColor: "hsla(var(--secondary-hsl), 0.1)" }}
                         transition={{ duration: 0.2 }}
                       >
                 <div className="space-y-1 text-center">
@@ -907,7 +930,12 @@ export default function LogFoodByPhotoPage() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
-            <NutritionDisplay result={analysisResult} />
+            <NutritionDisplay 
+              result={analysisResult} 
+              estimatedQuantityNote={analysisResult.estimatedQuantityNote}
+              goals={goals}
+              isLoadingGoals={isLoadingGoals}
+            />
                 </motion.div>
           )}
             </AnimatePresence>
@@ -942,7 +970,7 @@ export default function LogFoodByPhotoPage() {
             >
           <Button 
             onClick={handleSubmit} 
-            disabled={(!selectedFile && !capturedDataUriForAnalysis && !previewUrl) || isLoading} 
+            disabled={(!selectedFile && !capturedDataUriForAnalysis && !previewUrl) || isLoading || isLoadingGoals} 
                 className="w-full bg-gradient-to-r from-primary/90 via-primary to-primary/90 hover:brightness-110 rounded-full shadow-md disabled:opacity-50"
           >
             {isLoading && !analysisResult ? (
@@ -974,3 +1002,5 @@ export default function LogFoodByPhotoPage() {
     </motion.div>
   );
 }
+
+    

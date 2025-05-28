@@ -6,16 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { 
   Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles,
-  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils
+  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils, Orbit // Added Orbit
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionValue, useMotionValue, useTransform, useSpring, useScroll, useMotionTemplate, useInView } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Added Label
+import { Switch } from "@/components/ui/switch"; // Added Switch
+import type { Goal } from "@/types"; // Added Goal type
 
 interface NutritionDisplayProps {
   result: AnalyzeFoodPhotoOutput;
   estimatedQuantityNote?: string;
+  goals?: Goal | null; // Added goals prop
+  isLoadingGoals?: boolean; // Added isLoadingGoals prop
 }
 
 // 3D Card effect with mouse tracking
@@ -28,9 +32,9 @@ const Card3D: React.FC<{
 }> = ({ 
   children, 
   className = "", 
-  glareIntensity = 0.15,
+  glareIntensity = 0.15, // Default active glare
   perspective = 1000,
-  rotationIntensity = 10 
+  rotationIntensity = 10  // Default active rotation
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -43,19 +47,16 @@ const Card3D: React.FC<{
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     
-    // Calculate position relative to center (values from -1 to 1)
     const x = (e.clientX - centerX) / (rect.width / 2);
     const y = (e.clientY - centerY) / (rect.height / 2);
     
     setMousePosition({ x, y });
   };
   
-  // Generate CSS transform based on mouse position
   const transform = isHovered && rotationIntensity > 0
     ? `perspective(${perspective}px) rotateX(${-mousePosition.y * rotationIntensity}deg) rotateY(${mousePosition.x * rotationIntensity}deg)`
     : 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
   
-  // Calculate glare position
   const glareX = ((mousePosition.x + 1) / 2) * 100;
   const glareY = ((mousePosition.y + 1) / 2) * 100;
   
@@ -72,7 +73,6 @@ const Card3D: React.FC<{
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Glare effect */}
       <div 
         className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300"
         style={{ background: glareBackground, opacity: (isHovered && glareIntensity > 0) ? 1 : 0 }}
@@ -126,14 +126,12 @@ const RadialProgress: React.FC<{
   const elementRef = useRef(null);
   const isInView = useInView(elementRef, { once: false, amount: 0.3 });
   
-  // Convert from motion value to display value
   const strokeDashoffset = useTransform(
     springProgress,
     [0, 100],
     [circumference, 0]
   );
   
-  // Blur animation for glow effect
   const blurRadius = useTransform(
     springProgress,
     [0, 50, 100],
@@ -168,7 +166,6 @@ const RadialProgress: React.FC<{
         viewBox={`0 0 ${size} ${size}`}
         className="transform -rotate-90"
       >
-        {/* Background track */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -179,7 +176,6 @@ const RadialProgress: React.FC<{
           className="text-muted-foreground/20"
         />
         
-        {/* Glow effect */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -197,7 +193,6 @@ const RadialProgress: React.FC<{
           className="blur-sm"
         />
         
-        {/* Main progress circle */}
         <motion.circle
           cx={size / 2}
           cy={size / 2}
@@ -271,7 +266,6 @@ const GlowingBadge: React.FC<{
       className="relative inline-block group"
       whileHover={{ scale: 1.05, y: -2 }}
     >
-      {/* Pulse effect */}
       {pulse && (
         <motion.div 
           className="absolute inset-0 rounded-full"
@@ -284,7 +278,6 @@ const GlowingBadge: React.FC<{
         />
       )}
       
-      {/* Glow effect */}
       <div 
         className="absolute inset-0 rounded-full blur-md transition-opacity duration-300 group-hover:opacity-70"
         style={{ backgroundColor: color, opacity: 0.4 }}
@@ -301,7 +294,7 @@ const GlowingBadge: React.FC<{
   );
 };
 
-const NutritionItem: React.FC<{
+interface NutritionItemProps {
   icon: React.ElementType;
   label: string;
   value: string | number;
@@ -311,7 +304,10 @@ const NutritionItem: React.FC<{
   delay?: number;
   showRadial?: boolean;
   highlight?: boolean;
-}> = React.memo(({ 
+  radialLabel?: string;
+}
+
+const NutritionItem: React.FC<NutritionItemProps> = React.memo(({ 
   icon: Icon, 
   label, 
   value, 
@@ -320,7 +316,8 @@ const NutritionItem: React.FC<{
   percentage = 0,
   delay = 0,
   showRadial = false,
-  highlight = false
+  highlight = false,
+  radialLabel = "of Daily Goal" // Default radial label
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const bgColor = colorClass.replace('text-', 'bg-').replace('500', '100');
@@ -330,7 +327,6 @@ const NutritionItem: React.FC<{
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   
-  // For spotlight effect
   const spotlightX = useTransform(
     x,
     [-100, 100],
@@ -397,14 +393,12 @@ const NutritionItem: React.FC<{
         transition: { duration: 0.2 }
       }}
     >
-      {/* Spotlight effect */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{ background: spotlightBackground, opacity: isHovered ? 1 : 0 }}
         transition={{ duration: 0.2 }}
       />
       
-      {/* Background gradient effect */}
       <div 
         className="absolute inset-0 opacity-10" 
         style={{ 
@@ -412,7 +406,6 @@ const NutritionItem: React.FC<{
         }} 
       />
       
-      {/* Value indicator line */}
       <motion.div 
         className="absolute top-0 left-0 h-1.5 rounded-t-xl z-10" 
         style={{ backgroundColor: colorHex }}
@@ -421,7 +414,6 @@ const NutritionItem: React.FC<{
         transition={{ duration: 0.4 }}
       />
       
-      {/* Animated corner accents */}
       <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 rounded-tl-md" 
         style={{ borderColor: colorHex, opacity: isHovered ? 0.8 : 0.2 }}
       />
@@ -436,7 +428,6 @@ const NutritionItem: React.FC<{
       />
 
       <div className="flex items-center justify-between mb-3 relative z-10">
-        {/* Icon and label */}
         <div className="flex items-center space-x-3">
           <motion.div 
             className={`p-2.5 rounded-lg ${bgColor} flex items-center justify-center shadow-inner relative`}
@@ -446,7 +437,6 @@ const NutritionItem: React.FC<{
             <div className="absolute inset-0 rounded-lg opacity-20 bg-white dark:bg-black"></div>
             <Icon className={`h-5 w-5 ${colorClass} relative z-10`} />
             
-            {/* Subtle pulse glow effect */}
             <motion.div 
               className="absolute inset-0 rounded-lg"
               style={{ backgroundColor: colorHex }}
@@ -472,12 +462,11 @@ const NutritionItem: React.FC<{
               initial={{ opacity: 0 }}
               animate={{ opacity: isHovered ? 0.8 : 0.6 }}
             >
-              {showRadial ? 'Tap for details' : 'Of daily intake'}
+              {showRadial ? 'Tap for details' : 'Contribution to Daily Goal'}
             </motion.span>
           </div>
         </div>
 
-        {/* Value display */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -506,13 +495,13 @@ const NutritionItem: React.FC<{
                   percentage={percentage}
                   color={colorHex}
                   delay={delay}
-                  label="of total"
+                  label={radialLabel}
                 />
-                <span className="text-xs font-medium text-muted-foreground opacity-70">of total macros</span>
+                <span className="text-xs font-medium text-muted-foreground opacity-70">of your daily goal</span>
               </div>
             ) : (
               <>
-                <span className="text-xs text-muted-foreground">Daily Value</span>
+                <span className="text-xs text-muted-foreground">Daily Goal Progress</span>
                 <motion.span
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -537,7 +526,6 @@ const NutritionItem: React.FC<{
                   className={`h-2.5 rounded-full bg-muted/50 [&>div]:${colorClass}`} 
                 />
                 
-                {/* Animated glow effect */}
                 <motion.div 
                   className="absolute top-0 left-0 h-full rounded-full blur-md"
                   style={{ 
@@ -548,7 +536,6 @@ const NutritionItem: React.FC<{
                   animate={{ opacity: isHovered ? 0.5 : 0 }}
                 />
                 
-                {/* Animated marker at end of progress */}
                 <motion.div
                   className="absolute top-50% w-3 h-3 rounded-full translate-y-[-50%] z-10"
                   style={{ 
@@ -590,7 +577,7 @@ function getColorHexFromClass(colorClass: string): string {
 const ParticleBackground: React.FC<{
   color?: string;
   count?: number;
-}> = ({ color = "rgba(var(--primary-hsl), 0.1)", count = 15 }) => {
+}> = ({ color = "hsla(var(--primary-hsl), 0.1)", count = 15 }) => {
   const particles = Array.from({ length: count });
   
   return (
@@ -633,7 +620,7 @@ const ParticleBackground: React.FC<{
   );
 };
 
-export default function NutritionDisplay({ result, estimatedQuantityNote }: NutritionDisplayProps) {
+export default function NutritionDisplay({ result, estimatedQuantityNote, goals, isLoadingGoals }: NutritionDisplayProps) {
   const quantityNote = result.estimatedQuantityNote || estimatedQuantityNote;
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<'macros' | 'calories' | 'chart'>('macros');
@@ -644,19 +631,28 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
     offset: ["start start", "end start"]
   });
   
-  // Parallax effect
   const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
   
-  // Calculate total macros for percentages
-  const totalMacros = result.proteinEstimate + result.fatEstimate + result.carbEstimate;
-  const proteinPercentage = totalMacros > 0 ? (result.proteinEstimate / totalMacros) * 100 : 0;
-  const fatPercentage = totalMacros > 0 ? (result.fatEstimate / totalMacros) * 100 : 0;
-  const carbPercentage = totalMacros > 0 ? (result.carbEstimate / totalMacros) * 100 : 0;
+  const { calorieEstimate, proteinEstimate, fatEstimate, carbEstimate } = result;
 
-  // Daily values (rough estimates based on 2000 calorie diet)
-  const proteinDV = (result.proteinEstimate / 50) * 100; // ~50g protein
-  const fatDV = (result.fatEstimate / 65) * 100; // ~65g fat
-  const carbsDV = (result.carbEstimate / 300) * 100; // ~300g carbs
+  const caloriePercentage = (goals && goals.calories > 0) 
+    ? Math.min(100, (calorieEstimate / goals.calories) * 100) 
+    : 0;
+  const proteinPercentage = (goals && goals.protein > 0) 
+    ? Math.min(100, (proteinEstimate / goals.protein) * 100) 
+    : 0;
+  const fatPercentage = (goals && goals.fat > 0) 
+    ? Math.min(100, (fatEstimate / goals.fat) * 100) 
+    : 0;
+  const carbPercentage = (goals && goals.carb > 0) 
+    ? Math.min(100, (carbEstimate / goals.carb) * 100) 
+    : 0;
+  
+  const totalMacrosForRadial = proteinEstimate + fatEstimate + carbEstimate;
+  const proteinRadialPercentage = totalMacrosForRadial > 0 ? (proteinEstimate / totalMacrosForRadial) * 100 : 0;
+  const fatRadialPercentage = totalMacrosForRadial > 0 ? (fatEstimate / totalMacrosForRadial) * 100 : 0;
+  const carbRadialPercentage = totalMacrosForRadial > 0 ? (carbEstimate / totalMacrosForRadial) * 100 : 0;
+
 
   return (
     <motion.div
@@ -668,10 +664,8 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
     >
       <Card3D className="rounded-xl overflow-hidden" rotationIntensity={0} glareIntensity={0}>
         <Card className="bg-background/80 backdrop-blur-md border-2 border-primary/10 shadow-2xl overflow-hidden relative h-full">
-          {/* Animated background elements */}
-          <ParticleBackground color="rgba(var(--primary-hsl), 0.1)" count={20} />
+          <ParticleBackground color="hsla(var(--primary-hsl), 0.1)" count={20} />
           
-          {/* Moving gradient background */}
           <motion.div 
             className="absolute inset-0 z-0 opacity-20"
             style={{ 
@@ -680,10 +674,8 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
             }}
           />
           
-          {/* Top gradient line */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/30 via-primary/80 to-primary/30 z-10"></div>
           
-          {/* Glass effect overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-background/10 to-background/30 backdrop-blur-sm pointer-events-none z-0" />
           
           <CardHeader className="relative bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent z-10">
@@ -698,7 +690,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   yOffset={5}
                   className="bg-primary/10 p-2.5 rounded-full mr-3 shadow-inner relative"
                 >
-                  {/* Glow effect */}
                   <motion.div 
                     className="absolute inset-0 rounded-full blur-md"
                     animate={{ 
@@ -718,7 +709,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                 </span>
               </CardTitle>
                             
-              {/* Calorie counter highlight */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -746,12 +736,12 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                       <p className="text-xs text-muted-foreground">Total Calories</p>
                       <div className="flex items-baseline">
                         <motion.p 
-                          key={result.calorieEstimate}
+                          key={calorieEstimate}
                           initial={{ y: 20, opacity: 0 }} 
                           animate={{ y: 0, opacity: 1 }}
                           className="text-2xl font-bold text-red-500"
                         >
-                          {result.calorieEstimate.toLocaleString()}
+                          {calorieEstimate.toLocaleString()}
                         </motion.p>
                         <span className="text-xs font-normal ml-0.5 text-muted-foreground">kcal</span>
                       </div>
@@ -777,7 +767,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
               )}
             </AnimatePresence>
             
-            {/* Tab navigation */}
             <div className="flex justify-center">
               <div className="bg-muted/30 backdrop-blur-sm rounded-full p-1 flex space-x-1 border border-border/40">
                 <motion.button
@@ -831,7 +820,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {/* Macronutrient distribution section */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -840,89 +828,92 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   >
                     <h3 className="text-sm font-medium mb-3 flex items-center">
                       <Activity className="h-4 w-4 mr-2 text-primary/70" />
-                      Macronutrient Distribution
+                      Macronutrient Distribution (of this meal)
                     </h3>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="flex flex-col items-center">
                         <RadialProgress 
-                          percentage={proteinPercentage} 
+                          percentage={proteinRadialPercentage} 
                           color="#3b82f6" 
                           size={70}
                           delay={0.3}
                           label="Protein"
                         />
-                        <p className="text-xs font-medium mt-2 text-blue-500">{result.proteinEstimate.toFixed(1)}g</p>
+                        <p className="text-xs font-medium mt-2 text-blue-500">{proteinEstimate.toFixed(1)}g</p>
                       </div>
                       <div className="flex flex-col items-center">
                         <RadialProgress 
-                          percentage={fatPercentage} 
+                          percentage={fatRadialPercentage} 
                           color="#eab308" 
                           size={70}
                           delay={0.4}
                           label="Fat"
                         />
-                        <p className="text-xs font-medium mt-2 text-yellow-500">{result.fatEstimate.toFixed(1)}g</p>
+                        <p className="text-xs font-medium mt-2 text-yellow-500">{fatEstimate.toFixed(1)}g</p>
                       </div>
                       <div className="flex flex-col items-center">
                         <RadialProgress 
-                          percentage={carbPercentage} 
+                          percentage={carbRadialPercentage} 
                           color="#10b981" 
                           size={70}
                           delay={0.5}
                           label="Carbs"
                         />
-                        <p className="text-xs font-medium mt-2 text-green-500">{result.carbEstimate.toFixed(1)}g</p>
+                        <p className="text-xs font-medium mt-2 text-green-500">{carbEstimate.toFixed(1)}g</p>
                       </div>
                     </div>
                   </motion.div>
 
-                  {/* Main nutrient cards with enhanced visuals */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <NutritionItem 
                       icon={Flame} 
                       label="Calories" 
-                      value={result.calorieEstimate.toLocaleString()} 
+                      value={calorieEstimate.toLocaleString()} 
                       unit="kcal" 
                       colorClass="text-red-500" 
                       delay={0}
-                      percentage={Math.min((result.calorieEstimate / 2000) * 100, 100)}
+                      percentage={caloriePercentage}
                       highlight={selectedNutrient === 'calories'}
+                      radialLabel="of Daily Goal"
                     />
                     
                     <NutritionItem 
                       icon={Drumstick} 
                       label="Protein" 
-                      value={result.proteinEstimate.toLocaleString()} 
+                      value={proteinEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-blue-500" 
-                      percentage={proteinDV}
+                      percentage={proteinPercentage}
                       delay={0.1}
-                      showRadial={true}
+                      showRadial={false} // Keep linear bar for daily goal comparison
                       highlight={selectedNutrient === 'protein'}
+                      radialLabel="of Daily Goal"
                     />
                     
                     <NutritionItem 
                       icon={Droplets} 
                       label="Fat" 
-                      value={result.fatEstimate.toLocaleString()} 
+                      value={fatEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-yellow-500" 
-                      percentage={fatDV}
+                      percentage={fatPercentage}
                       delay={0.2}
-                      showRadial={true}
+                      showRadial={false} // Keep linear bar for daily goal comparison
                       highlight={selectedNutrient === 'fat'}
+                      radialLabel="of Daily Goal"
                     />
                     
                     <NutritionItem 
                       icon={Wheat} 
                       label="Carbohydrates" 
-                      value={result.carbEstimate.toLocaleString()} 
+                      value={carbEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-green-500" 
-                      percentage={carbsDV}
+                      percentage={carbPercentage}
                       delay={0.3}
-                      showRadial={true}
+                      showRadial={false} // Keep linear bar for daily goal comparison
                       highlight={selectedNutrient === 'carbs'}
+                      radialLabel="of Daily Goal"
                     />
                   </div>
                 </motion.div>
@@ -949,22 +940,24 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                       <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-orange-500/5 border border-red-500/20">
                         <div className="flex justify-center mb-6">
                           <RadialProgress 
-                            percentage={Math.min((result.calorieEstimate / 2000) * 100, 100)} 
+                            percentage={caloriePercentage} 
                             color="#ef4444"
                             size={120}
                             strokeWidth={10}
                             showAnimation={true}
-                            label="of daily value"
+                            label="of Daily Goal"
                           />
                         </div>
                         
                         <div className="text-center space-y-1">
                           <h3 className="text-lg font-semibold text-red-500">Calorie Breakdown</h3>
-                          <p className="text-sm text-muted-foreground">Based on a 2,000 calorie diet</p>
+                           <p className="text-sm text-muted-foreground">
+                            { goals && goals.calories > 0 ? `Daily Goal: ${goals.calories.toLocaleString()} kcal` : "No daily goal set"}
+                          </p>
                           
                           <div className="mt-4 text-center">
                             <div className="inline-block px-4 py-2 rounded-lg bg-background/70 backdrop-blur-sm border border-border/30 shadow-lg">
-                              <p className="text-3xl font-bold text-red-500">{result.calorieEstimate.toLocaleString()}</p>
+                              <p className="text-3xl font-bold text-red-500">{calorieEstimate.toLocaleString()}</p>
                               <p className="text-xs text-muted-foreground">calories in this meal</p>
                             </div>
                           </div>
@@ -982,7 +975,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                         <span className="text-xs">From Protein</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(result.proteinEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(proteinEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
                       </p>
                     </div>
                     
@@ -994,7 +987,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                         <span className="text-xs">From Fat</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(result.fatEstimate * 9)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(fatEstimate * 9)} <span className="text-xs text-muted-foreground">kcal</span>
                       </p>
                     </div>
                     
@@ -1006,7 +999,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                         <span className="text-xs">From Carbs</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(result.carbEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(carbEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
                       </p>
                     </div>
                     
@@ -1015,10 +1008,10 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                         <div className="p-1.5 rounded-full bg-primary/10">
                           <Heart className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        <span className="text-xs">DV Percent</span>
+                        <span className="text-xs">Goal Contribution</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round((result.calorieEstimate / 2000) * 100)}% <span className="text-xs text-muted-foreground">of daily</span>
+                        {Math.round(caloriePercentage)}% <span className="text-xs text-muted-foreground">of daily</span>
                       </p>
                     </div>
                   </div>
@@ -1038,50 +1031,45 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                     <div className="absolute left-0 bottom-0 right-0 h-[1px] bg-border/60"></div>
                     <div className="absolute top-0 bottom-0 left-0 w-[1px] bg-border/60"></div>
                     
-                    {/* Background grid */}
                     <div className="absolute inset-0" style={{ 
                       backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)',
                       backgroundSize: '20px 20px',
                       opacity: 0.1
                     }}></div>
                     
-                    {/* Protein bar */}
                     <motion.div 
                       className="absolute bottom-0 left-[20%] w-[15%] bg-blue-500 rounded-t-lg"
                       initial={{ height: 0 }}
-                      animate={{ height: `${(result.proteinEstimate / (result.proteinEstimate + result.fatEstimate + result.carbEstimate)) * 100}%` }}
+                      animate={{ height: `${proteinRadialPercentage}%` }}
                       transition={{ duration: 1, delay: 0.3 }}
                     >
                       <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-blue-500 font-medium">{result.proteinEstimate.toFixed(1)}g</span>
+                        <span className="text-xs text-blue-500 font-medium">{proteinEstimate.toFixed(1)}g</span>
                       </div>
                     </motion.div>
                     
-                    {/* Fat bar */}
                     <motion.div 
                       className="absolute bottom-0 left-[45%] w-[15%] bg-yellow-500 rounded-t-lg"
                       initial={{ height: 0 }}
-                      animate={{ height: `${(result.fatEstimate / (result.proteinEstimate + result.fatEstimate + result.carbEstimate)) * 100}%` }}
+                      animate={{ height: `${fatRadialPercentage}%` }}
                       transition={{ duration: 1, delay: 0.5 }}
                     >
                       <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-yellow-500 font-medium">{result.fatEstimate.toFixed(1)}g</span>
+                        <span className="text-xs text-yellow-500 font-medium">{fatEstimate.toFixed(1)}g</span>
                       </div>
                     </motion.div>
                     
-                    {/* Carb bar */}
                     <motion.div 
                       className="absolute bottom-0 left-[70%] w-[15%] bg-green-500 rounded-t-lg"
                       initial={{ height: 0 }}
-                      animate={{ height: `${(result.carbEstimate / (result.proteinEstimate + result.fatEstimate + result.carbEstimate)) * 100}%` }}
+                      animate={{ height: `${carbRadialPercentage}%` }}
                       transition={{ duration: 1, delay: 0.7 }}
                     >
                       <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-green-500 font-medium">{result.carbEstimate.toFixed(1)}g</span>
+                        <span className="text-xs text-green-500 font-medium">{carbEstimate.toFixed(1)}g</span>
                       </div>
                     </motion.div>
                     
-                    {/* Labels */}
                     <div className="absolute bottom-2 left-[20%] transform -translate-x-1/2">
                       <span className="text-xs text-muted-foreground">Protein</span>
                     </div>
@@ -1096,7 +1084,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
               )}
             </AnimatePresence>
             
-            {/* Ingredients section with improved animations and 3D effect */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1104,7 +1091,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
               className="mt-6 p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 backdrop-blur-md border border-border/30 shadow-md relative overflow-hidden"
               whileHover={{ scale: 1.01 }}
             >
-              {/* Animated background pattern */}
               <div className="absolute inset-0 opacity-5">
                 <div className="absolute inset-0" style={{ 
                   backgroundImage: 'radial-gradient(circle at 20px 20px, hsla(var(--primary-hsl),0.1) 2px, transparent 0)',
@@ -1145,7 +1131,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
             </motion.div>
           </CardContent>
 
-          {/* Footer with call to action */}
           <CardFooter className="border-t flex flex-col space-y-3 py-4 relative z-10">
             <motion.button
               onClick={() => setShowDetails(!showDetails)}
@@ -1227,4 +1212,4 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
     </motion.div>
   );
 }
-
+    
