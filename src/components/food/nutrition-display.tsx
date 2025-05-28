@@ -1,16 +1,18 @@
+
 "use client";
 
 import type { AnalyzeFoodPhotoOutput } from "@/ai/flows/analyze-food-photo";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Flame, Drumstick, Droplets, Wheat, List, Info, Check, Sparkles,
-  ArrowRight, ChevronDown, Activity, MoveUpRight, Bookmark,
-  Zap, AlertCircle, Utensils, Heart
+  Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles, Orbit,
+  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionValue, useMotionValue, useTransform, useSpring, useScroll, useMotionTemplate, useInView } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface NutritionDisplayProps {
   result: AnalyzeFoodPhotoOutput;
@@ -29,7 +31,7 @@ const Card3D: React.FC<{
   className = "", 
   glareIntensity = 0.15,
   perspective = 1000,
-  rotationIntensity = 5
+  rotationIntensity = 10 
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -50,7 +52,7 @@ const Card3D: React.FC<{
   };
   
   // Generate CSS transform based on mouse position
-  const transform = isHovered 
+  const transform = isHovered && rotationIntensity > 0
     ? `perspective(${perspective}px) rotateX(${-mousePosition.y * rotationIntensity}deg) rotateY(${mousePosition.x * rotationIntensity}deg)`
     : 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
   
@@ -58,7 +60,7 @@ const Card3D: React.FC<{
   const glareX = ((mousePosition.x + 1) / 2) * 100;
   const glareY = ((mousePosition.y + 1) / 2) * 100;
   
-  const glareBackground = isHovered
+  const glareBackground = isHovered && glareIntensity > 0
     ? `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255, 255, 255, ${glareIntensity}), transparent 50%)`
     : 'none';
   
@@ -74,7 +76,7 @@ const Card3D: React.FC<{
       {/* Glare effect */}
       <div 
         className="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300"
-        style={{ background: glareBackground, opacity: isHovered ? 1 : 0 }}
+        style={{ background: glareBackground, opacity: (isHovered && glareIntensity > 0) ? 1 : 0 }}
       />
       {children}
     </div>
@@ -589,7 +591,7 @@ function getColorHexFromClass(colorClass: string): string {
 const ParticleBackground: React.FC<{
   color?: string;
   count?: number;
-}> = ({ color = "#3b82f6", count = 15 }) => {
+}> = ({ color = "rgba(var(--primary-hsl), 0.1)", count = 15 }) => {
   const particles = Array.from({ length: count });
   
   return (
@@ -636,7 +638,6 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
   const quantityNote = result.estimatedQuantityNote || estimatedQuantityNote;
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<'macros' | 'calories' | 'chart'>('macros');
-  const [viewMode, setViewMode] = useState<'cards' | '3d'>('cards');
   const [selectedNutrient, setSelectedNutrient] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -666,17 +667,17 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
       transition={{ duration: 0.3 }}
       className="rounded-xl overflow-hidden"
     >
-      <Card3D className="rounded-xl overflow-hidden" rotationIntensity={viewMode === '3d' ? 10 : 0}>
+      <Card3D className="rounded-xl overflow-hidden" rotationIntensity={10} glareIntensity={0.15}>
         <Card className="bg-background/80 backdrop-blur-md border-2 border-primary/10 shadow-2xl overflow-hidden relative h-full">
           {/* Animated background elements */}
-          <ParticleBackground color="rgba(var(--primary), 0.1)" count={20} />
+          <ParticleBackground color="rgba(var(--primary-hsl), 0.1)" count={20} />
           
           {/* Moving gradient background */}
           <motion.div 
             className="absolute inset-0 z-0 opacity-20"
             style={{ 
               y: backgroundY,
-              background: 'radial-gradient(ellipse at 50% 80%, var(--primary), transparent 70%)'
+              background: 'radial-gradient(ellipse at 50% 80%, hsla(var(--primary-hsl), 0.5), transparent 70%)'
             }}
           />
           
@@ -709,7 +710,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                       repeat: Infinity, 
                       duration: 3 
                     }}
-                    style={{ backgroundColor: 'var(--primary)' }}
+                    style={{ backgroundColor: 'hsl(var(--primary))' }}
                   />
                   <Sparkles className="h-5 w-5 text-primary relative z-10" />
                 </FloatingElement>
@@ -717,46 +718,14 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   Nutritional Analysis
                 </span>
               </CardTitle>
-              
-              {/* Mode toggle */}
-              <div className="flex justify-center mt-3 mb-2">
-                <div className="bg-muted/30 backdrop-blur-sm rounded-full p-1 flex space-x-1 border border-border/40">
-                  <motion.button
-                    className={`text-xs px-3 py-1 rounded-full transition-colors relative ${viewMode === 'cards' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
-                    onClick={() => setViewMode('cards')}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {viewMode === 'cards' && (
-                      <motion.div 
-                        className="absolute inset-0 bg-primary/10 rounded-full -z-10"
-                        layoutId="viewModeHighlight"
-                      />
-                    )}
-                    Standard
-                  </motion.button>
-                  <motion.button
-                    className={`text-xs px-3 py-1 rounded-full transition-colors relative ${viewMode === '3d' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
-                    onClick={() => setViewMode('3d')}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {viewMode === '3d' && (
-                      <motion.div 
-                        className="absolute inset-0 bg-primary/10 rounded-full -z-10"
-                        layoutId="viewModeHighlight"
-                      />
-                    )}
-                    3D Mode
-                  </motion.button>
-                </div>
-              </div>
-              
+                            
               {/* Calorie counter highlight */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="mt-4 flex justify-center"
-                layoutId="calorieCounter"
+                layoutId="calorieCounterNutrition" 
               >
                 <div className="relative overflow-hidden rounded-2xl shadow-lg border border-primary/10 px-5 py-3 bg-gradient-to-br from-primary/5 to-background/50">
                   <motion.div
@@ -820,7 +789,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   {activeTab === 'macros' && (
                     <motion.div 
                       className="absolute inset-0 bg-primary/10 rounded-full -z-10"
-                      layoutId="tabHighlight"
+                      layoutId="tabHighlightNutrition"
                     />
                   )}
                   Macros
@@ -833,7 +802,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   {activeTab === 'calories' && (
                     <motion.div 
                       className="absolute inset-0 bg-primary/10 rounded-full -z-10"
-                      layoutId="tabHighlight"
+                      layoutId="tabHighlightNutrition"
                     />
                   )}
                   Calories
@@ -846,7 +815,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                   {activeTab === 'chart' && (
                     <motion.div 
                       className="absolute inset-0 bg-primary/10 rounded-full -z-10"
-                      layoutId="tabHighlight"
+                      layoutId="tabHighlightNutrition"
                     />
                   )}
                   Chart
@@ -1072,7 +1041,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
                     
                     {/* Background grid */}
                     <div className="absolute inset-0" style={{ 
-                      backgroundImage: 'linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
+                      backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)',
                       backgroundSize: '20px 20px',
                       opacity: 0.1
                     }}></div>
@@ -1139,7 +1108,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote }: Nutr
               {/* Animated background pattern */}
               <div className="absolute inset-0 opacity-5">
                 <div className="absolute inset-0" style={{ 
-                  backgroundImage: 'radial-gradient(circle at 20px 20px, rgba(255,255,255,0.1) 2px, transparent 0)',
+                  backgroundImage: 'radial-gradient(circle at 20px 20px, hsla(var(--primary-hsl),0.1) 2px, transparent 0)',
                   backgroundSize: '20px 20px' 
                 }} />
               </div>
