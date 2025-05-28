@@ -6,20 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { 
   Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles,
-  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils, Orbit // Added Orbit
+  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, Utensils // Added Utensils
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionValue, useMotionValue, useTransform, useSpring, useScroll, useMotionTemplate, useInView } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label"; // Added Label
-import { Switch } from "@/components/ui/switch"; // Added Switch
-import type { Goal } from "@/types"; // Added Goal type
+import type { Goal } from "@/types"; 
 
 interface NutritionDisplayProps {
   result: AnalyzeFoodPhotoOutput;
   estimatedQuantityNote?: string;
-  goals?: Goal | null; // Added goals prop
-  isLoadingGoals?: boolean; // Added isLoadingGoals prop
+  goals?: Goal | null; 
+  isLoadingGoals?: boolean; 
 }
 
 // 3D Card effect with mouse tracking
@@ -32,9 +30,9 @@ const Card3D: React.FC<{
 }> = ({ 
   children, 
   className = "", 
-  glareIntensity = 0.15, // Default active glare
+  glareIntensity = 0, 
   perspective = 1000,
-  rotationIntensity = 10  // Default active rotation
+  rotationIntensity = 0  
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -303,7 +301,6 @@ interface NutritionItemProps {
   percentage?: number;
   delay?: number;
   showRadial?: boolean;
-  highlight?: boolean;
   radialLabel?: string;
 }
 
@@ -316,8 +313,7 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
   percentage = 0,
   delay = 0,
   showRadial = false,
-  highlight = false,
-  radialLabel = "of Daily Goal" // Default radial label
+  radialLabel = "of Daily Goal"
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const bgColor = colorClass.replace('text-', 'bg-').replace('500', '100');
@@ -364,25 +360,17 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
       animate={isInView ? { 
         opacity: 1, 
         y: 0,
-        scale: highlight ? [1, 1.02, 1] : 1
       } : { opacity: 0, y: 20 }}
       transition={{ 
         type: "spring", 
         stiffness: 400, 
         damping: 20, 
         delay: 0.1 + delay,
-        scale: {
-          repeat: highlight ? Infinity : 0,
-          repeatType: "reverse",
-          duration: 2
-        }
       }}
       className="relative rounded-xl overflow-hidden backdrop-blur-md p-4 border border-border/30"
       style={{
         background: 'var(--bg-card)',
-        boxShadow: highlight 
-          ? `0 0 20px ${colorHex}40, inset 0 0 10px ${colorHex}10` 
-          : `0 4px 15px rgba(0, 0, 0, 0.05)`
+        boxShadow: `0 4px 15px rgba(0, 0, 0, 0.05)`
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -624,7 +612,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
   const quantityNote = result.estimatedQuantityNote || estimatedQuantityNote;
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<'macros' | 'calories' | 'chart'>('macros');
-  const [selectedNutrient, setSelectedNutrient] = useState<string | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -820,51 +808,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-muted/30 rounded-lg p-4 border border-border/50 mb-4"
-                  >
-                    <h3 className="text-sm font-medium mb-3 flex items-center">
-                      <Activity className="h-4 w-4 mr-2 text-primary/70" />
-                      Macronutrient Distribution (of this meal)
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={proteinRadialPercentage} 
-                          color="#3b82f6" 
-                          size={70}
-                          delay={0.3}
-                          label="Protein"
-                        />
-                        <p className="text-xs font-medium mt-2 text-blue-500">{proteinEstimate.toFixed(1)}g</p>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={fatRadialPercentage} 
-                          color="#eab308" 
-                          size={70}
-                          delay={0.4}
-                          label="Fat"
-                        />
-                        <p className="text-xs font-medium mt-2 text-yellow-500">{fatEstimate.toFixed(1)}g</p>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={carbRadialPercentage} 
-                          color="#10b981" 
-                          size={70}
-                          delay={0.5}
-                          label="Carbs"
-                        />
-                        <p className="text-xs font-medium mt-2 text-green-500">{carbEstimate.toFixed(1)}g</p>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="mb-4">
                     <NutritionItem 
                       icon={Flame} 
                       label="Calories" 
@@ -873,10 +817,12 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-red-500" 
                       delay={0}
                       percentage={caloriePercentage}
-                      highlight={selectedNutrient === 'calories'}
                       radialLabel="of Daily Goal"
+                      showRadial={true}
                     />
-                    
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <NutritionItem 
                       icon={Drumstick} 
                       label="Protein" 
@@ -885,8 +831,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-blue-500" 
                       percentage={proteinPercentage}
                       delay={0.1}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'protein'}
+                      showRadial={true} 
                       radialLabel="of Daily Goal"
                     />
                     
@@ -898,8 +843,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-yellow-500" 
                       percentage={fatPercentage}
                       delay={0.2}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'fat'}
+                      showRadial={true}
                       radialLabel="of Daily Goal"
                     />
                     
@@ -911,8 +855,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-green-500" 
                       percentage={carbPercentage}
                       delay={0.3}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'carbs'}
+                      showRadial={true}
                       radialLabel="of Daily Goal"
                     />
                   </div>
@@ -1178,7 +1121,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                     className="bg-muted/30 rounded-lg p-3"
                   >
                     <div className="flex items-center space-x-2 mb-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <Info className="h-4 w-4 text-amber-500" />
                       <span className="text-sm font-medium">Important Notes</span>
         </div>
                     <motion.p 
@@ -1212,4 +1155,5 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
     </motion.div>
   );
 }
+
     
