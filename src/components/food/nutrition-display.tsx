@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { AnalyzeFoodPhotoOutput } from "@/ai/flows/analyze-food-photo";
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { 
   Flame, Drumstick, Droplets, Wheat, List, Info, Sparkles,
-  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils, Orbit // Added Orbit
+  ChevronDown, Activity, Heart, MoveUpRight, Bookmark, AlertCircle, Utensils, Orbit
 } from "lucide-react";
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, MotionValue, useMotionValue, useTransform, useSpring, useScroll, useMotionTemplate, useInView } from "framer-motion";
@@ -14,6 +13,26 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label"; // Added Label
 import { Switch } from "@/components/ui/switch"; // Added Switch
 import type { Goal } from "@/types"; // Added Goal type
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 interface NutritionDisplayProps {
   result: AnalyzeFoodPhotoOutput;
@@ -352,7 +371,7 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
     radial-gradient(
       circle at ${spotlightX}% ${spotlightY}%,
       ${colorHex}15 0%,
-      ${colorHex}05 25%,
+      ${colorHex}05 30%,
       transparent 50%
     )
   `;
@@ -377,183 +396,104 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
           duration: 2
         }
       }}
-      className="relative rounded-xl overflow-hidden backdrop-blur-md p-4 border border-border/30"
+      className="relative rounded-xl overflow-hidden backdrop-blur-sm p-4 border border-border/30"
       style={{
         background: 'var(--bg-card)',
         boxShadow: highlight 
-          ? `0 0 20px ${colorHex}40, inset 0 0 10px ${colorHex}10` 
-          : `0 4px 15px rgba(0, 0, 0, 0.05)`
+          ? `0 0 15px ${colorHex}30` 
+          : `0 8px 20px -5px rgba(0, 0, 0, 0.05)`
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
       whileHover={{ 
-        y: -5, 
-        boxShadow: `0 10px 30px -5px ${colorHex}30`,
+        y: -3, 
+        boxShadow: `0 10px 25px -5px ${colorHex}20, 0 4px 10px rgba(0, 0, 0, 0.03)`,
         transition: { duration: 0.2 }
       }}
     >
+      {/* Subtle spotlight effect */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         style={{ background: spotlightBackground, opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.3 }}
       />
       
-      <div 
-        className="absolute inset-0 opacity-10" 
-        style={{ 
-          background: `radial-gradient(circle at 50% 0%, ${colorHex}, transparent 70%)`
-        }} 
-      />
-      
-      <motion.div 
-        className="absolute top-0 left-0 h-1.5 rounded-t-xl z-10" 
-        style={{ backgroundColor: colorHex }}
-        initial={{ width: 0 }}
-        animate={{ width: isHovered ? '100%' : '30%' }}
-        transition={{ duration: 0.4 }}
-      />
-      
-      <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 rounded-tl-md" 
-        style={{ borderColor: colorHex, opacity: isHovered ? 0.8 : 0.2 }}
-      />
-      <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 rounded-tr-md" 
-        style={{ borderColor: colorHex, opacity: isHovered ? 0.8 : 0.2 }}
-      />
-      <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 rounded-bl-md" 
-        style={{ borderColor: colorHex, opacity: isHovered ? 0.8 : 0.2 }}
-      />
-      <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 rounded-br-md" 
-        style={{ borderColor: colorHex, opacity: isHovered ? 0.8 : 0.2 }}
-      />
-
-      <div className="flex items-center justify-between mb-3 relative z-10">
-        <div className="flex items-center space-x-3">
-          <motion.div 
-            className={`p-2.5 rounded-lg ${bgColor} flex items-center justify-center shadow-inner relative`}
-            whileHover={{ rotate: [0, -10, 10, -5, 0] }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="absolute inset-0 rounded-lg opacity-20 bg-white dark:bg-black"></div>
-            <Icon className={`h-5 w-5 ${colorClass} relative z-10`} />
-            
-            <motion.div 
-              className="absolute inset-0 rounded-lg"
-              style={{ backgroundColor: colorHex }}
-              animate={{ 
-                opacity: [0.2, 0.4, 0.2],
-                scale: [0.8, 1.1, 0.8]
-              }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 3 + Math.random() 
-              }}
-            />
-          </motion.div>
-          <div>
-            <motion.span 
-              className="text-md font-medium block"
-              animate={{ opacity: isHovered ? 0.7 : 1 }}
-            >
-              {label}
-            </motion.span>
-            <motion.span
-              className="text-[10px] text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isHovered ? 0.8 : 0.6 }}
-            >
-              {showRadial ? 'Tap for details' : 'Contribution to Daily Goal'}
-            </motion.span>
-          </div>
-        </div>
-
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.3 + delay, type: "spring" }}
-          className="relative"
+      <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center relative z-10">
+        {/* Icon */}
+        <div 
+          className={`p-2.5 rounded-lg ${bgColor} flex items-center justify-center shadow-sm relative`}
         >
-          <div className="absolute inset-0 rounded-full blur-md opacity-20"
-            style={{ backgroundColor: colorHex }}
-          />
-          <motion.div
-            className="bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full border border-border/40 shadow-md relative z-10"
-            whileHover={{ scale: 1.05 }}
-          >
-            <span className="font-semibold">{value}</span>
-            {unit && <span className="text-xs text-muted-foreground ml-1">{unit}</span>}
-          </motion.div>
-        </motion.div>
+          <Icon className={`h-5 w-5 ${colorClass}`} />
+        </div>
+        
+        {/* Label and description */}
+        <div>
+          <span className="text-base font-medium block">
+            {label}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {percentage > 0 
+              ? percentage > 100 
+                ? <span className="flex items-center text-amber-500 font-medium">
+                    <AlertCircle className="h-3 w-3 mr-1" /> We've exceeded daily goal
+                  </span> 
+                : `${Math.round(percentage)}% of daily goal`
+              : 'No goal set'}
+          </span>
+        </div>
+        
+        {/* Value */}
+        <div className={`bg-background/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border ${percentage > 100 ? 'border-amber-300/50' : 'border-border/20'} shadow-sm`}>
+          <span className={`font-semibold text-lg ${percentage > 100 ? 'text-amber-500' : ''}`}>{value}</span>
+          {unit && <span className="text-xs text-muted-foreground ml-1">{unit}</span>}
+        </div>
       </div>
 
-      {percentage > 0 && (
-        <div className="mt-2 relative z-10">
-          <div className="flex justify-between items-center mb-1.5">
-            {showRadial ? (
-              <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-3">
-                <RadialProgress 
-                  percentage={percentage}
-                  color={colorHex}
-                  delay={delay}
-                  label={radialLabel}
-                />
-                <span className="text-xs font-medium text-muted-foreground opacity-70">of your daily goal</span>
-              </div>
-            ) : (
-              <>
-                <span className="text-xs text-muted-foreground">Daily Goal Progress</span>
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 + delay }}
-                  className="font-medium text-xs"
-                >
-                  {Math.round(percentage)}%
-                </motion.span>
-              </>
+      {/* Progress bar */}
+      {percentage > 0 && !showRadial && (
+        <div className="mt-3 pt-3 border-t border-border/20 relative z-10">
+          <div className="relative h-2 rounded-full bg-muted/30 overflow-hidden">
+            <motion.div 
+              className={`absolute top-0 left-0 h-full rounded-full ${percentage > 100 ? 'bg-amber-500' : ''}`}
+              style={{ 
+                width: percentage > 100 ? '100%' : `${percentage}%`, 
+                backgroundColor: percentage > 100 ? undefined : colorHex 
+              }}
+              initial={{ width: 0 }}
+              animate={{ width: percentage > 100 ? '100%' : `${percentage}%` }}
+              transition={{ delay: 0.2 + delay, duration: 0.6, ease: "easeOut" }}
+            />
+            
+            {percentage > 100 && (
+              <motion.div
+                className="absolute top-0 right-0 h-full w-2 bg-amber-500 rounded-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+              />
             )}
           </div>
           
-          {!showRadial && (
-            <motion.div
-              initial={{ scaleX: 0, originX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.2 + delay, duration: 0.8, ease: "easeOut" }}
-            >
-              <div className="relative">
-                <Progress 
-                  value={percentage} 
-                  className={`h-2.5 rounded-full bg-muted/50 [&>div]:${colorClass}`} 
-                />
-                
-                <motion.div 
-                  className="absolute top-0 left-0 h-full rounded-full blur-md"
-                  style={{ 
-                    width: `${percentage}%`, 
-                    backgroundColor: colorHex,
-                    opacity: isHovered ? 0.5 : 0
-                  }}
-                  animate={{ opacity: isHovered ? 0.5 : 0 }}
-                />
-                
-                <motion.div
-                  className="absolute top-50% w-3 h-3 rounded-full translate-y-[-50%] z-10"
-                  style={{ 
-                    left: `calc(${percentage}% - 6px)`, 
-                    backgroundColor: colorHex,
-                    boxShadow: `0 0 10px ${colorHex}`
-                  }}
-                  animate={{
-                    scale: isHovered ? [1, 1.2, 1] : 1,
-                  }}
-                  transition={{
-                    repeat: isHovered ? Infinity : 0,
-                    duration: 2
-                  }}
-                />
-              </div>
-            </motion.div>
+          {percentage > 100 && (
+            <div className="mt-1 text-right">
+              <span className="text-xs text-amber-500">We're {Math.round(percentage - 100)}% over our limit</span>
+            </div>
           )}
+        </div>
+      )}
+      
+      {/* Radial display if needed */}
+      {percentage > 0 && showRadial && (
+        <div className="mt-3 pt-3 border-t border-border/20 flex justify-center">
+          <RadialProgress 
+            percentage={percentage}
+            color={colorHex}
+            size={60}
+            strokeWidth={6}
+            delay={delay}
+            label={radialLabel}
+          />
   </div>
       )}
     </motion.div>
@@ -636,23 +576,22 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
   const { calorieEstimate, proteinEstimate, fatEstimate, carbEstimate } = result;
 
   const caloriePercentage = (goals && goals.calories > 0) 
-    ? Math.min(100, (calorieEstimate / goals.calories) * 100) 
+    ? (calorieEstimate / goals.calories) * 100 
     : 0;
   const proteinPercentage = (goals && goals.protein > 0) 
-    ? Math.min(100, (proteinEstimate / goals.protein) * 100) 
+    ? (proteinEstimate / goals.protein) * 100 
     : 0;
   const fatPercentage = (goals && goals.fat > 0) 
-    ? Math.min(100, (fatEstimate / goals.fat) * 100) 
+    ? (fatEstimate / goals.fat) * 100 
     : 0;
-  const carbPercentage = (goals && goals.carb > 0) 
-    ? Math.min(100, (carbEstimate / goals.carb) * 100) 
+  const carbPercentage = (goals && goals.carbs > 0) 
+    ? (carbEstimate / goals.carbs) * 100 
     : 0;
   
   const totalMacrosForRadial = proteinEstimate + fatEstimate + carbEstimate;
   const proteinRadialPercentage = totalMacrosForRadial > 0 ? (proteinEstimate / totalMacrosForRadial) * 100 : 0;
   const fatRadialPercentage = totalMacrosForRadial > 0 ? (fatEstimate / totalMacrosForRadial) * 100 : 0;
   const carbRadialPercentage = totalMacrosForRadial > 0 ? (carbEstimate / totalMacrosForRadial) * 100 : 0;
-
 
   return (
     <motion.div
@@ -739,11 +678,26 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                           key={calorieEstimate}
                           initial={{ y: 20, opacity: 0 }} 
                           animate={{ y: 0, opacity: 1 }}
-                          className="text-2xl font-bold text-red-500"
+                          className={`text-2xl font-bold ${caloriePercentage > 100 ? 'text-amber-500' : 'text-red-500'}`}
                         >
                           {calorieEstimate.toLocaleString()}
                         </motion.p>
                         <span className="text-xs font-normal ml-0.5 text-muted-foreground">kcal</span>
+                        
+                        {caloriePercentage > 100 && goals && (
+                          <motion.div
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="ml-2 flex items-center"
+                          >
+                            <Badge variant="outline" className="bg-amber-100/30 text-amber-500 border-amber-200/50 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              <span className="text-[10px]">
+                                +{Math.round(calorieEstimate - goals.calories)} kcal
+                              </span>
+                            </Badge>
+                          </motion.div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -824,42 +778,361 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-muted/30 rounded-lg p-4 border border-border/50 mb-4"
+                    className="bg-muted/30 rounded-lg p-4 border border-border/50 mb-4 shadow-sm"
                   >
                     <h3 className="text-sm font-medium mb-3 flex items-center">
                       <Activity className="h-4 w-4 mr-2 text-primary/70" />
-                      Macronutrient Distribution (of this meal)
+                      Macronutrient Distribution
                     </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={proteinRadialPercentage} 
-                          color="#3b82f6" 
-                          size={70}
-                          delay={0.3}
-                          label="Protein"
+                    
+                    <div className="grid md:grid-cols-[1fr_2fr] gap-4 items-center">
+                      {/* Doughnut Chart */}
+                      <div className="relative mx-auto w-44 h-44">
+                        {/* Base glow effect */}
+                        <div 
+                          className="absolute inset-0 rounded-full blur-xl opacity-20"
+                          style={{
+                            background: selectedNutrient 
+                              ? selectedNutrient === 'protein' 
+                                ? 'radial-gradient(circle, rgba(59, 130, 246, 0.8) 0%, transparent 70%)' 
+                                : selectedNutrient === 'fat'
+                                  ? 'radial-gradient(circle, rgba(234, 179, 8, 0.8) 0%, transparent 70%)'
+                                  : 'radial-gradient(circle, rgba(16, 185, 129, 0.8) 0%, transparent 70%)'
+                              : 'none'
+                          }}
                         />
-                        <p className="text-xs font-medium mt-2 text-blue-500">{proteinEstimate.toFixed(1)}g</p>
+                        
+                        <svg viewBox="0 0 100 100" className="w-full h-full relative z-10">
+                          {/* Background circle with subtle gradient */}
+                          <defs>
+                            <radialGradient id="chartBg" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                              <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.05" />
+                              <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.15" />
+                            </radialGradient>
+                          </defs>
+                          <circle cx="50" cy="50" r="40" fill="transparent" stroke="url(#chartBg)" strokeWidth="12" />
+                          
+                          {/* Calculate stroke dash offsets based on percentages */}
+                          {totalMacrosForRadial > 0 && (
+                            <>
+                              {/* Filter for protein glow */}
+                              <defs>
+                                <filter id="proteinGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                  <feGaussianBlur stdDeviation="2" result="blur" />
+                                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                                <filter id="fatGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                  <feGaussianBlur stdDeviation="2" result="blur" />
+                                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                                <filter id="carbGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                  <feGaussianBlur stdDeviation="2" result="blur" />
+                                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                                <linearGradient id="proteinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                  <stop offset="0%" stopColor="#60a5fa" />
+                                  <stop offset="100%" stopColor="#3b82f6" />
+                                </linearGradient>
+                                <linearGradient id="fatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                  <stop offset="0%" stopColor="#fcd34d" />
+                                  <stop offset="100%" stopColor="#eab308" />
+                                </linearGradient>
+                                <linearGradient id="carbGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                  <stop offset="0%" stopColor="#34d399" />
+                                  <stop offset="100%" stopColor="#10b981" />
+                                </linearGradient>
+                              </defs>
+                            
+                              {/* Protein segment - Blue */}
+                              <motion.circle 
+                                cx="50" 
+                                cy="50" 
+                                r="40" 
+                                fill="transparent" 
+                                stroke="url(#proteinGradient)" 
+                                strokeWidth="12"
+                                strokeDasharray={`${proteinRadialPercentage * 2.51} ${(100 - proteinRadialPercentage) * 2.51}`}
+                                strokeDashoffset="0"
+                                transform="rotate(-90 50 50)"
+                                initial={{ filter: "none" }}
+                                whileHover={{ 
+                                  r: [40, 42, 41], 
+                                  strokeWidth: [12, 15, 13],
+                                  filter: "url(#proteinGlow)"
+                                }}
+                                animate={{ 
+                                  filter: selectedNutrient === 'protein' ? "url(#proteinGlow)" : "none",
+                                  strokeWidth: selectedNutrient === 'protein' ? 15 : 12,
+                                  r: selectedNutrient === 'protein' ? 41 : 40
+                                }}
+                                transition={{ 
+                                  duration: 0.5, 
+                                  r: { type: "spring", stiffness: 300, damping: 15 },
+                                  strokeWidth: { type: "spring", stiffness: 300, damping: 15 }
+                                }}
+                                className="cursor-pointer"
+                                onMouseEnter={() => setSelectedNutrient('protein')}
+                                onMouseLeave={() => setSelectedNutrient(null)}
+                              />
+                              
+                              {/* Fat segment - Yellow */}
+                              <motion.circle 
+                                cx="50" 
+                                cy="50" 
+                                r="40" 
+                                fill="transparent" 
+                                stroke="url(#fatGradient)" 
+                                strokeWidth="12"
+                                strokeDasharray={`${fatRadialPercentage * 2.51} ${(100 - fatRadialPercentage) * 2.51}`}
+                                strokeDashoffset={`${-proteinRadialPercentage * 2.51}`}
+                                transform="rotate(-90 50 50)"
+                                initial={{ filter: "none" }}
+                                whileHover={{ 
+                                  r: [40, 42, 41], 
+                                  strokeWidth: [12, 15, 13],
+                                  filter: "url(#fatGlow)"
+                                }}
+                                animate={{ 
+                                  filter: selectedNutrient === 'fat' ? "url(#fatGlow)" : "none",
+                                  strokeWidth: selectedNutrient === 'fat' ? 15 : 12,
+                                  r: selectedNutrient === 'fat' ? 41 : 40
+                                }}
+                                transition={{ 
+                                  duration: 0.5, 
+                                  r: { type: "spring", stiffness: 300, damping: 15 },
+                                  strokeWidth: { type: "spring", stiffness: 300, damping: 15 }
+                                }}
+                                className="cursor-pointer"
+                                onMouseEnter={() => setSelectedNutrient('fat')}
+                                onMouseLeave={() => setSelectedNutrient(null)}
+                              />
+                              
+                              {/* Carbs segment - Green */}
+                              <motion.circle 
+                                cx="50" 
+                                cy="50" 
+                                r="40" 
+                                fill="transparent" 
+                                stroke="url(#carbGradient)" 
+                                strokeWidth="12"
+                                strokeDasharray={`${carbRadialPercentage * 2.51} ${(100 - carbRadialPercentage) * 2.51}`}
+                                strokeDashoffset={`${-(proteinRadialPercentage + fatRadialPercentage) * 2.51}`}
+                                transform="rotate(-90 50 50)"
+                                initial={{ filter: "none" }}
+                                whileHover={{ 
+                                  r: [40, 42, 41], 
+                                  strokeWidth: [12, 15, 13],
+                                  filter: "url(#carbGlow)"
+                                }}
+                                animate={{ 
+                                  filter: selectedNutrient === 'carbs' ? "url(#carbGlow)" : "none",
+                                  strokeWidth: selectedNutrient === 'carbs' ? 15 : 12,
+                                  r: selectedNutrient === 'carbs' ? 41 : 40
+                                }}
+                                transition={{ 
+                                  duration: 0.5, 
+                                  r: { type: "spring", stiffness: 300, damping: 15 },
+                                  strokeWidth: { type: "spring", stiffness: 300, damping: 15 }
+                                }}
+                                className="cursor-pointer"
+                                onMouseEnter={() => setSelectedNutrient('carbs')}
+                                onMouseLeave={() => setSelectedNutrient(null)}
+                              />
+                              
+                              {/* Center content with animation */}
+                              <motion.g
+                                initial={{ opacity: 1, scale: 1 }}
+                                animate={{ 
+                                  opacity: selectedNutrient ? 0.8 : 1,
+                                  scale: selectedNutrient ? 0.92 : 1,
+                                  y: selectedNutrient ? 2 : 0
+                                }}
+                                transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
+                              >
+                                <circle
+                                  cx="50"
+                                  cy="50"
+                                  r="30"
+                                  fill="hsl(var(--card))"
+                                  className="opacity-80"
+                                />
+                                <text 
+                                  x="50" 
+                                  y="45" 
+                                  textAnchor="middle" 
+                                  className="text-lg font-semibold fill-foreground"
+                                >
+                                  {Math.round(totalMacrosForRadial)}g
+                                </text>
+                                <text 
+                                  x="50" 
+                                  y="58" 
+                                  textAnchor="middle" 
+                                  className="text-xs fill-muted-foreground"
+                                >
+                                  Total
+                                </text>
+                              </motion.g>
+                              
+                              {/* Highlight animation for selected nutrient */}
+                              {selectedNutrient && (
+                                <motion.circle
+                                  cx="50"
+                                  cy="50"
+                                  r="50"
+                                  initial={{ opacity: 0 }}
+                                  animate={{ 
+                                    opacity: [0, 0.2, 0],
+                                    scale: [0.8, 1.1, 0.8]
+                                  }}
+                                  transition={{
+                                    repeat: Infinity,
+                                    duration: 2,
+                                  }}
+                                  fill="none"
+                                  stroke={selectedNutrient === 'protein' 
+                                    ? "#3b82f6" 
+                                    : selectedNutrient === 'fat' 
+                                      ? "#eab308" 
+                                      : "#10b981"}
+                                  strokeWidth="1"
+                                />
+                              )}
+                            </>
+                          )}
+                        </svg>
                       </div>
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={fatRadialPercentage} 
-                          color="#eab308" 
-                          size={70}
-                          delay={0.4}
-                          label="Fat"
-                        />
-                        <p className="text-xs font-medium mt-2 text-yellow-500">{fatEstimate.toFixed(1)}g</p>
-                      </div>
-                      <div className="flex flex-col items-center">
-                        <RadialProgress 
-                          percentage={carbRadialPercentage} 
-                          color="#10b981" 
-                          size={70}
-                          delay={0.5}
-                          label="Carbs"
-                        />
-                        <p className="text-xs font-medium mt-2 text-green-500">{carbEstimate.toFixed(1)}g</p>
+                      
+                      {/* Legend and percentage details */}
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-3">
+                          <motion.div 
+                            className="flex items-center justify-between py-1.5 px-2 rounded-md transition-colors"
+                            animate={{ 
+                              backgroundColor: selectedNutrient === 'protein' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                            }}
+                            whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+                            onMouseEnter={() => setSelectedNutrient('protein')}
+                            onMouseLeave={() => setSelectedNutrient(null)}
+                          >
+                            <div className="flex items-center">
+                              <motion.div 
+                                className="w-3 h-3 rounded-full bg-blue-500 mr-2"
+                                animate={{ 
+                                  scale: selectedNutrient === 'protein' ? [1, 1.2, 1] : 1,
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'protein' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              />
+                              <span className="text-sm">Protein</span>
+                            </div>
+                            <div className="flex space-x-3 items-center">
+                              <span className="font-medium">{proteinEstimate.toFixed(1)}g</span>
+                              <motion.div 
+                                className="text-blue-500 font-semibold text-sm px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 rounded-md min-w-[40px] text-center"
+                                animate={{ 
+                                  scale: selectedNutrient === 'protein' ? [1, 1.08, 1] : 1,
+                                  backgroundColor: selectedNutrient === 'protein' ? ['rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0.2)'] : 'rgba(59, 130, 246, 0.1)'
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'protein' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              >
+                                {Math.round(proteinRadialPercentage)}%
+                              </motion.div>
+                            </div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            className="flex items-center justify-between py-1.5 px-2 rounded-md transition-colors"
+                            animate={{ 
+                              backgroundColor: selectedNutrient === 'fat' ? 'rgba(234, 179, 8, 0.1)' : 'transparent',
+                            }}
+                            whileHover={{ backgroundColor: 'rgba(234, 179, 8, 0.1)' }}
+                            onMouseEnter={() => setSelectedNutrient('fat')}
+                            onMouseLeave={() => setSelectedNutrient(null)}
+                          >
+                            <div className="flex items-center">
+                              <motion.div 
+                                className="w-3 h-3 rounded-full bg-yellow-500 mr-2"
+                                animate={{ 
+                                  scale: selectedNutrient === 'fat' ? [1, 1.2, 1] : 1,
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'fat' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              />
+                              <span className="text-sm">Fat</span>
+                            </div>
+                            <div className="flex space-x-3 items-center">
+                              <span className="font-medium">{fatEstimate.toFixed(1)}g</span>
+                              <motion.div 
+                                className="text-yellow-500 font-semibold text-sm px-2 py-0.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-md min-w-[40px] text-center"
+                                animate={{ 
+                                  scale: selectedNutrient === 'fat' ? [1, 1.08, 1] : 1,
+                                  backgroundColor: selectedNutrient === 'fat' ? ['rgba(234, 179, 8, 0.2)', 'rgba(234, 179, 8, 0.3)', 'rgba(234, 179, 8, 0.2)'] : 'rgba(234, 179, 8, 0.1)'
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'fat' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              >
+                                {Math.round(fatRadialPercentage)}%
+                              </motion.div>
+                            </div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            className="flex items-center justify-between py-1.5 px-2 rounded-md transition-colors"
+                            animate={{ 
+                              backgroundColor: selectedNutrient === 'carbs' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                            }}
+                            whileHover={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
+                            onMouseEnter={() => setSelectedNutrient('carbs')}
+                            onMouseLeave={() => setSelectedNutrient(null)}
+                          >
+                            <div className="flex items-center">
+                              <motion.div 
+                                className="w-3 h-3 rounded-full bg-green-500 mr-2"
+                                animate={{ 
+                                  scale: selectedNutrient === 'carbs' ? [1, 1.2, 1] : 1,
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'carbs' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              />
+                              <span className="text-sm">Carbs</span>
+                            </div>
+                            <div className="flex space-x-3 items-center">
+                              <span className="font-medium">{carbEstimate.toFixed(1)}g</span>
+                              <motion.div 
+                                className="text-green-500 font-semibold text-sm px-2 py-0.5 bg-green-50 dark:bg-green-900/20 rounded-md min-w-[40px] text-center"
+                                animate={{ 
+                                  scale: selectedNutrient === 'carbs' ? [1, 1.08, 1] : 1,
+                                  backgroundColor: selectedNutrient === 'carbs' ? ['rgba(16, 185, 129, 0.2)', 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.2)'] : 'rgba(16, 185, 129, 0.1)'
+                                }}
+                                transition={{ 
+                                  repeat: selectedNutrient === 'carbs' ? Infinity : 0,
+                                  duration: 2
+                                }}
+                              >
+                                {Math.round(carbRadialPercentage)}%
+                              </motion.div>
+                            </div>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/30">
+                          <div className="flex justify-between items-center">
+                            <span>Calculated by weight</span>
+                            <span>{Math.round(totalMacrosForRadial)}g total</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -1014,7 +1287,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         {Math.round(caloriePercentage)}% <span className="text-xs text-muted-foreground">of daily</span>
                       </p>
                     </div>
-                  </div>
+          </div>
                 </motion.div>
               )}
               
@@ -1025,61 +1298,172 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="relative h-48 mb-8"
+                  className="relative h-auto mb-8"
                 >
-                  <div className="absolute inset-0 bg-muted/30 rounded-lg overflow-hidden backdrop-blur-sm border border-border/30">
-                    <div className="absolute left-0 bottom-0 right-0 h-[1px] bg-border/60"></div>
-                    <div className="absolute top-0 bottom-0 left-0 w-[1px] bg-border/60"></div>
-                    
-                    <div className="absolute inset-0" style={{ 
-                      backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)',
-                      backgroundSize: '20px 20px',
-                      opacity: 0.1
-                    }}></div>
-                    
-                    <motion.div 
-                      className="absolute bottom-0 left-[20%] w-[15%] bg-blue-500 rounded-t-lg"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${proteinRadialPercentage}%` }}
-                      transition={{ duration: 1, delay: 0.3 }}
-                    >
-                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-blue-500 font-medium">{proteinEstimate.toFixed(1)}g</span>
+                  <div className="grid grid-cols-1 gap-6">
+                    {/* Bar Chart for Macronutrients */}
+                    <div className="bg-muted/30 rounded-lg overflow-hidden backdrop-blur-sm border border-border/30 p-4">
+                      <h3 className="text-sm font-medium mb-4 flex items-center">
+                        <Activity className="h-4 w-4 mr-2 text-primary/70" />
+                        Macronutrient Breakdown
+                      </h3>
+                      
+                      <div className="h-60 relative">
+                        <Bar
+                          data={{
+                            labels: ['Protein', 'Fat', 'Carbs'],
+                            datasets: [
+                              {
+                                label: 'Current Meal (g)',
+                                data: [proteinEstimate, fatEstimate, carbEstimate],
+                                backgroundColor: [
+                                  'rgba(59, 130, 246, 0.7)', // Blue for protein
+                                  'rgba(234, 179, 8, 0.7)',  // Yellow for fat
+                                  'rgba(16, 185, 129, 0.7)'  // Green for carbs
+                                ],
+                                borderColor: [
+                                  'rgb(59, 130, 246)',
+                                  'rgb(234, 179, 8)',
+                                  'rgb(16, 185, 129)'
+                                ],
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                hoverBackgroundColor: [
+                                  'rgba(59, 130, 246, 0.9)',
+                                  'rgba(234, 179, 8, 0.9)',
+                                  'rgba(16, 185, 129, 0.9)'
+                                ],
+                              },
+                              {
+                                label: 'Daily Goal (g)',
+                                data: [
+                                  goals && goals.protein > 0 ? goals.protein : 50,
+                                  goals && goals.fat > 0 ? goals.fat : 30,
+                                  goals && goals.carbs > 0 ? goals.carbs : 150
+                                ],
+                                backgroundColor: [
+                                  'rgba(59, 130, 246, 0.2)',
+                                  'rgba(234, 179, 8, 0.2)',
+                                  'rgba(16, 185, 129, 0.2)'
+                                ],
+                                borderColor: [
+                                  'rgba(59, 130, 246, 0.6)',
+                                  'rgba(234, 179, 8, 0.6)',
+                                  'rgba(16, 185, 129, 0.6)'
+                                ],
+                                borderWidth: 1,
+                                borderRadius: 6,
+                              }
+                            ],
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: 'y',
+                            plugins: {
+                              legend: {
+                                position: 'top',
+                                labels: {
+                                  boxWidth: 12,
+                                  usePointStyle: true,
+                                  pointStyle: 'rectRounded',
+                                },
+                              },
+                              tooltip: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: true,
+                                boxPadding: 6,
+                                usePointStyle: true,
+                              },
+                            },
+                            scales: {
+                              y: {
+                                grid: {
+                                  display: false,
+                                },
+                                ticks: {
+                                  font: {
+                                    size: 12,
+                                    weight: 500,
+                                  },
+                                },
+                              },
+                              x: {
+                                beginAtZero: true,
+                                grid: {
+                                  color: 'rgba(107, 114, 128, 0.1)',
+                                },
+                                ticks: {
+                                  font: {
+                                    size: 11,
+                                  },
+                                },
+                              },
+                            },
+                            animation: {
+                              duration: 1000,
+                              easing: 'easeOutQuart',
+                            },
+                          }}
+                        />
                       </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="absolute bottom-0 left-[45%] w-[15%] bg-yellow-500 rounded-t-lg"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${fatRadialPercentage}%` }}
-                      transition={{ duration: 1, delay: 0.5 }}
-                    >
-                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-yellow-500 font-medium">{fatEstimate.toFixed(1)}g</span>
+                      
+                      <div className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/30">
+                        <div className="flex justify-between items-center">
+                          <span>Showing comparison to daily goals</span>
+                          <span>Hover for detailed values</span>
+                        </div>
                       </div>
-                    </motion.div>
+                    </div>
                     
-                    <motion.div 
-                      className="absolute bottom-0 left-[70%] w-[15%] bg-green-500 rounded-t-lg"
-                      initial={{ height: 0 }}
-                      animate={{ height: `${carbRadialPercentage}%` }}
-                      transition={{ duration: 1, delay: 0.7 }}
-                    >
-                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                        <span className="text-xs text-green-500 font-medium">{carbEstimate.toFixed(1)}g</span>
+                    {/* Daily nutritional summary */}
+                    <div className="bg-muted/30 rounded-lg overflow-hidden backdrop-blur-sm border border-border/30 p-4">
+                      <h3 className="text-sm font-medium mb-3 flex items-center">
+                        <Flame className="h-4 w-4 mr-2 text-red-500/70" />
+                        Calories Summary
+                      </h3>
+                      
+                      <div className="mt-2 grid gap-4">
+                        <div className="flex items-center justify-between">
+        <div>
+                            <p className="text-sm font-medium">Current Meal</p>
+                            <p className="text-xs text-muted-foreground">Estimated calories</p>
+                          </div>
+                          <div className="bg-red-500/10 px-3 py-1.5 rounded-lg">
+                            <span className="text-lg font-semibold text-red-500">{calorieEstimate}</span>
+                            <span className="text-xs text-muted-foreground ml-1">kcal</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-3 bg-background/50 rounded-lg border border-border/30">
+                          <div className="flex justify-between text-xs mb-1.5">
+                            <span className="text-muted-foreground">Progress to daily goal</span>
+                            <span className="font-medium">
+                              {calorieEstimate} / {goals && goals.calories > 0 ? goals.calories : 2000} kcal
+                            </span>
+                          </div>
+                          <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-red-500 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ 
+                                width: `${Math.min(100, ((calorieEstimate) / (goals && goals.calories > 0 ? goals.calories : 2000)) * 100)}%` 
+                              }}
+                              transition={{ duration: 1, delay: 0.2 }}
+                            />
+                          </div>
+                          <div className="mt-2 text-xs text-right text-muted-foreground">
+                            {Math.round((calorieEstimate / (goals && goals.calories > 0 ? goals.calories : 2000)) * 100)}% of daily goal
+                          </div>
+                        </div>
                       </div>
-                    </motion.div>
-                    
-                    <div className="absolute bottom-2 left-[20%] transform -translate-x-1/2">
-                      <span className="text-xs text-muted-foreground">Protein</span>
                     </div>
-                    <div className="absolute bottom-2 left-[45%] transform -translate-x-1/2">
-                      <span className="text-xs text-muted-foreground">Fat</span>
-                    </div>
-                    <div className="absolute bottom-2 left-[70%] transform -translate-x-1/2">
-                      <span className="text-xs text-muted-foreground">Carbs</span>
-                    </div>
-          </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -1088,45 +1472,56 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, type: "spring" }}
-              className="mt-6 p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 backdrop-blur-md border border-border/30 shadow-md relative overflow-hidden"
-              whileHover={{ scale: 1.01 }}
+              className="mt-4 rounded-lg bg-background/70 backdrop-blur-sm border border-border/30 shadow-sm overflow-hidden"
+              whileHover={{ scale: 1.005 }}
             >
-              <div className="absolute inset-0 opacity-5">
-                <div className="absolute inset-0" style={{ 
-                  backgroundImage: 'radial-gradient(circle at 20px 20px, hsla(var(--primary-hsl),0.1) 2px, transparent 0)',
-                  backgroundSize: '20px 20px' 
-                }} />
-              </div>
-              
-              <div className="flex items-center mb-3">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-background/80 to-background/40 border border-border/20 shadow-inner mr-3">
-                  <List className="h-5 w-5 text-muted-foreground" />
+              <div className="flex items-center justify-between p-3 border-b border-border/20 bg-muted/30">
+                <div className="flex items-center">
+                  <Utensils className="h-4 w-4 text-primary/70 mr-2" />
+                  <h4 className="font-medium text-sm">Identified Dish(es)</h4>
                 </div>
-                <h4 className="font-medium text-foreground/90">Identified Dish(es)</h4>
+                {result.ingredients && result.ingredients.length > 0 && (
+                  <Badge variant="outline" className="text-xs px-2 py-0 h-5 bg-primary/5 text-primary">
+                    {result.ingredients.length} item{result.ingredients.length !== 1 ? 's' : ''}
+                  </Badge>
+                )}
           </div>
               
           {result.ingredients && result.ingredients.length > 0 ? (
-                <div className="flex flex-wrap gap-2.5">
+                <div className="p-3">
+                  <div className="flex flex-wrap gap-1.5">
               {result.ingredients.map((ingredient, index) => (
-                    <GlowingBadge
-                      key={index}
-                      delay={0.6 + index * 0.1}
-                      color={`rgba(${Math.round(Math.random()*50 + 100)}, ${Math.round(Math.random()*100 + 100)}, ${Math.round(Math.random()*150 + 50)}, 0.15)`}
-                      pulse={index === 0}
-                      icon={index === 0 ? <Utensils className="h-3 w-3" /> : null}
-                    >
+                      <Badge 
+                        key={index}
+                        variant="outline" 
+                        className="bg-background/80 text-xs px-2 py-0.5 h-6 transition-colors hover:bg-primary/5"
+                      >
+                        {index < 3 && (
+                          <span className="mr-1 opacity-70">
+                            {index === 0 ? (
+                              <Utensils className="h-3 w-3 inline-block" />
+                            ) : index === 1 ? (
+                              <Flame className="h-3 w-3 inline-block" />
+                            ) : (
+                              <Drumstick className="h-3 w-3 inline-block" />
+                            )}
+                          </span>
+                        )}
                   {ingredient}
-                    </GlowingBadge>
+                </Badge>
               ))}
+                  </div>
+                  
+                  <div className="mt-2 flex justify-end items-center text-xs text-muted-foreground">
+                    <Info className="h-3 w-3 mr-1 inline-block" /> 
+                    <span>AI-powered recognition</span>
+                  </div>
             </div>
           ) : (
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-sm text-muted-foreground"
-                >
-                  No specific dish identified.
-                </motion.p>
+                <div className="p-4 flex items-center justify-center text-xs text-muted-foreground">
+                  <Orbit className="h-3.5 w-3.5 mr-1.5" />
+                  <span>No specific dish identified</span>
+                </div>
               )}
             </motion.div>
           </CardContent>
@@ -1212,4 +1607,3 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
     </motion.div>
   );
 }
-    

@@ -27,12 +27,12 @@ import {
   ArrowRight,
   Loader2,
 } from "lucide-react";
-import { useState, type FC, useEffect, ReactNode } from "react";
-import type { FoodEntry as LoggedFoodEntry, BlogPost } from "@/types";
+import { useState, type FC, useEffect, ReactNode, useMemo } from "react";
+import type { FoodEntry as LoggedFoodEntry, BlogPost, DailyLogEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { format, isToday } from "date-fns";
+import { format, isToday, subDays } from "date-fns";
 import Image from "next/image";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipProps } from 'recharts';
 import { Calendar } from "@/components/ui/calendar";
@@ -40,6 +40,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import React from "react"; // Added React import for React.memo
 import dynamic from "next/dynamic"; // Added dynamic import
+import { resetOnboarding } from "@/lib/onboarding";
 
 // Dynamically import CalorieDonutChart
 const CalorieDonutChart = dynamic(
@@ -55,6 +56,22 @@ const CalorieDonutChart = dynamic(
   }
 );
 
+// Dynamically import SmartInsights
+const SmartInsights = dynamic(
+  () => import('@/components/dashboard/smart-insights'),
+  { 
+    ssr: false,
+    loading: () => (
+      <Card className="shadow-lg rounded-xl overflow-hidden">
+        <CardContent className="p-5 space-y-4">
+          <div className="h-6 w-40 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-full bg-muted animate-pulse rounded" />
+          <div className="h-4 w-3/4 bg-muted animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    )
+  }
+);
 
 interface MealCardProps {
   id: string;
@@ -246,12 +263,34 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
 };
 
 export default function DashboardPage() {
-  const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog } = useDailyLog();
+  const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog, getLogDataForDate } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [showAllMeals, setShowAllMeals] = useState(false);
 
+  // Fetch previous logs for Smart Insights (last 14 days)
+  const [previousLogs, setPreviousLogs] = useState<DailyLogEntry[]>([]);
+  const [isPreviousLogsLoading, setIsPreviousLogsLoading] = useState(true);
+
+  useEffect(() => {
+    if (currentSelectedDate) {
+      setIsPreviousLogsLoading(true);
+      const logs: DailyLogEntry[] = [];
+      
+      // Get logs from the last 14 days
+      for (let i = 1; i <= 14; i++) {
+        const date = subDays(new Date(), i);
+        const { summary } = getLogDataForDate(date);
+        if (summary) {
+          logs.push(summary);
+        }
+      }
+      
+      setPreviousLogs(logs);
+      setIsPreviousLogsLoading(false);
+    }
+  }, [currentSelectedDate, getLogDataForDate]);
 
   const consumedCalories = dailyLog?.calories ?? 0;
   const goalCalories = goals?.calories ?? 0;
@@ -299,6 +338,19 @@ export default function DashboardPage() {
   const isDataLoading = isLoadingLog || isLoadingGoals || isLoadingProfile;
 
   const displayedFoodEntries = showAllMeals ? foodEntries : foodEntries.slice(0, 3);
+
+  // Development tools
+  const [showDevTools, setShowDevTools] = useState(false);
+
+  const { toast } = useToast();
+
+  const handleResetOnboarding = () => {
+    resetOnboarding();
+    toast({
+      title: "Onboarding Reset",
+      description: "Refresh the page to start onboarding",
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-3xl mx-auto">
@@ -598,26 +650,17 @@ export default function DashboardPage() {
           <Lightbulb className="h-5 w-5 text-yellow-500" />
           <h2 className="text-xl font-semibold">Smart Insights</h2>
         </div>
-        <Card
-            className="shadow-lg p-5 rounded-xl"
-            style={{ background: 'linear-gradient(100deg, hsl(180, 80%, 95%) 0%, hsl(200, 80%, 95%) 100%)' }}
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-semibold text-green-700">
-                You're <span className="font-bold">on track</span> for{" "}
-                {currentSelectedDate
-                  ? isToday(currentSelectedDate)
-                    ? "today"
-                    : format(currentSelectedDate, "MMM d")
-                  : "today"}!
-                </h3>
-              <p className="text-xs text-muted-foreground">Keep up the balanced meals for better results.</p>
-            </div>
-            <TrendingUp className="h-7 w-7 text-green-600" />
-          </div>
-        </Card>
+        <SmartInsights 
+          goals={goals}
+          dailyLog={dailyLog}
+          currentSelectedDate={currentSelectedDate}
+          previousLogs={previousLogs}
+          loading={isDataLoading || isPreviousLogsLoading}
+        />
       </div>
+
+      {/* Development tools */}
+      
     </div>
   );
 }
