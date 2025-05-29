@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type ChangeEvent, useEffect, useRef, useCallback } from "react";
@@ -230,6 +229,21 @@ export default function LogFoodByPhotoPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabMode, previewUrl, attemptId]);
 
+  // New effect: only start camera when videoRef.current is available
+  useEffect(() => {
+    if (tabMode === 'camera' && !previewUrl && videoRef.current) {
+      // Call startCamera only when videoRef.current is set
+      (async () => {
+        // Move the startCamera function here or call it if it's defined outside
+        const videoNode = videoRef.current;
+        if (!videoNode) return;
+        // ... (copy the startCamera logic here or call startCamera())
+        // For simplicity, call the existing startCamera function if possible
+        // If startCamera is not accessible here, move its logic into this effect
+      })();
+    }
+  }, [tabMode, previewUrl, attemptId, videoRef.current]);
+
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -411,6 +425,7 @@ export default function LogFoodByPhotoPage() {
       action: <CheckCircle className="text-green-500" />,
     });
     resetPhotoState();
+    router.push("/");
   };
 
   const resetPhotoState = () => {

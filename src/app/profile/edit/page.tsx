@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
@@ -10,22 +9,29 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Save, User, Mail, ArrowLeft, UploadCloud } from "lucide-react";
+import { Save, User, Mail, ArrowLeft, UploadCloud, Ruler, Weight, Calendar } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import type { UserProfile } from "@/types";
 
-const DEFAULT_USER_PROFILE: UserProfile = {
+// Define a complete user profile type with required height and weight
+const DEFAULT_USER_PROFILE = {
   name: "Alex Johnson",
   email: "alex.johnson@example.com",
   avatarUrl: "https://placehold.co/120x120.png",
+  height: 170, // Default height in cm
+  weight: 70,  // Default weight in kg
+  age: 30,     // Default age
 };
 
 export default function EditProfilePage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(DEFAULT_USER_PROFILE.avatarUrl);
+  const [name, setName] = useState(DEFAULT_USER_PROFILE.name);
+  const [email, setEmail] = useState(DEFAULT_USER_PROFILE.email);
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_USER_PROFILE.avatarUrl);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [height, setHeight] = useState(DEFAULT_USER_PROFILE.height);
+  const [weight, setWeight] = useState(DEFAULT_USER_PROFILE.weight);
+  const [age, setAge] = useState(DEFAULT_USER_PROFILE.age);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -34,23 +40,17 @@ export default function EditProfilePage() {
     const storedProfile = localStorage.getItem("userProfile");
     if (storedProfile) {
       try {
-        const profile: UserProfile = JSON.parse(storedProfile);
+        const profile = JSON.parse(storedProfile) as UserProfile;
         setName(profile.name);
         setEmail(profile.email);
         setAvatarUrl(profile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl);
         setImagePreview(profile.avatarUrl || null);
+        setHeight(profile.height ?? DEFAULT_USER_PROFILE.height);
+        setWeight(profile.weight ?? DEFAULT_USER_PROFILE.weight);
+        setAge(profile.age ?? DEFAULT_USER_PROFILE.age);
       } catch (e) {
         console.error("Failed to parse user profile from localStorage", e);
-        setName(DEFAULT_USER_PROFILE.name);
-        setEmail(DEFAULT_USER_PROFILE.email);
-        setAvatarUrl(DEFAULT_USER_PROFILE.avatarUrl);
-        setImagePreview(DEFAULT_USER_PROFILE.avatarUrl || null);
       }
-    } else {
-      setName(DEFAULT_USER_PROFILE.name);
-      setEmail(DEFAULT_USER_PROFILE.email);
-      setAvatarUrl(DEFAULT_USER_PROFILE.avatarUrl);
-      setImagePreview(DEFAULT_USER_PROFILE.avatarUrl || null);
     }
   }, []);
 
@@ -83,7 +83,10 @@ export default function EditProfilePage() {
     const updatedProfile: UserProfile = { 
       name, 
       email, 
-      avatarUrl: imagePreview || avatarUrl // Prefer new preview, fallback to old URL
+      avatarUrl: imagePreview || avatarUrl, // Prefer new preview, fallback to old URL
+      height,
+      weight,
+      age
     };
     localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
 
@@ -164,6 +167,65 @@ export default function EditProfilePage() {
                 placeholder="e.g., alex.johnson@example.com"
                 required
               />
+            </div>
+            
+            <Separator />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="age" className="text-sm font-medium flex items-center">
+                  <Calendar className="mr-2 h-4 w-4 text-muted-foreground" /> Age
+                </Label>
+                <Input
+                  id="age"
+                  type="number"
+                  min={12}
+                  max={100}
+                  value={age}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setAge(isNaN(value) ? DEFAULT_USER_PROFILE.age : value);
+                  }}
+                  className="mt-1"
+                  placeholder="e.g., 30"
+                />
+              </div>
+              <div>
+                <Label htmlFor="height" className="text-sm font-medium flex items-center">
+                  <Ruler className="mr-2 h-4 w-4 text-muted-foreground" /> Height (cm)
+                </Label>
+                <Input
+                  id="height"
+                  type="number"
+                  min={100}
+                  max={250}
+                  value={height}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setHeight(isNaN(value) ? DEFAULT_USER_PROFILE.height : value);
+                  }}
+                  className="mt-1"
+                  placeholder="e.g., 170"
+                />
+              </div>
+              <div>
+                <Label htmlFor="weight" className="text-sm font-medium flex items-center">
+                  <Weight className="mr-2 h-4 w-4 text-muted-foreground" /> Weight (kg)
+                </Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  min={30}
+                  max={300}
+                  value={weight}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    setWeight(isNaN(value) ? DEFAULT_USER_PROFILE.weight : value);
+                  }}
+                  className="mt-1"
+                  placeholder="e.g., 70"
+                />
+              </div>
             </div>
           </CardContent>
           <CardFooter>
