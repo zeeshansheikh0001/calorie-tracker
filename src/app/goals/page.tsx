@@ -15,6 +15,7 @@ import type { Goal } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 const initialGoals: Goal = {
   calories: 2000,
@@ -37,6 +38,7 @@ export default function GoalsPage() {
   const [activeField, setActiveField] = useState<keyof Goal | null>(null);
   const [savedGoals, setSavedGoals] = useState<Goal | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const storedGoals = localStorage.getItem("userGoals");
@@ -76,6 +78,7 @@ export default function GoalsPage() {
         action: <CheckCircle className="text-green-500" />,
       });
       setIsLoading(false);
+      router.push("/"); // Redirect to homepage after saving
     }, 800);
   };
 
