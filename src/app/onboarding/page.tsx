@@ -21,6 +21,8 @@ interface UserProfile {
   protein: number;
   fat: number;
   carbs: number;
+  height: number; // Height in cm
+  weight: number; // Weight in kg
 }
 
 // Default recommended values based on gender (simplified)
@@ -31,6 +33,8 @@ const getDefaultValues = (gender: "male" | "female" | "other", age: number): Par
       protein: 180,
       fat: 80,
       carbs: 300,
+      height: 175, // Average male height in cm
+      weight: 75,  // Average male weight in kg
     };
   } else if (gender === "female") {
     return {
@@ -38,6 +42,8 @@ const getDefaultValues = (gender: "male" | "female" | "other", age: number): Par
       protein: 140,
       fat: 65,
       carbs: 250,
+      height: 162, // Average female height in cm
+      weight: 62,  // Average female weight in kg
     };
   } else {
     return {
@@ -45,6 +51,8 @@ const getDefaultValues = (gender: "male" | "female" | "other", age: number): Par
       protein: 160,
       fat: 70,
       carbs: 280,
+      height: 168, // Average height in cm
+      weight: 68,  // Average weight in kg
     };
   }
 };
@@ -59,6 +67,8 @@ export default function OnboardingPage() {
     protein: 180,
     fat: 80,
     carbs: 300,
+    height: 175, // Default height in cm
+    weight: 75,  // Default weight in kg
   });
   const [isLoading, setIsLoading] = useState(false);
   const [hasUserProfile, setHasUserProfile] = useState(false);
@@ -145,10 +155,29 @@ export default function OnboardingPage() {
       return;
     }
     
+    // Validate height and weight
+    if (profile.height < 100 || profile.height > 250 || profile.weight < 30 || profile.weight > 300) {
+      toast({
+        variant: "destructive",
+        title: "Invalid height or weight",
+        description: "Please enter reasonable values for your height and weight.",
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     // Simulate API call
     setTimeout(() => {
       // Save user profile to localStorage
-      localStorage.setItem("userProfile", JSON.stringify(profile));
+      localStorage.setItem("userProfile", JSON.stringify({
+        name: profile.name,
+        age: profile.age,
+        gender: profile.gender,
+        height: profile.height,
+        weight: profile.weight,
+        // Include email with a default value
+        email: `${profile.name.toLowerCase().replace(/\s+/g, '.')}@example.com`
+      }));
       
       // Save nutrition goals to the same location used by the Goals page
       const nutritionGoals = {
@@ -309,6 +338,48 @@ export default function OnboardingPage() {
                           placeholder="Enter your age"
                           min={12}
                           max={100}
+                        />
+                      </motion.div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="height" className="flex items-center gap-1 text-muted-foreground">
+                        <User className="h-3.5 w-3.5" /> Your Height (cm)
+                      </Label>
+                      <motion.div
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <Input
+                          id="height"
+                          name="height"
+                          type="number"
+                          value={profile.height}
+                          onChange={handleNumberInputChange}
+                          className="bg-background/50"
+                          placeholder="Enter your height in cm"
+                          min={100}
+                          max={250}
+                        />
+                      </motion.div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="weight" className="flex items-center gap-1 text-muted-foreground">
+                        <Drumstick className="h-3.5 w-3.5" /> Your Weight (kg)
+                      </Label>
+                      <motion.div
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <Input
+                          id="weight"
+                          name="weight"
+                          type="number"
+                          value={profile.weight}
+                          onChange={handleNumberInputChange}
+                          className="bg-background/50"
+                          placeholder="Enter your weight in kg"
+                          min={30}
+                          max={300}
                         />
                       </motion.div>
                     </div>

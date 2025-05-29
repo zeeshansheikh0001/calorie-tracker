@@ -38,6 +38,8 @@ export interface UserProfile {
   avatarUrl?: string;
   age?: number;
   gender?: "male" | "female" | "other";
+  height?: number; // Height in cm
+  weight?: number; // Weight in kg
 }
 
 export interface BlogPost {

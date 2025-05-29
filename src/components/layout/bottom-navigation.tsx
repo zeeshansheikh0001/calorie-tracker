@@ -10,6 +10,7 @@ const bottomNavItems = [
   { href: "/progress", label: "Stats", icon: BarChart2 },
   { href: "/ai-features", label: "AI", icon: Sparkles },
   { href: "/goals", label: "Health", icon: HeartPulse },
+  { href: "/history", label: "History", icon: BarChart2 },
   { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
 
