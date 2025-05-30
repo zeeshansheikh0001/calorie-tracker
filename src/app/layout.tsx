@@ -52,7 +52,7 @@ export default function RootLayout({
       <body className={bodyClassNames}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           // disableTransitionOnChange // Removed previously, keeping it removed for now
         >

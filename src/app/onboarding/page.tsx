@@ -17,14 +17,101 @@ interface UserProfile {
   name: string;
   age: number;
   gender: "male" | "female" | "other";
+  weight: number;
+  height: number;
+  unit: "metric" | "imperial";
+  fitnessGoal: "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina";
   calories: number;
   protein: number;
   fat: number;
   carbs: number;
 }
 
+// Function to calculate BMR (Basal Metabolic Rate) using Mifflin-St Jeor Equation
+const calculateBMR = (weight: number, height: number, age: number, gender: string, unit: "metric" | "imperial"): number => {
+  // Convert imperial to metric if needed
+  let weightKg = weight;
+  let heightCm = height;
+  
+  if (unit === "imperial") {
+    weightKg = weight * 0.453592; // pounds to kg
+    heightCm = height * 2.54; // inches to cm
+  }
+  
+  // Mifflin-St Jeor Equation
+  if (gender === "male") {
+    return (10 * weightKg) + (6.25 * heightCm) - (5 * age) + 5;
+  } else {
+    return (10 * weightKg) + (6.25 * heightCm) - (5 * age) - 161;
+  }
+};
+
+// Calculate recommended macros based on BMR and fitness goal
+const calculateMacros = (bmr: number, fitnessGoal: string): { calories: number; protein: number; fat: number; carbs: number } => {
+  let activityMultiplier = 1.4; // Base: Light activity
+  let proteinPercentage = 0.3; // 30% default
+  let fatPercentage = 0.25; // 25% default
+  let carbsPercentage = 0.45; // 45% default
+  
+  // Adjust based on fitness goal
+  switch (fitnessGoal) {
+    case "muscle_gain":
+      activityMultiplier = 1.6; // Higher for muscle gain
+      proteinPercentage = 0.35; // More protein for muscle building
+      fatPercentage = 0.25;
+      carbsPercentage = 0.40;
+      break;
+    case "weight_loss":
+      activityMultiplier = 1.3; // Slight deficit for weight loss
+      proteinPercentage = 0.35; // Higher protein to preserve muscle
+      fatPercentage = 0.30;
+      carbsPercentage = 0.35; // Lower carbs for fat loss
+      break;
+    case "get_fit":
+      activityMultiplier = 1.5;
+      proteinPercentage = 0.30;
+      fatPercentage = 0.25;
+      carbsPercentage = 0.45;
+      break;
+    case "overall_health":
+      activityMultiplier = 1.4;
+      proteinPercentage = 0.25;
+      fatPercentage = 0.30;
+      carbsPercentage = 0.45;
+      break;
+    case "stamina":
+      activityMultiplier = 1.6;
+      proteinPercentage = 0.25;
+      fatPercentage = 0.25;
+      carbsPercentage = 0.50; // Higher carbs for endurance
+      break;
+  }
+  
+  const calories = Math.round(bmr * activityMultiplier);
+  const protein = Math.round((calories * proteinPercentage) / 4); // 4 calories per gram of protein
+  const fat = Math.round((calories * fatPercentage) / 9); // 9 calories per gram of fat
+  const carbs = Math.round((calories * carbsPercentage) / 4); // 4 calories per gram of carbs
+  
+  return { calories, protein, fat, carbs };
+};
+
 // Default recommended values based on gender (simplified)
-const getDefaultValues = (gender: "male" | "female" | "other", age: number): Partial<UserProfile> => {
+const getDefaultValues = (
+  gender: "male" | "female" | "other", 
+  age: number, 
+  weight: number = 0, 
+  height: number = 0, 
+  unit: "metric" | "imperial" = "metric",
+  fitnessGoal: "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina" = "overall_health"
+): Partial<UserProfile> => {
+  // If weight and height are provided, calculate based on those
+  if (weight > 0 && height > 0) {
+    const bmr = calculateBMR(weight, height, age, gender, unit);
+    const macros = calculateMacros(bmr, fitnessGoal);
+    return macros;
+  }
+  
+  // Otherwise use default values
   if (gender === "male") {
     return {
       calories: 2500,
@@ -49,12 +136,106 @@ const getDefaultValues = (gender: "male" | "female" | "other", age: number): Par
   }
 };
 
+// GoalOption component for fitness goal selection
+interface GoalOptionProps {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  isSelected: boolean;
+  onSelect: () => void;
+  delay: number;
+}
+
+const GoalOption = ({ id, title, icon, description, isSelected, onSelect, delay }: GoalOptionProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      className="w-full"
+    >
+      <motion.button
+        whileHover={{ y: -4 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onSelect}
+        className={`w-full text-left p-4 rounded-xl border relative transition-all duration-300 ${
+          isSelected 
+            ? "bg-primary/10 border-primary/30 dark:bg-primary/20 dark:border-primary/40 shadow-md shadow-primary/10" 
+            : "bg-white/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md"
+        }`}
+      >
+        {isSelected && (
+          <motion.div 
+            className="absolute inset-0 rounded-xl overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="absolute inset-0 bg-primary/5 dark:bg-primary/10" />
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 dark:from-primary/20 dark:to-primary/10"
+              animate={{ x: ["0%", "100%", "0%"] }}
+              transition={{ duration: 5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+            />
+          </motion.div>
+        )}
+        
+        <div className="flex items-center gap-4">
+          <div className={`relative ${isSelected ? "" : ""}`}>
+            {isSelected && (
+              <motion.div 
+                className="absolute inset-0 rounded-full bg-primary/20 dark:bg-primary/30 blur-md" 
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1.4 }}
+                transition={{ duration: 0.4 }}
+              />
+            )}
+            <div className={`text-3xl relative z-10 ${
+              isSelected 
+                ? "scale-110 transform transition-transform duration-300" 
+                : ""
+            }`}>
+              {icon}
+            </div>
+          </div>
+          <div className="flex-grow">
+            <h3 className={`font-medium text-base ${isSelected ? "text-primary font-semibold" : "text-slate-700 dark:text-slate-300"}`}>
+              {title}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              {description}
+            </p>
+          </div>
+          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+            isSelected 
+              ? "border-primary bg-primary/20" 
+              : "border-slate-300 dark:border-slate-600"
+          }`}>
+            {isSelected && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="w-2.5 h-2.5 rounded-full bg-primary"
+              />
+            )}
+          </div>
+        </div>
+      </motion.button>
+    </motion.div>
+  );
+};
+
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
     age: 30,
     gender: "male",
+    weight: 70,
+    height: 170,
+    unit: "metric",
+    fitnessGoal: "overall_health",
     calories: 2500,
     protein: 180,
     fat: 80,
@@ -80,7 +261,7 @@ export default function OnboardingPage() {
     const { name, value } = e.target;
     setProfile((prev) => ({
       ...prev,
-      [name]: name === "age" ? parseInt(value) || 0 : value,
+      [name]: name === "age" || name === "weight" || name === "height" ? parseInt(value) || 0 : value,
     }));
   };
 
@@ -92,12 +273,64 @@ export default function OnboardingPage() {
       ...defaults,
     }));
   };
+  
+  const handleFitnessGoalChange = (value: "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina") => {
+    setProfile((prev) => ({
+      ...prev,
+      fitnessGoal: value,
+    }));
+    
+    // If we already have weight and height, recalculate nutrition goals based on new fitness goal
+    if (profile.weight > 0 && profile.height > 0) {
+      const bmr = calculateBMR(profile.weight, profile.height, profile.age, profile.gender, profile.unit);
+      const macros = calculateMacros(bmr, value);
+      
+      setProfile((prev) => ({
+        ...prev,
+        ...macros,
+      }));
+    }
+  };
+  
+  const handleUnitChange = (value: "metric" | "imperial") => {
+    // Convert measurements when changing units
+    let newWeight = profile.weight;
+    let newHeight = profile.height;
+    
+    if (value === "imperial" && profile.unit === "metric") {
+      // Convert metric to imperial
+      newWeight = Math.round(profile.weight * 2.20462); // kg to pounds
+      newHeight = Math.round(profile.height / 2.54); // cm to inches
+    } else if (value === "metric" && profile.unit === "imperial") {
+      // Convert imperial to metric
+      newWeight = Math.round(profile.weight * 0.453592); // pounds to kg
+      newHeight = Math.round(profile.height * 2.54); // inches to cm
+    }
+    
+    setProfile((prev) => ({
+      ...prev,
+      unit: value,
+      weight: newWeight,
+      height: newHeight
+    }));
+  };
 
   const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfile((prev) => ({
       ...prev,
       [name]: parseInt(value) || 0,
+    }));
+  };
+  
+  const updateNutritionGoals = () => {
+    // Calculate nutrition goals based on profile data
+    const bmr = calculateBMR(profile.weight, profile.height, profile.age, profile.gender, profile.unit);
+    const macros = calculateMacros(bmr, profile.fitnessGoal);
+    
+    setProfile((prev) => ({
+      ...prev,
+      ...macros
     }));
   };
 
@@ -121,6 +354,47 @@ export default function OnboardingPage() {
         return;
       }
       setStep(2);
+    } else if (step === 2) {
+      // No validation needed for fitness goal - just proceed
+      setStep(3);
+    } else if (step === 3) {
+      // Validate measurements
+      if (profile.unit === "metric" && (profile.weight < 30 || profile.weight > 250)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid weight",
+          description: "Please enter a valid weight between 30kg and 250kg.",
+        });
+        return;
+      }
+      if (profile.unit === "imperial" && (profile.weight < 66 || profile.weight > 550)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid weight",
+          description: "Please enter a valid weight between 66lbs and 550lbs.",
+        });
+        return;
+      }
+      if (profile.unit === "metric" && (profile.height < 100 || profile.height > 250)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid height",
+          description: "Please enter a valid height between 100cm and 250cm.",
+        });
+        return;
+      }
+      if (profile.unit === "imperial" && (profile.height < 39 || profile.height > 98)) {
+        toast({
+          variant: "destructive",
+          title: "Invalid height",
+          description: "Please enter a valid height between 39in and 98in.",
+        });
+        return;
+      }
+      
+      // Calculate nutrition goals based on measurements
+      updateNutritionGoals();
+      setStep(4);
     } else {
       // Submit the form
       handleSubmit();
@@ -128,7 +402,9 @@ export default function OnboardingPage() {
   };
 
   const handlePreviousStep = () => {
-    setStep(1);
+    if (step > 1) {
+      setStep(step - 1);
+    }
   };
 
   const handleSubmit = () => {
@@ -167,28 +443,190 @@ export default function OnboardingPage() {
         description: "Your profile and nutrition goals have been created successfully.",
       });
       
-      // Redirect to dashboard
-      router.push("/");
+      // Redirect to welcome page
+      router.push("/welcome");
       setIsLoading(false);
     }, 1500);
   };
 
   if (hasUserProfile) {
     return (
-      <div className="container flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className="container flex items-center justify-center min-h-screen relative bg-gradient-to-br from-background via-background/95 to-primary/5 dark:from-background dark:via-background/95 dark:to-primary/10 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Large circle gradient */}
+          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
+          <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-gradient-to-tl from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
+          
+          {/* Floating particles */}
+          <div className="absolute w-full h-full">
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={`particle-${i}`}
+                className="absolute rounded-full bg-primary/30 dark:bg-primary/20"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 8 + 2}px`,
+                  height: `${Math.random() * 8 + 2}px`,
+                  opacity: Math.random() * 0.5 + 0.2,
+                }}
+                animate={{
+                  y: [0, Math.random() * 100 - 50],
+                  x: [0, Math.random() * 50 - 25],
+                  opacity: [Math.random() * 0.5 + 0.2, 0.8, Math.random() * 0.5 + 0.2],
+                }}
+                transition={{
+                  duration: Math.random() * 20 + 20,
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Dynamic gradients */}
+          <div className="absolute w-full h-full">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={`blob-${i}`}
+                className="absolute rounded-full"
+                style={{
+                  top: `${Math.random() * 100}%`,
+                  left: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 500 + 300}px`,
+                  height: `${Math.random() * 500 + 300}px`,
+                  background: `radial-gradient(circle, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.01) 50%, rgba(var(--primary-rgb), 0) 70%)`,
+                  filter: 'blur(70px)',
+                }}
+                animate={{
+                  x: [0, Math.random() * 100 - 50],
+                  y: [0, Math.random() * 100 - 50],
+                }}
+                transition={{
+                  duration: Math.random() * 30 + 20,
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  ease: 'easeInOut',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="relative z-10 max-w-md w-full px-6">
+          {/* Logo */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            className="flex justify-center mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
           >
-            <p className="text-lg mb-4">You already have a profile! Redirecting...</p>
-            <Button 
-              onClick={() => router.push("/")}
-              className="mt-4"
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/60 blur-xl opacity-70" />
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center relative shadow-lg shadow-primary/20">
+                  <Flame className="h-6 w-6" />
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 dark:from-primary dark:to-primary/80 text-transparent bg-clip-text">
+                CalorieTracker
+              </h1>
+            </div>
+          </motion.div>
+          
+          <motion.div
+            className="text-center bg-white/90 dark:bg-slate-900/90 p-8 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mb-6 mx-auto"
             >
-              Go to Dashboard
-            </Button>
+              <div className="relative mx-auto">
+                <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl transform scale-110" />
+                <div className="h-20 w-20 rounded-full border border-primary/10 bg-gradient-to-br from-primary/20 to-primary/5 shadow-inner text-primary flex items-center justify-center mx-auto relative">
+                  <User className="h-10 w-10" />
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.h2
+              className="text-3xl font-bold mb-3 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              Profile Exists
+            </motion.h2>
+            
+            <motion.p 
+              className="text-slate-600 dark:text-slate-400 mb-6 text-base"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              You already have a profile! Redirecting to your dashboard shortly...
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              whileHover={{ scale: 1.03, translateY: -4 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Button 
+                onClick={() => router.push("/welcome")}
+                className="gap-2 h-12 px-8 rounded-xl w-full bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 relative overflow-hidden"
+              >
+                <span className="relative z-10">Go to Welcome</span>
+                <motion.div
+                  className="absolute z-10 right-7"
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity, 
+                    repeatType: "loop",
+                    ease: "easeInOut",
+                    repeatDelay: 1,
+                  }}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '100%' }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity, 
+                    repeatDelay: 1
+                  }}
+                />
+              </Button>
+            </motion.div>
+
+            {/* Animated pulses */}
+            <div className="relative h-1 w-32 mx-auto mt-6">
+              <motion.div 
+                className="absolute inset-0 bg-primary/40 rounded-full"
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.5, 0.2, 0.5]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "loop",
+                }}
+              />
+            </div>
           </motion.div>
         </div>
       </div>
@@ -196,31 +634,116 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 flex items-center justify-center min-h-screen relative">
-      {/* Background image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-5 pointer-events-none"
-        style={{
-          backgroundImage: "url('/images/running-man.png')",
-          backgroundBlendMode: "overlay"
-        }}
-        aria-hidden="true"
-      />
+    <div className="container mx-auto px-4 py-0 flex items-center justify-center min-h-screen relative bg-gradient-to-br from-background via-background/95 to-primary/5 dark:from-background dark:via-background/95 dark:to-primary/10 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Large circle gradient */}
+        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-gradient-to-tl from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
+        
+        {/* Floating particles */}
+        <div className="absolute w-full h-full">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={`particle-${i}`}
+              className="absolute rounded-full bg-primary/30 dark:bg-primary/20"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                width: `${Math.random() * 8 + 2}px`,
+                height: `${Math.random() * 8 + 2}px`,
+                opacity: Math.random() * 0.5 + 0.2,
+              }}
+              animate={{
+                y: [0, Math.random() * 100 - 50],
+                x: [0, Math.random() * 50 - 25],
+                opacity: [Math.random() * 0.5 + 0.2, 0.8, Math.random() * 0.5 + 0.2],
+              }}
+              transition={{
+                duration: Math.random() * 20 + 20,
+                repeat: Infinity,
+                repeatType: 'reverse',
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Dynamic gradients */}
+        <div className="absolute w-full h-full">
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={`blob-${i}`}
+              className="absolute rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                width: `${Math.random() * 500 + 300}px`,
+                height: `${Math.random() * 500 + 300}px`,
+                background: `radial-gradient(circle, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.01) 50%, rgba(var(--primary-rgb), 0) 70%)`,
+                filter: 'blur(70px)',
+              }}
+              animate={{
+                x: [0, Math.random() * 100 - 50],
+                y: [0, Math.random() * 100 - 50],
+              }}
+              transition={{
+                duration: Math.random() * 30 + 20,
+                repeat: Infinity,
+                repeatType: 'reverse',
+                ease: 'easeInOut',
+              }}
+            />
+          ))}
+        </div>
+      </div>
       
       <motion.div 
         className="max-w-lg w-full relative z-10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* Progress Indicator */}
-        <div className="flex justify-center mb-8">
-          <div className="relative w-48 h-1 bg-muted rounded-full overflow-hidden">
+        {/* Logo & Brand */}
+        <motion.div
+          className="flex flex-col items-center mb-10"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <motion.div
+              className="relative group"
+              initial={{ rotate: -20, scale: 0 }}
+              animate={{ rotate: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
+            >
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-primary/60 blur-xl opacity-70 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center relative shadow-lg shadow-primary/20">
+                <Flame className="h-7 w-7" />
+              </div>
+            </motion.div>
             <motion.div 
-              className="absolute left-0 top-0 bottom-0 bg-primary"
-              initial={{ width: "50%" }}
-              animate={{ width: step === 1 ? "50%" : "100%" }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 dark:from-primary dark:to-primary/80 text-transparent bg-clip-text">
+                CalorieTracker
+              </h1>
+              <p className="text-muted-foreground text-sm font-medium mt-0.5">Your personal nutrition assistant</p>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Progress Indicator */}
+        <div className="flex justify-center mb-10">
+          <div className="relative w-56 h-1.5 bg-primary/10 dark:bg-primary/20 rounded-full overflow-hidden backdrop-blur-sm">
+            <motion.div 
+              className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary to-primary/70"
+              initial={{ width: "0%" }}
+              animate={{ width: step === 1 ? "25%" : step === 2 ? "50%" : step === 3 ? "75%" : "100%" }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -229,14 +752,17 @@ export default function OnboardingPage() {
           {step === 1 ? (
             <motion.div
               key="step1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.22, 1, 0.36, 1]
+              }}
             >
-              <Card className="border-border/40 shadow-xl bg-card/95 backdrop-blur-sm overflow-hidden">
-                <CardHeader className="space-y-1 text-center pb-6">
-                  <div className="flex justify-center mb-2">
+              <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
+                <CardHeader className="space-y-2 text-center pb-8 pt-8">
+                  <div className="flex justify-center mb-4">
                     <motion.div
                       className="relative"
                       initial={{ scale: 0 }}
@@ -248,36 +774,47 @@ export default function OnboardingPage() {
                         delay: 0.1 
                       }}
                     >
-                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl" />
-                      <div className="p-3 rounded-full bg-primary/10 relative">
+                      <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl" />
+                      <div className="p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 relative border border-primary/10 shadow-inner">
                         <User className="h-8 w-8 text-primary" />
                       </div>
                     </motion.div>
                   </div>
                   
-                  <CardTitle className="text-2xl font-bold flex justify-center items-center gap-2">
-                    Welcome to CalorieTracker
-                    <motion.div
-                      initial={{ opacity: 0, rotate: -20 }}
-                      animate={{ opacity: 1, rotate: 0 }}
-                      transition={{ delay: 0.5, duration: 0.5 }}
-                    >
-                      <Sparkles className="h-5 w-5 text-primary" />
-                    </motion.div>
-                  </CardTitle>
-                  <CardDescription className="text-center max-w-sm mx-auto">
-                    Let's set up your profile to personalize your experience.
-                    This will help us provide accurate nutrition recommendations.
-                  </CardDescription>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <CardTitle className="text-3xl font-bold flex justify-center items-center gap-2 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
+                      Welcome!
+                      <motion.div
+                        initial={{ opacity: 0, rotate: -20, scale: 0 }}
+                        animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                        transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                      >
+                        <Sparkles className="h-6 w-6 text-primary" />
+                      </motion.div>
+                    </CardTitle>
+                    <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
+                      Let's set up your profile to personalize your experience
+                    </CardDescription>
+                  </motion.div>
                 </CardHeader>
                 
-                <CardContent className="space-y-6 px-6">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name" className="flex items-center gap-1 text-muted-foreground">
-                        <User className="h-3.5 w-3.5" /> Your Name
+                <CardContent className="space-y-7 px-8">
+                  <div className="space-y-6">
+                    <motion.div
+                      className="space-y-2.5"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                      <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <User className="h-4 w-4 text-primary" /> Your Name
                       </Label>
                       <motion.div
+                        whileFocus={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
                       >
                         <Input
@@ -285,18 +822,24 @@ export default function OnboardingPage() {
                           name="name"
                           value={profile.name}
                           onChange={handleInputChange}
-                          className="bg-background/50"
+                          className="bg-white/50 dark:bg-slate-800/50 h-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
                           placeholder="Enter your name"
                           autoComplete="off"
                         />
                       </motion.div>
-                    </div>
+                    </motion.div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="age" className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" /> Your Age
+                    <motion.div
+                      className="space-y-2.5"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                      <Label htmlFor="age" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <Calendar className="h-4 w-4 text-primary" /> Your Age
                       </Label>
                       <motion.div
+                        whileFocus={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
                       >
                         <Input
@@ -305,73 +848,150 @@ export default function OnboardingPage() {
                           type="number"
                           value={profile.age === 0 ? "" : profile.age}
                           onChange={handleInputChange}
-                          className="bg-background/50"
+                          className="bg-white/50 dark:bg-slate-800/50 h-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
                           placeholder="Enter your age"
                           min={12}
                           max={100}
                         />
                       </motion.div>
-                    </div>
+                    </motion.div>
                     
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-1 text-muted-foreground">
+                    <motion.div
+                      className="space-y-3"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                    >
+                      <Label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                         Gender
                       </Label>
-                      <RadioGroup 
-                        value={profile.gender} 
-                        onValueChange={(value) => handleGenderChange(value as "male" | "female" | "other")}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="male" id="male" />
-                          <Label htmlFor="male" className="cursor-pointer">Male</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="female" id="female" />
-                          <Label htmlFor="female" className="cursor-pointer">Female</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="other" id="other" />
-                          <Label htmlFor="other" className="cursor-pointer">Other</Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }} whileTap={{ scale: 0.97 }}>
+                          <Button
+                            type="button"
+                            variant={profile.gender === "male" ? "default" : "outline"}
+                            className={`w-full h-12 rounded-xl transition-all duration-300 relative overflow-hidden font-medium ${
+                              profile.gender === "male" 
+                                ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/20" 
+                                : "bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700"
+                            }`}
+                            onClick={() => handleGenderChange("male")}
+                          >
+                            {profile.gender === "male" && (
+                              <motion.div
+                                className="absolute inset-0 bg-primary-foreground/10"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            )}
+                            Male
+                          </Button>
+                        </motion.div>
+                        
+                        <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }} whileTap={{ scale: 0.97 }}>
+                          <Button
+                            type="button"
+                            variant={profile.gender === "female" ? "default" : "outline"}
+                            className={`w-full h-12 rounded-xl transition-all duration-300 relative overflow-hidden font-medium ${
+                              profile.gender === "female" 
+                                ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/20" 
+                                : "bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700"
+                            }`}
+                            onClick={() => handleGenderChange("female")}
+                          >
+                            {profile.gender === "female" && (
+                              <motion.div
+                                className="absolute inset-0 bg-primary-foreground/10"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            )}
+                            Female
+                          </Button>
+                        </motion.div>
+                        
+                        <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }} whileTap={{ scale: 0.97 }}>
+                          <Button
+                            type="button"
+                            variant={profile.gender === "other" ? "default" : "outline"}
+                            className={`w-full h-12 rounded-xl transition-all duration-300 relative overflow-hidden font-medium ${
+                              profile.gender === "other" 
+                                ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg shadow-primary/20" 
+                                : "bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700"
+                            }`}
+                            onClick={() => handleGenderChange("other")}
+                          >
+                            {profile.gender === "other" && (
+                              <motion.div
+                                className="absolute inset-0 bg-primary-foreground/10"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                              />
+                            )}
+                            Other
+                          </Button>
+                        </motion.div>
+                      </div>
+                    </motion.div>
                   </div>
                 </CardContent>
                 
-                <CardFooter className="flex justify-end pt-4">
+                <CardFooter className="flex justify-end pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
                       onClick={handleNextStep} 
-                      className="gap-1 group relative overflow-hidden"
+                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
                     >
-                      Next
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      <span className="relative z-10">Continue</span>
                       <motion.div
-                        className="absolute inset-0 bg-primary/10"
+                        className="absolute z-10 right-6"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                          repeatDelay: 1,
+                        }}
+                      >
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </motion.div>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
                         initial={{ x: '-100%' }}
-                        whileHover={{ x: '0%' }}
-                        transition={{ duration: 0.3 }}
+                        animate={{ x: '100%' }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatDelay: 1
+                        }}
                       />
                     </Button>
                   </motion.div>
                 </CardFooter>
               </Card>
             </motion.div>
-          ) : (
+          ) : step === 2 ? (
             <motion.div
               key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.22, 1, 0.36, 1]
+              }}
             >
-              <Card className="border-border/40 shadow-xl bg-card/95 backdrop-blur-sm overflow-hidden">
-                <CardHeader className="space-y-1 text-center pb-6">
-                  <div className="flex justify-center mb-2">
+              <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
+                <CardHeader className="space-y-2 text-center pb-6 pt-8">
+                  <div className="flex justify-center mb-4">
                     <motion.div
                       className="relative"
                       initial={{ scale: 0 }}
@@ -383,34 +1003,435 @@ export default function OnboardingPage() {
                         delay: 0.1 
                       }}
                     >
-                      <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl" />
-                      <div className="p-3 rounded-full bg-primary/10 relative">
-                        <Flame className="h-8 w-8 text-red-500" />
+                      <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl" />
+                      <div className="p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 relative border border-primary/10 shadow-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                          <path d="M2 17l10 5 10-5" />
+                          <path d="M2 12l10 5 10-5" />
+                        </svg>
                       </div>
                     </motion.div>
                   </div>
                   
-                  <CardTitle className="text-2xl font-bold">
-                    Set Your Nutrition Goals
-                  </CardTitle>
-                  <CardDescription className="text-center max-w-sm mx-auto">
-                    We've set some recommended values based on your profile. 
-                    Feel free to adjust them to your specific needs.
-                  </CardDescription>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
+                      What's Your Primary Goal?
+                    </CardTitle>
+                    <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
+                      Select your main fitness objective to personalize your plan
+                    </CardDescription>
+                  </motion.div>
                 </CardHeader>
                 
-                <CardContent className="space-y-6 px-6">
-                  <div className="space-y-4">
+                <CardContent className="px-6 pb-2">
+                  <div className="grid grid-cols-1 gap-3">
+                    <GoalOption
+                      id="muscle_gain"
+                      title="Bodybuilding / Muscle Gain"
+                      icon="🏋️"
+                      description="Build lean muscle mass and increase strength"
+                      isSelected={profile.fitnessGoal === "muscle_gain"}
+                      onSelect={() => handleFitnessGoalChange("muscle_gain")}
+                      delay={0.1}
+                    />
+                    
+                    <GoalOption
+                      id="weight_loss"
+                      title="Weight Loss / Fat Burn"
+                      icon="⚖️"
+                      description="Reduce body fat and achieve a healthier weight"
+                      isSelected={profile.fitnessGoal === "weight_loss"}
+                      onSelect={() => handleFitnessGoalChange("weight_loss")}
+                      delay={0.2}
+                    />
+                    
+                    <GoalOption
+                      id="get_fit"
+                      title="Get Fit & Toned"
+                      icon="💪"
+                      description="Improve body composition and muscle definition"
+                      isSelected={profile.fitnessGoal === "get_fit"}
+                      onSelect={() => handleFitnessGoalChange("get_fit")}
+                      delay={0.3}
+                    />
+                    
+                    <GoalOption
+                      id="overall_health"
+                      title="Improve Overall Health"
+                      icon="🧘"
+                      description="Focus on wellness, energy levels and longevity"
+                      isSelected={profile.fitnessGoal === "overall_health"}
+                      onSelect={() => handleFitnessGoalChange("overall_health")}
+                      delay={0.4}
+                    />
+                    
+                    <GoalOption
+                      id="stamina"
+                      title="Increase Stamina / Endurance"
+                      icon="🏃"
+                      description="Boost cardiovascular fitness and endurance"
+                      isSelected={profile.fitnessGoal === "stamina"}
+                      onSelect={() => handleFitnessGoalChange("stamina")}
+                      delay={0.5}
+                    />
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="flex justify-between pt-6 pb-8 px-8">
+                  <motion.div
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                      className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
+                    >
+                      Back
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <Button 
+                      onClick={handleNextStep}
+                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
+                    >
+                      <span className="relative z-10">Continue</span>
+                      <motion.div
+                        className="absolute z-10 right-6"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                          repeatDelay: 1,
+                        }}
+                      >
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </motion.div>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+                        initial={{ x: '-100%' }}
+                        animate={{ x: '100%' }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatDelay: 1
+                        }}
+                      />
+                    </Button>
+                  </motion.div>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ) : step === 3 ? (
+            <motion.div
+              key="step3"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.22, 1, 0.36, 1]
+              }}
+            >
+              <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
+                <CardHeader className="space-y-2 text-center pb-8 pt-8">
+                  <div className="flex justify-center mb-4">
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 260, 
+                        damping: 20,
+                        delay: 0.1 
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl" />
+                      <div className="p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 relative border border-primary/10 shadow-inner">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 4h-4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
+                          <path d="M5 8h4a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z" />
+                          <line x1="10" y1="10" x2="14" y2="10" />
+                        </svg>
+                      </div>
+                    </motion.div>
+                  </div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
+                      Your Measurements
+                    </CardTitle>
+                    <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
+                      Let's get your measurements to calculate personalized nutrition goals
+                    </CardDescription>
+                  </motion.div>
+                </CardHeader>
+                
+                <CardContent className="space-y-7 px-8">
+                  <motion.div
+                    className="flex justify-center mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                  >
+                    <div className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-slate-500 dark:text-slate-400">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleUnitChange("metric")}
+                        className={`flex items-center justify-center h-8 px-4 rounded-lg text-sm font-medium transition-all ${
+                          profile.unit === "metric"
+                            ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                            : "hover:text-slate-900 dark:hover:text-slate-100"
+                        }`}
+                      >
+                        Metric (cm/kg)
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => handleUnitChange("imperial")}
+                        className={`flex items-center justify-center h-8 px-4 rounded-lg text-sm font-medium transition-all ${
+                          profile.unit === "imperial"
+                            ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                            : "hover:text-slate-900 dark:hover:text-slate-100"
+                        }`}
+                      >
+                        Imperial (in/lbs)
+                      </Button>
+                    </div>
+                  </motion.div>
+                  
+                  <div className="grid grid-cols-2 gap-6">
+                    <motion.div
+                      className="space-y-2.5"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                      <Label htmlFor="height" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="3" x2="12" y2="21"></line>
+                          <polyline points="8 8 12 4 16 8"></polyline>
+                          <polyline points="8 16 12 20 16 16"></polyline>
+                        </svg>
+                        Height
+                      </Label>
+                      <motion.div
+                        whileFocus={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <div className="relative">
+                          <Input
+                            id="height"
+                            name="height"
+                            type="number"
+                            value={profile.height === 0 ? "" : profile.height}
+                            onChange={handleInputChange}
+                            className="bg-white/50 dark:bg-slate-800/50 h-12 pr-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
+                            placeholder={profile.unit === "metric" ? "Enter height" : "Enter height"}
+                            min={profile.unit === "metric" ? 100 : 39}
+                            max={profile.unit === "metric" ? 250 : 98}
+                          />
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium text-sm">
+                            {profile.unit === "metric" ? "cm" : "in"}
+                          </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                    
+                    <motion.div
+                      className="space-y-2.5"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                    >
+                      <Label htmlFor="weight" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="8" x2="12" y2="16"></line>
+                          <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                        Weight
+                      </Label>
+                      <motion.div
+                        whileFocus={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <div className="relative">
+                          <Input
+                            id="weight"
+                            name="weight"
+                            type="number"
+                            value={profile.weight === 0 ? "" : profile.weight}
+                            onChange={handleInputChange}
+                            className="bg-white/50 dark:bg-slate-800/50 h-12 pr-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
+                            placeholder={profile.unit === "metric" ? "Enter weight" : "Enter weight"}
+                            min={profile.unit === "metric" ? 30 : 66}
+                            max={profile.unit === "metric" ? 250 : 550}
+                          />
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400 font-medium text-sm">
+                            {profile.unit === "metric" ? "kg" : "lbs"}
+                          </div>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  </div>
+                  
+                  <motion.div
+                    className="mt-6 p-4 rounded-xl bg-primary/5 border border-primary/10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.6 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Why we need this information</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Your height and weight help us calculate personalized nutrition goals based on your body's specific needs for optimal health.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </CardContent>
+                
+                <CardFooter className="flex justify-between pt-6 pb-8 px-8">
+                  <motion.div
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <Button 
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                      className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
+                    >
+                      Back
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <Button 
+                      onClick={handleNextStep} 
+                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
+                    >
+                      <span className="relative z-10">Continue</span>
+                      <motion.div
+                        className="absolute z-10 right-6"
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatType: "loop",
+                          ease: "easeInOut",
+                          repeatDelay: 1,
+                        }}
+                      >
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </motion.div>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+                        initial={{ x: '-100%' }}
+                        animate={{ x: '100%' }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatDelay: 1
+                        }}
+                      />
+                    </Button>
+                  </motion.div>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="step4"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: 70, filter: "blur(8px)" }}
+              transition={{ 
+                duration: 0.5, 
+                ease: [0.22, 1, 0.36, 1]
+              }}
+            >
+              <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
+                <CardHeader className="space-y-2 text-center pb-8 pt-8">
+                  <div className="flex justify-center mb-4">
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 260, 
+                        damping: 20,
+                        delay: 0.1 
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl" />
+                      <div className="p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 relative border border-primary/10 shadow-inner">
+                        <Flame className="h-8 w-8 text-primary" />
+                      </div>
+                    </motion.div>
+                  </div>
+                  
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
+                      Your Nutrition Goals
+                    </CardTitle>
+                    <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
+                      Personalized based on your profile and measurements
+                    </CardDescription>
+                  </motion.div>
+                </CardHeader>
+                
+                <CardContent className="space-y-7 px-8">
+                  <div className="space-y-6">
                     <NutritionInput 
                       label="Daily Calories" 
                       name="calories"
                       value={profile.calories}
                       onChange={handleNumberInputChange}
-                      icon={<Flame className="h-5 w-5 text-red-500" />}
+                      icon={<Flame className="h-5 w-5" />}
                       color="red"
                       unit="kcal"
                       min={1000}
                       max={5000}
+                      delay={0.2}
                     />
                     
                     <NutritionInput 
@@ -418,11 +1439,12 @@ export default function OnboardingPage() {
                       name="protein"
                       value={profile.protein}
                       onChange={handleNumberInputChange}
-                      icon={<Drumstick className="h-5 w-5 text-blue-500" />}
+                      icon={<Drumstick className="h-5 w-5" />}
                       color="blue"
                       unit="g"
                       min={10}
                       max={300}
+                      delay={0.3}
                     />
                     
                     <NutritionInput 
@@ -430,11 +1452,12 @@ export default function OnboardingPage() {
                       name="fat"
                       value={profile.fat}
                       onChange={handleNumberInputChange}
-                      icon={<Droplets className="h-5 w-5 text-amber-500" />}
+                      icon={<Droplets className="h-5 w-5" />}
                       color="amber"
                       unit="g"
                       min={10}
                       max={200}
+                      delay={0.4}
                     />
                     
                     <NutritionInput 
@@ -442,63 +1465,100 @@ export default function OnboardingPage() {
                       name="carbs"
                       value={profile.carbs}
                       onChange={handleNumberInputChange}
-                      icon={<Wheat className="h-5 w-5 text-emerald-500" />}
+                      icon={<Wheat className="h-5 w-5" />}
                       color="emerald"
                       unit="g"
                       min={10}
                       max={500}
+                      delay={0.5}
                     />
                   </div>
+                  
+                  <motion.div
+                    className="mt-2 p-4 rounded-xl bg-primary/5 border border-primary/10"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.7 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">These are your suggested values</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          Calculated based on your age, gender, weight, and height. You can adjust them if needed.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
                 </CardContent>
                 
-                <CardFooter className="flex justify-between pt-4">
+                <CardFooter className="flex justify-between pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
                       variant="outline" 
                       onClick={handlePreviousStep}
-                      className="gap-1"
+                      className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
                       Back
                     </Button>
                   </motion.div>
                   
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.03, translateY: -5 }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
                       onClick={handleNextStep} 
                       disabled={isLoading}
-                      className="gap-1 relative overflow-hidden"
+                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
                     >
+                      <span className="relative z-10">
+                        {isLoading ? "Processing..." : "Complete Setup"}
+                      </span>
                       {isLoading ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                            className="mr-2"
-                          >
-                            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          </motion.div>
-                          Processing...
-                        </>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                          className="relative z-10 ml-1"
+                        >
+                          <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </motion.div>
                       ) : (
-                        <>
-                          Complete Setup
-                          <Sparkles className="h-4 w-4 ml-1" />
-                        </>
+                        <motion.div
+                          className="relative z-10"
+                          animate={{ rotate: [0, 15, -15, 0] }}
+                          transition={{ 
+                            duration: 2,
+                            repeat: Infinity,
+                            repeatDelay: 3
+                          }}
+                        >
+                          <Sparkles className="h-4 w-4" />
+                        </motion.div>
                       )}
                       <motion.div
-                        className="absolute inset-0 bg-primary/10"
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
                         initial={{ x: '-100%' }}
-                        whileHover={{ x: '0%' }}
-                        transition={{ duration: 0.3 }}
+                        animate={{ x: '100%' }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatDelay: 1
+                        }}
                       />
                     </Button>
                   </motion.div>
@@ -509,16 +1569,34 @@ export default function OnboardingPage() {
         </AnimatePresence>
         
         {/* Step Indicators */}
-        <div className="flex justify-center mt-6 gap-2">
-          <motion.div 
-            className={`h-2 w-2 rounded-full ${step === 1 ? 'bg-primary' : 'bg-muted'}`}
-            animate={{ scale: step === 1 ? 1.2 : 1 }}
+        <div className="flex justify-center mt-8 gap-3">
+          <motion.button
+            onClick={() => !isLoading && setStep(1)}
+            className={`h-3 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
+            animate={{ scale: step === 1 ? 1.1 : 1 }}
             transition={{ duration: 0.3 }}
+            disabled={isLoading}
           />
-          <motion.div 
-            className={`h-2 w-2 rounded-full ${step === 2 ? 'bg-primary' : 'bg-muted'}`}
-            animate={{ scale: step === 2 ? 1.2 : 1 }}
+          <motion.button
+            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.age <= 100 && setStep(2)}
+            className={`h-3 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
+            animate={{ scale: step === 2 ? 1.1 : 1 }}
             transition={{ duration: 0.3 }}
+            disabled={isLoading}
+          />
+          <motion.button
+            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.age <= 100 && setStep(3)}
+            className={`h-3 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
+            animate={{ scale: step === 3 ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+            disabled={isLoading}
+          />
+          <motion.button
+            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.weight > 0 && profile.height > 0 && setStep(4)}
+            className={`h-3 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
+            animate={{ scale: step === 4 ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+            disabled={isLoading}
           />
         </div>
       </motion.div>
@@ -536,6 +1614,7 @@ interface NutritionInputProps {
   unit: string;
   min: number;
   max: number;
+  delay: number;
 }
 
 function NutritionInput({ 
@@ -547,63 +1626,136 @@ function NutritionInput({
   color,
   unit,
   min,
-  max
+  max,
+  delay = 0
 }: NutritionInputProps) {
   const colorClasses = {
-    red: "bg-red-100 dark:bg-red-900/30 text-red-500 border-red-200 dark:border-red-800",
-    blue: "bg-blue-100 dark:bg-blue-900/30 text-blue-500 border-blue-200 dark:border-blue-800",
-    amber: "bg-amber-100 dark:bg-amber-900/30 text-amber-500 border-amber-200 dark:border-amber-800",
-    emerald: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 border-emerald-200 dark:border-emerald-800",
+    red: {
+      container: "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/30",
+      icon: "text-red-500 dark:text-red-400",
+      ring: "focus:ring-red-500/20",
+      progress: "from-red-500 to-red-400 dark:from-red-400 dark:to-red-500/70",
+      shadow: "shadow-red-500/20",
+      text: "text-red-600 dark:text-red-400"
+    },
+    blue: {
+      container: "bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/30",
+      icon: "text-blue-500 dark:text-blue-400",
+      ring: "focus:ring-blue-500/20",
+      progress: "from-blue-500 to-blue-400 dark:from-blue-400 dark:to-blue-500/70",
+      shadow: "shadow-blue-500/20",
+      text: "text-blue-600 dark:text-blue-400"
+    },
+    amber: {
+      container: "bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/30",
+      icon: "text-amber-500 dark:text-amber-400",
+      ring: "focus:ring-amber-500/20",
+      progress: "from-amber-500 to-amber-400 dark:from-amber-400 dark:to-amber-500/70",
+      shadow: "shadow-amber-500/20",
+      text: "text-amber-600 dark:text-amber-400"
+    },
+    emerald: {
+      container: "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800/30",
+      icon: "text-emerald-500 dark:text-emerald-400",
+      ring: "focus:ring-emerald-500/20",
+      progress: "from-emerald-500 to-emerald-400 dark:from-emerald-400 dark:to-emerald-500/70",
+      shadow: "shadow-emerald-500/20",
+      text: "text-emerald-600 dark:text-emerald-400"
+    },
   };
   
   return (
     <motion.div 
-      className="space-y-2"
-      initial={{ opacity: 0, y: 10 }}
+      className="space-y-3"
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ y: -2 }}
+      transition={{ 
+        duration: 0.5, 
+        delay: delay,
+        type: "spring",
+        stiffness: 100
+      }}
+      whileHover={{ y: -4, transition: { type: "spring", stiffness: 300 } }}
     >
-      <div className="flex items-center space-x-2">
-        <div className={cn("p-2 rounded-md", colorClasses[color])}>
-          {icon}
-        </div>
-        <Label htmlFor={name} className="font-medium">{label}</Label>
-      </div>
-      
-      <div className="relative">
-        <Input
-          id={name}
-          name={name}
-          type="number"
-          value={value}
-          onChange={onChange}
-          className={`pr-12 ${color === 'red' ? 'focus:ring-red-500/20' : color === 'blue' ? 'focus:ring-blue-500/20' : color === 'amber' ? 'focus:ring-amber-500/20' : 'focus:ring-emerald-500/20'}`}
-          min={min}
-          max={max}
-        />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-          {unit}
-        </div>
-      </div>
-      
-      <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden">
+      <div className="flex items-center space-x-3">
         <motion.div 
-          className={cn("h-full", 
-            color === 'red' ? 'bg-red-500' : 
-            color === 'blue' ? 'bg-blue-500' : 
-            color === 'amber' ? 'bg-amber-500' : 
-            'bg-emerald-500'
+          className={cn(
+            "p-2.5 rounded-xl border shadow-sm",
+            colorClasses[color].container, 
+            colorClasses[color].shadow
           )}
-          initial={{ width: "0%" }}
-          animate={{ width: `${Math.min(100, (value / max) * 100)}%` }}
-          transition={{ duration: 0.5 }}
-        />
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: delay + 0.2, type: "spring", stiffness: 200 }}
+        >
+          <div className={cn(colorClasses[color].icon)}>
+            {icon}
+          </div>
+        </motion.div>
+        <div>
+          <Label htmlFor={name} className="text-sm font-medium text-slate-700 dark:text-slate-300 block">
+            {label}
+          </Label>
+          <div className="text-xs text-muted-foreground mt-0.5">{value} {unit} of {max} {unit}</div>
+        </div>
       </div>
       
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>{min} {unit}</span>
-        <span>{max} {unit}</span>
+      <div className="space-y-2">
+        <div className="relative">
+          <motion.div
+            whileTap={{ scale: 0.98 }}
+            whileFocus={{ scale: 1.01 }}
+          >
+            <Input
+              id={name}
+              name={name}
+              type="number"
+              value={value}
+              onChange={onChange}
+              className={cn(
+                "pr-12 h-12 rounded-xl transition-all duration-300 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-sm",
+                colorClasses[color].ring
+              )}
+              min={min}
+              max={max}
+            />
+          </motion.div>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 font-medium">
+            <span className={cn("text-sm", colorClasses[color].text)}>{unit}</span>
+          </div>
+        </div>
+        
+        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+          <motion.div 
+            className={cn("h-full bg-gradient-to-r", colorClasses[color].progress)}
+            initial={{ width: "0%" }}
+            animate={{ width: `${Math.min(100, (value / max) * 100)}%` }}
+            transition={{ duration: 0.8, delay: delay + 0.3, ease: "easeOut" }}
+          />
+        </div>
+        
+        <div className="flex justify-between items-center mt-1">
+          <span className="text-xs text-slate-400 dark:text-slate-500">{min}</span>
+          <div className="flex space-x-1">
+            {[...Array(5)].map((_, i) => {
+              const threshold = min + ((max - min) / 5) * (i + 1);
+              const isActive = value >= threshold;
+              return (
+                <motion.div
+                  key={`marker-${i}`}
+                  className={cn(
+                    "h-1 w-1 rounded-full transition-colors",
+                    isActive ? colorClasses[color].text : "bg-slate-200 dark:bg-slate-700"
+                  )}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: delay + 0.4 + (i * 0.05) }}
+                />
+              );
+            })}
+          </div>
+          <span className="text-xs text-slate-400 dark:text-slate-500">{max}</span>
+        </div>
       </div>
     </motion.div>
   );

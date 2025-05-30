@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { type FC } from 'react'; // Ensure React is imported
@@ -81,7 +80,6 @@ const CalorieDonutChart: FC<CalorieDonutChartProps> = ({ chartData, consumedCalo
             <Cell
               key={`cell-${index}`}
               fill={entry.fill}
-              cornerRadius={10}
             />
           ))}
           {goalCalories >= 0 && <Label content={<CaloriesCenterLabel value={consumedCalories} />} position="center" />}
