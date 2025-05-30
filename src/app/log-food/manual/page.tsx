@@ -189,16 +189,19 @@ export default function ManualLogPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Button 
-          variant="ghost" 
-          onClick={() => router.back()} 
-          className="mb-4 group text-sm hover:bg-transparent"
+        <motion.div
           whileHover={{ x: -3 }}
           whileTap={{ scale: 0.97 }}
         >
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => router.back()} 
+            className="mb-4 group text-sm hover:bg-transparent"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back
+          </Button>
+        </motion.div>
       </motion.div>
       
       <motion.div
