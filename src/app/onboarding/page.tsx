@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, User, Calendar, Flame, Drumstick, Droplets, Wheat } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useGoals } from "@/hooks/use-goals";
+import { AnimatedBackground, FadeIn, SimplePulse } from "@/components/ui/optimized-animations";
+import { Analytics } from "@/lib/analytics";
 
 interface UserProfile {
   name: string;
@@ -147,7 +149,8 @@ interface GoalOptionProps {
   delay: number;
 }
 
-const GoalOption = ({ id, title, icon, description, isSelected, onSelect, delay }: GoalOptionProps) => {
+// Memoize the GoalOption component to prevent unnecessary re-renders
+const GoalOption = memo(({ id, title, icon, description, isSelected, onSelect, delay }: GoalOptionProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -173,11 +176,6 @@ const GoalOption = ({ id, title, icon, description, isSelected, onSelect, delay 
             transition={{ duration: 0.4 }}
           >
             <div className="absolute inset-0 bg-primary/5 dark:bg-primary/10" />
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-primary/5 dark:from-primary/20 dark:to-primary/10"
-              animate={{ x: ["0%", "100%", "0%"] }}
-              transition={{ duration: 5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-            />
           </motion.div>
         )}
         
@@ -224,7 +222,9 @@ const GoalOption = ({ id, title, icon, description, isSelected, onSelect, delay 
       </motion.button>
     </motion.div>
   );
-};
+});
+
+GoalOption.displayName = "GoalOption";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -257,84 +257,92 @@ export default function OnboardingPage() {
     }
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfile((prev) => ({
       ...prev,
       [name]: name === "age" || name === "weight" || name === "height" ? parseInt(value) || 0 : value,
     }));
-  };
+  }, []);
 
-  const handleGenderChange = (value: "male" | "female" | "other") => {
+  const handleGenderChange = useCallback((value: "male" | "female" | "other") => {
     const defaults = getDefaultValues(value, profile.age);
     setProfile((prev) => ({
       ...prev,
       gender: value,
       ...defaults,
     }));
-  };
+  }, [profile.age]);
   
-  const handleFitnessGoalChange = (value: "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina") => {
-    setProfile((prev) => ({
-      ...prev,
-      fitnessGoal: value,
-    }));
-    
-    // If we already have weight and height, recalculate nutrition goals based on new fitness goal
-    if (profile.weight > 0 && profile.height > 0) {
-      const bmr = calculateBMR(profile.weight, profile.height, profile.age, profile.gender, profile.unit);
-      const macros = calculateMacros(bmr, value);
+  const handleFitnessGoalChange = useCallback((value: "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina") => {
+    setProfile((prev) => {
+      // If we already have weight and height, recalculate nutrition goals based on new fitness goal
+      if (prev.weight > 0 && prev.height > 0) {
+        const bmr = calculateBMR(prev.weight, prev.height, prev.age, prev.gender, prev.unit);
+        const macros = calculateMacros(bmr, value);
+        
+        return {
+          ...prev,
+          fitnessGoal: value,
+          ...macros,
+        };
+      }
       
-      setProfile((prev) => ({
+      return {
         ...prev,
-        ...macros,
-      }));
-    }
-  };
+        fitnessGoal: value,
+      };
+    });
+  }, []);
   
-  const handleUnitChange = (value: "metric" | "imperial") => {
+  const handleUnitChange = useCallback((value: "metric" | "imperial") => {
     // Convert measurements when changing units
-    let newWeight = profile.weight;
-    let newHeight = profile.height;
-    
-    if (value === "imperial" && profile.unit === "metric") {
-      // Convert metric to imperial
-      newWeight = Math.round(profile.weight * 2.20462); // kg to pounds
-      newHeight = Math.round(profile.height / 2.54); // cm to inches
-    } else if (value === "metric" && profile.unit === "imperial") {
-      // Convert imperial to metric
-      newWeight = Math.round(profile.weight * 0.453592); // pounds to kg
-      newHeight = Math.round(profile.height * 2.54); // inches to cm
-    }
-    
-    setProfile((prev) => ({
-      ...prev,
-      unit: value,
-      weight: newWeight,
-      height: newHeight
-    }));
-  };
+    setProfile((prev) => {
+      let newWeight = prev.weight;
+      let newHeight = prev.height;
+      
+      if (value === "imperial" && prev.unit === "metric") {
+        // Convert metric to imperial
+        newWeight = Math.round(prev.weight * 2.20462); // kg to pounds
+        newHeight = Math.round(prev.height / 2.54); // cm to inches
+      } else if (value === "metric" && prev.unit === "imperial") {
+        // Convert imperial to metric
+        newWeight = Math.round(prev.weight * 0.453592); // pounds to kg
+        newHeight = Math.round(prev.height * 2.54); // inches to cm
+      }
+      
+      return {
+        ...prev,
+        unit: value,
+        weight: newWeight,
+        height: newHeight
+      };
+    });
+  }, []);
 
-  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNumberInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProfile((prev) => ({
       ...prev,
       [name]: parseInt(value) || 0,
     }));
-  };
+  }, []);
   
-  const updateNutritionGoals = () => {
+  const updateNutritionGoals = useCallback(() => {
     // Calculate nutrition goals based on profile data
-    const bmr = calculateBMR(profile.weight, profile.height, profile.age, profile.gender, profile.unit);
-    const macros = calculateMacros(bmr, profile.fitnessGoal);
-    
-    setProfile((prev) => ({
-      ...prev,
-      ...macros
-    }));
-  };
+    setProfile((prev) => {
+      const bmr = calculateBMR(prev.weight, prev.height, prev.age, prev.gender, prev.unit);
+      const macros = calculateMacros(bmr, prev.fitnessGoal);
+      
+      return {
+        ...prev,
+        ...macros
+      };
+    });
+  }, []);
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (step === 1) {
       // Validate first step
       if (!profile.name) {
@@ -399,15 +407,15 @@ export default function OnboardingPage() {
       // Submit the form
       handleSubmit();
     }
-  };
+  }, [step, profile, toast, updateNutritionGoals]);
 
-  const handlePreviousStep = () => {
+  const handlePreviousStep = useCallback(() => {
     if (step > 1) {
       setStep(step - 1);
     }
-  };
+  }, [step]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     setIsLoading(true);
     
     // Validate nutrition values
@@ -437,6 +445,9 @@ export default function OnboardingPage() {
       // Use the updateGoals function from the hook to ensure consistency
       updateGoals(nutritionGoals);
       
+      // Track onboarding completion
+      Analytics.trackOnboardingComplete();
+      
       // Show success message
       toast({
         title: "Profile Saved!",
@@ -446,74 +457,47 @@ export default function OnboardingPage() {
       // Redirect to welcome page
       router.push("/welcome");
       setIsLoading(false);
-    }, 1500);
-  };
+    }, 1000); // Reduced from 1500ms to 1000ms for faster response
+  }, [profile, toast, router, updateGoals]);
+
+  // Memoize fitness goal options to prevent re-renders
+  const fitnessGoalOptions = useMemo(() => [
+    {
+      id: "muscle_gain" as const,
+      title: "Muscle Gain",
+      icon: "💪",
+      description: "Build and maintain muscle mass",
+    },
+    {
+      id: "weight_loss" as const,
+      title: "Weight Loss",
+      icon: "🔻",
+      description: "Reduce body fat and lose weight",
+    },
+    {
+      id: "get_fit" as const,
+      title: "Get Fit",
+      icon: "🏃",
+      description: "Improve overall fitness and condition",
+    },
+    {
+      id: "overall_health" as const,
+      title: "Overall Health",
+      icon: "❤️",
+      description: "Maintain a balanced lifestyle",
+    },
+    {
+      id: "stamina" as const,
+      title: "Stamina",
+      icon: "⚡",
+      description: "Improve endurance and energy levels",
+    },
+  ], []);
 
   if (hasUserProfile) {
     return (
       <div className="container flex items-center justify-center min-h-screen relative bg-gradient-to-br from-background via-background/95 to-primary/5 dark:from-background dark:via-background/95 dark:to-primary/10 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Large circle gradient */}
-          <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
-          <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-gradient-to-tl from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
-          
-          {/* Floating particles */}
-          <div className="absolute w-full h-full">
-            {[...Array(12)].map((_, i) => (
-              <motion.div
-                key={`particle-${i}`}
-                className="absolute rounded-full bg-primary/30 dark:bg-primary/20"
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  width: `${Math.random() * 8 + 2}px`,
-                  height: `${Math.random() * 8 + 2}px`,
-                  opacity: Math.random() * 0.5 + 0.2,
-                }}
-                animate={{
-                  y: [0, Math.random() * 100 - 50],
-                  x: [0, Math.random() * 50 - 25],
-                  opacity: [Math.random() * 0.5 + 0.2, 0.8, Math.random() * 0.5 + 0.2],
-                }}
-                transition={{
-                  duration: Math.random() * 20 + 20,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  ease: 'easeInOut',
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Dynamic gradients */}
-          <div className="absolute w-full h-full">
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={`blob-${i}`}
-                className="absolute rounded-full"
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  width: `${Math.random() * 500 + 300}px`,
-                  height: `${Math.random() * 500 + 300}px`,
-                  background: `radial-gradient(circle, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.01) 50%, rgba(var(--primary-rgb), 0) 70%)`,
-                  filter: 'blur(70px)',
-                }}
-                animate={{
-                  x: [0, Math.random() * 100 - 50],
-                  y: [0, Math.random() * 100 - 50],
-                }}
-                transition={{
-                  duration: Math.random() * 30 + 20,
-                  repeat: Infinity,
-                  repeatType: 'reverse',
-                  ease: 'easeInOut',
-                }}
-              />
-            ))}
-          </div>
-        </div>
+        <AnimatedBackground />
 
         <div className="relative z-10 max-w-md w-full px-6">
           {/* Logo */}
@@ -578,55 +562,15 @@ export default function OnboardingPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
-              whileHover={{ scale: 1.03, translateY: -4 }}
-              whileTap={{ scale: 0.97 }}
             >
-              <Button 
+            <Button 
                 onClick={() => router.push("/welcome")}
                 className="gap-2 h-12 px-8 rounded-xl w-full bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 relative overflow-hidden"
-              >
+            >
                 <span className="relative z-10">Go to Welcome</span>
-                <motion.div
-                  className="absolute z-10 right-7"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity, 
-                    repeatType: "loop",
-                    ease: "easeInOut",
-                    repeatDelay: 1,
-                  }}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </motion.div>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '100%' }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity, 
-                    repeatDelay: 1
-                  }}
-                />
-              </Button>
-            </motion.div>
-
-            {/* Animated pulses */}
-            <div className="relative h-1 w-32 mx-auto mt-6">
-              <motion.div 
-                className="absolute inset-0 bg-primary/40 rounded-full"
-                animate={{ 
-                  scale: [1, 1.5, 1],
-                  opacity: [0.5, 0.2, 0.5]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                }}
-              />
-            </div>
+                <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </motion.div>
           </motion.div>
         </div>
       </div>
@@ -635,68 +579,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="container mx-auto px-4 py-0 flex items-center justify-center min-h-screen relative bg-gradient-to-br from-background via-background/95 to-primary/5 dark:from-background dark:via-background/95 dark:to-primary/10 overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Large circle gradient */}
-        <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-gradient-to-br from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-gradient-to-tl from-primary/20 to-primary/5 dark:from-primary/10 dark:to-transparent rounded-full blur-3xl" />
-        
-        {/* Floating particles */}
-        <div className="absolute w-full h-full">
-          {[...Array(15)].map((_, i) => (
-            <motion.div
-              key={`particle-${i}`}
-              className="absolute rounded-full bg-primary/30 dark:bg-primary/20"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                width: `${Math.random() * 8 + 2}px`,
-                height: `${Math.random() * 8 + 2}px`,
-                opacity: Math.random() * 0.5 + 0.2,
-              }}
-              animate={{
-                y: [0, Math.random() * 100 - 50],
-                x: [0, Math.random() * 50 - 25],
-                opacity: [Math.random() * 0.5 + 0.2, 0.8, Math.random() * 0.5 + 0.2],
-              }}
-              transition={{
-                duration: Math.random() * 20 + 20,
-                repeat: Infinity,
-                repeatType: 'reverse',
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Dynamic gradients */}
-        <div className="absolute w-full h-full">
-          {[...Array(4)].map((_, i) => (
-            <motion.div
-              key={`blob-${i}`}
-              className="absolute rounded-full"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                width: `${Math.random() * 500 + 300}px`,
-                height: `${Math.random() * 500 + 300}px`,
-                background: `radial-gradient(circle, rgba(var(--primary-rgb), 0.05) 0%, rgba(var(--primary-rgb), 0.01) 50%, rgba(var(--primary-rgb), 0) 70%)`,
-                filter: 'blur(70px)',
-              }}
-              animate={{
-                x: [0, Math.random() * 100 - 50],
-                y: [0, Math.random() * 100 - 50],
-              }}
-              transition={{
-                duration: Math.random() * 30 + 20,
-                repeat: Infinity,
-                repeatType: 'reverse',
-                ease: 'easeInOut',
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      <AnimatedBackground />
       
       <motion.div 
         className="max-w-lg w-full relative z-10"
@@ -748,18 +631,15 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {step === 1 ? (
             <motion.div
-              key="step1"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
-              transition={{ 
-                duration: 0.5, 
-                ease: [0.22, 1, 0.36, 1]
-              }}
-            >
+          className="max-w-lg w-full relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Step Content */}
+          {step === 1 ? (
+            <FadeIn>
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -781,7 +661,7 @@ export default function OnboardingPage() {
                     </motion.div>
                   </div>
                   
-                  <motion.div
+                    <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
@@ -794,11 +674,11 @@ export default function OnboardingPage() {
                         transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
                       >
                         <Sparkles className="h-6 w-6 text-primary" />
-                      </motion.div>
-                    </CardTitle>
+                    </motion.div>
+                  </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
                       Let's set up your profile to personalize your experience
-                    </CardDescription>
+                  </CardDescription>
                   </motion.div>
                 </CardHeader>
                 
@@ -934,9 +814,9 @@ export default function OnboardingPage() {
                             Other
                           </Button>
                         </motion.div>
-                      </div>
+                        </div>
                     </motion.div>
-                  </div>
+                        </div>
                 </CardContent>
                 
                 <CardFooter className="flex justify-end pt-6 pb-8 px-8">
@@ -977,18 +857,9 @@ export default function OnboardingPage() {
                   </motion.div>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </FadeIn>
           ) : step === 2 ? (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
-              transition={{ 
-                duration: 0.5, 
-                ease: [0.22, 1, 0.36, 1]
-              }}
-            >
+            <FadeIn>
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-6 pt-8">
                   <div className="flex justify-center mb-4">
@@ -1010,9 +881,9 @@ export default function OnboardingPage() {
                           <path d="M2 17l10 5 10-5" />
                           <path d="M2 12l10 5 10-5" />
                         </svg>
-                      </div>
+                        </div>
                     </motion.div>
-                  </div>
+                    </div>
                   
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -1030,55 +901,18 @@ export default function OnboardingPage() {
                 
                 <CardContent className="px-6 pb-2">
                   <div className="grid grid-cols-1 gap-3">
-                    <GoalOption
-                      id="muscle_gain"
-                      title="Bodybuilding / Muscle Gain"
-                      icon="🏋️"
-                      description="Build lean muscle mass and increase strength"
-                      isSelected={profile.fitnessGoal === "muscle_gain"}
-                      onSelect={() => handleFitnessGoalChange("muscle_gain")}
-                      delay={0.1}
-                    />
-                    
-                    <GoalOption
-                      id="weight_loss"
-                      title="Weight Loss / Fat Burn"
-                      icon="⚖️"
-                      description="Reduce body fat and achieve a healthier weight"
-                      isSelected={profile.fitnessGoal === "weight_loss"}
-                      onSelect={() => handleFitnessGoalChange("weight_loss")}
-                      delay={0.2}
-                    />
-                    
-                    <GoalOption
-                      id="get_fit"
-                      title="Get Fit & Toned"
-                      icon="💪"
-                      description="Improve body composition and muscle definition"
-                      isSelected={profile.fitnessGoal === "get_fit"}
-                      onSelect={() => handleFitnessGoalChange("get_fit")}
-                      delay={0.3}
-                    />
-                    
-                    <GoalOption
-                      id="overall_health"
-                      title="Improve Overall Health"
-                      icon="🧘"
-                      description="Focus on wellness, energy levels and longevity"
-                      isSelected={profile.fitnessGoal === "overall_health"}
-                      onSelect={() => handleFitnessGoalChange("overall_health")}
-                      delay={0.4}
-                    />
-                    
-                    <GoalOption
-                      id="stamina"
-                      title="Increase Stamina / Endurance"
-                      icon="🏃"
-                      description="Boost cardiovascular fitness and endurance"
-                      isSelected={profile.fitnessGoal === "stamina"}
-                      onSelect={() => handleFitnessGoalChange("stamina")}
-                      delay={0.5}
-                    />
+                    {fitnessGoalOptions.map((option, index) => (
+                      <GoalOption
+                        key={option.id}
+                        id={option.id}
+                        title={option.title}
+                        icon={option.icon}
+                        description={option.description}
+                        isSelected={profile.fitnessGoal === option.id}
+                        onSelect={() => handleFitnessGoalChange(option.id as "muscle_gain" | "weight_loss" | "get_fit" | "overall_health" | "stamina")}
+                        delay={index * 0.1}
+                      />
+                    ))}
                   </div>
                 </CardContent>
                 
@@ -1103,7 +937,7 @@ export default function OnboardingPage() {
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
-                      onClick={handleNextStep}
+                      onClick={handleNextStep} 
                       className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
                     >
                       <span className="relative z-10">Continue</span>
@@ -1118,7 +952,7 @@ export default function OnboardingPage() {
                           repeatDelay: 1,
                         }}
                       >
-                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                       </motion.div>
                       <motion.div
                         className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
@@ -1134,18 +968,9 @@ export default function OnboardingPage() {
                   </motion.div>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </FadeIn>
           ) : step === 3 ? (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: -70, filter: "blur(8px)" }}
-              transition={{ 
-                duration: 0.5, 
-                ease: [0.22, 1, 0.36, 1]
-              }}
-            >
+            <FadeIn>
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -1168,10 +993,10 @@ export default function OnboardingPage() {
                           <line x1="10" y1="10" x2="14" y2="10" />
                         </svg>
                       </div>
-                    </motion.div>
+            </motion.div>
                   </div>
                   
-                  <motion.div
+            <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
@@ -1372,18 +1197,9 @@ export default function OnboardingPage() {
                   </motion.div>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </FadeIn>
           ) : (
-            <motion.div
-              key="step4"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, x: 70, filter: "blur(8px)" }}
-              transition={{ 
-                duration: 0.5, 
-                ease: [0.22, 1, 0.36, 1]
-              }}
-            >
+            <FadeIn>
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -1412,10 +1228,10 @@ export default function OnboardingPage() {
                   >
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
                       Your Nutrition Goals
-                    </CardTitle>
+                  </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
                       Personalized based on your profile and measurements
-                    </CardDescription>
+                  </CardDescription>
                   </motion.div>
                 </CardHeader>
                 
@@ -1527,16 +1343,16 @@ export default function OnboardingPage() {
                         {isLoading ? "Processing..." : "Complete Setup"}
                       </span>
                       {isLoading ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
                           className="relative z-10 ml-1"
-                        >
-                          <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        </motion.div>
+                          >
+                            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </motion.div>
                       ) : (
                         <motion.div
                           className="relative z-10"
@@ -1564,9 +1380,9 @@ export default function OnboardingPage() {
                   </motion.div>
                 </CardFooter>
               </Card>
-            </motion.div>
+            </FadeIn>
           )}
-        </AnimatePresence>
+        </motion.div>
         
         {/* Step Indicators */}
         <div className="flex justify-center mt-8 gap-3">
@@ -1689,8 +1505,8 @@ function NutritionInput({
           transition={{ delay: delay + 0.2, type: "spring", stiffness: 200 }}
         >
           <div className={cn(colorClasses[color].icon)}>
-            {icon}
-          </div>
+          {icon}
+        </div>
         </motion.div>
         <div>
           <Label htmlFor={name} className="text-sm font-medium text-slate-700 dark:text-slate-300 block">
@@ -1701,39 +1517,39 @@ function NutritionInput({
       </div>
       
       <div className="space-y-2">
-        <div className="relative">
+      <div className="relative">
           <motion.div
             whileTap={{ scale: 0.98 }}
             whileFocus={{ scale: 1.01 }}
           >
-            <Input
-              id={name}
-              name={name}
-              type="number"
-              value={value}
-              onChange={onChange}
+        <Input
+          id={name}
+          name={name}
+          type="number"
+          value={value}
+          onChange={onChange}
               className={cn(
                 "pr-12 h-12 rounded-xl transition-all duration-300 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 shadow-sm",
                 colorClasses[color].ring
               )}
-              min={min}
-              max={max}
-            />
+          min={min}
+          max={max}
+        />
           </motion.div>
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 font-medium">
             <span className={cn("text-sm", colorClasses[color].text)}>{unit}</span>
-          </div>
         </div>
-        
+      </div>
+      
         <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
-          <motion.div 
+        <motion.div 
             className={cn("h-full bg-gradient-to-r", colorClasses[color].progress)}
-            initial={{ width: "0%" }}
-            animate={{ width: `${Math.min(100, (value / max) * 100)}%` }}
+          initial={{ width: "0%" }}
+          animate={{ width: `${Math.min(100, (value / max) * 100)}%` }}
             transition={{ duration: 0.8, delay: delay + 0.3, ease: "easeOut" }}
-          />
-        </div>
-        
+        />
+      </div>
+      
         <div className="flex justify-between items-center mt-1">
           <span className="text-xs text-slate-400 dark:text-slate-500">{min}</span>
           <div className="flex space-x-1">

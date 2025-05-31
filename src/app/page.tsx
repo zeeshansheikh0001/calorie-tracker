@@ -45,6 +45,7 @@ import dynamic from "next/dynamic"; // Added dynamic import
 import { resetOnboarding } from "@/lib/onboarding";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Analytics } from "@/lib/analytics";
 
 // Dynamically import CalorieDonutChart
 const CalorieDonutChart = dynamic(
@@ -1601,6 +1602,20 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Button 
+        onClick={() => {
+          Analytics.trackCustomEvent("test_analytics", "test", "Home page test");
+          toast({
+            title: "Analytics Event Sent",
+            description: "A test event was sent to Google Analytics",
+          });
+        }}
+        variant="outline"
+        className="mt-4"
+      >
+        Test Analytics
+      </Button>
     </div>
   );
 }
