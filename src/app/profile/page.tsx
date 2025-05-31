@@ -16,7 +16,8 @@ import {
   ArrowRight,
   RefreshCw,
   Shield,
-  Camera
+  Camera,
+  FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -280,23 +281,34 @@ export default function ProfilePage() {
             <Separator className="my-1" />
             
             <ListItem 
+              href="/privacy"
               icon={Shield} 
               iconColorClass="text-emerald-500" 
               text="Privacy & Security" 
               subtext="Manage your data and privacy preferences"
-              isLink={false}
-              onClick={handleAppSettings}
+              isLink={true}
             />
             
             <Separator className="my-1" />
             
             <ListItem 
+              href="/terms"
+              icon={FileText} 
+              iconColorClass="text-purple-500" 
+              text="Terms of Service" 
+              subtext="Read our terms and conditions"
+              isLink={true}
+            />
+            
+            <Separator className="my-1" />
+            
+            <ListItem 
+              href="/about"
               icon={Info} 
               iconColorClass="text-blue-500" 
               text="About & Help" 
               subtext="App information and support"
-              isLink={false}
-              onClick={handleAppSettings}
+              isLink={true}
             />
             
             <Separator className="my-1" />
@@ -316,7 +328,7 @@ export default function ProfilePage() {
         {/* App Version */}
         <div className="mt-8 text-center text-xs text-muted-foreground">
           <p>Calorie Tracker v1.0.0</p>
-          <p className="mt-1">© 2023 All Rights Reserved</p>
+          <p className="mt-1">© 2025 All Rights Reserved</p>
         </div>
       </motion.div>
     </div>
