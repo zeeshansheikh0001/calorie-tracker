@@ -13,7 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useGoals } from "@/hooks/use-goals";
 import { AnimatedBackground, FadeIn, SimplePulse } from "@/components/ui/optimized-animations";
-import { Analytics } from "@/lib/analytics";
 
 interface UserProfile {
   name: string;
@@ -444,9 +443,6 @@ export default function OnboardingPage() {
       
       // Use the updateGoals function from the hook to ensure consistency
       updateGoals(nutritionGoals);
-      
-      // Track onboarding completion
-      Analytics.trackOnboardingComplete();
       
       // Show success message
       toast({

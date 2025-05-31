@@ -6,10 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 import React from 'react';
 import { applicationSchema } from '@/lib/schema';
-import { GoogleAnalytics } from '@/components/analytics/google-analytics';
-
-// GA ID - Replace with your actual Google Analytics ID when ready
-const GA_MEASUREMENT_ID = 'G-P3WL0JM7FM';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -154,7 +150,6 @@ export default function RootLayout({
         >
           <AppLayout>{children}</AppLayout>
           <Toaster />
-          <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
         </ThemeProvider>
       </body>
     </html>

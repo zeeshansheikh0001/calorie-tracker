@@ -4,8 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Analytics } from "@/lib/analytics";
-import { useCallback } from "react";
 
 const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
@@ -18,11 +16,6 @@ const bottomNavItems = [
 export default function BottomNavigationBar() {
   const pathname = usePathname();
 
-  // Track navigation changes
-  const handleNavClick = useCallback((label: string) => {
-    Analytics.trackTabChange(label);
-  }, []);
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-border bg-card shadow-[0_-2px_5px_rgba(0,0,0,0.05)]">
       <div className="mx-auto flex h-full max-w-md items-center justify-around">
@@ -32,7 +25,6 @@ export default function BottomNavigationBar() {
             <Link
               key={item.label}
               href={item.href}
-              onClick={() => handleNavClick(item.label)}
               className="flex flex-1 flex-col items-center justify-center p-2 text-center"
             >
               <item.icon

@@ -5,7 +5,6 @@ import BottomNavigationBar from "./bottom-navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { needsOnboarding } from "@/lib/onboarding";
-import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 
 export function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
@@ -55,7 +54,6 @@ export function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <>
-      <PageViewTracker />
       <main className={`flex-1 bg-background ${showBottomNav ? 'pb-20' : ''} overflow-hidden`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
