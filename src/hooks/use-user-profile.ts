@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import type { UserProfile } from '@/types';
 const DEFAULT_USER_PROFILE: UserProfile = {
   name: "Guest User",
   email: "", 
-  avatarUrl: "https://placehold.co/100x100.png", 
+  avatarUrl: "https://placehold.co/100x100.png",
 };
 
 const LOCAL_STORAGE_KEY = 'userProfile';
@@ -19,14 +18,40 @@ export function useUserProfile() {
   useEffect(() => {
     setIsLoading(true);
     try {
+      // First check for userProfile from profile edit
       const storedProfile = localStorage.getItem(LOCAL_STORAGE_KEY);
+      
+      // Then check for onboarding profile data
+      const onboardingProfile = localStorage.getItem('userProfile');
+      
       if (storedProfile) {
         const parsedProfile: UserProfile = JSON.parse(storedProfile);
         setUserProfile({
           name: parsedProfile.name || DEFAULT_USER_PROFILE.name,
           email: parsedProfile.email || DEFAULT_USER_PROFILE.email,
           avatarUrl: parsedProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl,
+          age: parsedProfile.age,
+          gender: parsedProfile.gender,
         });
+      } else if (onboardingProfile) {
+        // If no regular profile exists but onboarding data does, use that
+        const parsedOnboardingData = JSON.parse(onboardingProfile);
+        setUserProfile({
+          name: parsedOnboardingData.name || DEFAULT_USER_PROFILE.name,
+          email: DEFAULT_USER_PROFILE.email, // Onboarding doesn't collect email
+          avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
+          age: parsedOnboardingData.age,
+          gender: parsedOnboardingData.gender,
+        });
+        
+        // Save this data to the regular profile storage to consolidate
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+          name: parsedOnboardingData.name,
+          email: DEFAULT_USER_PROFILE.email,
+          avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
+          age: parsedOnboardingData.age,
+          gender: parsedOnboardingData.gender,
+        }));
       } else {
         setUserProfile(DEFAULT_USER_PROFILE);
       }
