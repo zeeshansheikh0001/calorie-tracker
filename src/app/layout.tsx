@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/components/theme-provider';
 import React from 'react';
 import { applicationSchema } from '@/lib/schema';
+import GoogleAnalytics from '@/lib/analytics';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -142,6 +143,7 @@ export default function RootLayout({
         />
       </head>
       <body className={bodyClassNames}>
+        <GoogleAnalytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

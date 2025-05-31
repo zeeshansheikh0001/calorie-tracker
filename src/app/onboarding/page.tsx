@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight, User, Calendar, Flame, Drumstick, Droplets, Wheat } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useGoals } from "@/hooks/use-goals";
 import { AnimatedBackground, FadeIn, SimplePulse } from "@/components/ui/optimized-animations";
+import { useAdaptivePerformance } from "@/hooks/use-performance";
 
 interface UserProfile {
   name: string;
@@ -183,8 +184,8 @@ const GoalOption = memo(({ id, title, icon, description, isSelected, onSelect, d
             {isSelected && (
               <motion.div 
                 className="absolute inset-0 rounded-full bg-primary/20 dark:bg-primary/30 blur-md" 
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1.4 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
               />
             )}
@@ -224,6 +225,87 @@ const GoalOption = memo(({ id, title, icon, description, isSelected, onSelect, d
 });
 
 GoalOption.displayName = "GoalOption";
+
+// Fast fade in animation
+interface FastFadeInProps {
+  children: React.ReactNode;
+  delay?: number;
+  key?: string;
+}
+
+const FastFadeIn = ({ children, delay = 0, key }: FastFadeInProps) => (
+  <motion.div
+    key={key}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.3, delay }}
+  >
+    {children}
+  </motion.div>
+);
+
+// Continue button
+interface ContinueButtonProps {
+  onClick: () => void;
+  text?: string;
+  isLoading?: boolean;
+}
+
+const ContinueButton = memo(({ onClick, text = "Continue", isLoading = false }: ContinueButtonProps) => (
+  <motion.div
+    whileHover={{ scale: 1.02, translateY: -2 }}
+    whileTap={{ scale: 0.98 }}
+    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+  >
+    <Button 
+      onClick={onClick} 
+      disabled={isLoading}
+      className="gap-4 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
+    >
+      <span className="relative z-10">
+        {isLoading ? "Processing..." : text}
+      </span>
+      {isLoading ? (
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="relative z-10"
+        >
+          <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </motion.div>
+      ) : (
+        <motion.div
+          className="relative z-10 ml-1"
+          animate={{ x: [0, 5, 0] }}
+          transition={{ 
+            duration: 1,
+            repeat: Infinity,
+            repeatType: "loop",
+            ease: "easeInOut",
+            repeatDelay: 1,
+          }}
+        >
+          <ArrowRight className="h-4 w-4" />
+        </motion.div>
+      )}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+        initial={{ x: '-100%' }}
+        animate={{ x: '100%' }}
+        transition={{ 
+          duration: 1.5, 
+          repeat: Infinity, 
+          repeatDelay: 2
+        }}
+      />
+    </Button>
+  </motion.div>
+));
+
+ContinueButton.displayName = "ContinueButton";
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -579,16 +661,16 @@ export default function OnboardingPage() {
       
       <motion.div 
         className="max-w-lg w-full relative z-10"
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.4 }}
       >
         {/* Logo & Brand */}
         <motion.div
-          className="flex flex-col items-center mb-10"
-          initial={{ opacity: 0, y: -20 }}
+          className="flex flex-col items-center mb-8"
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
         >
           <div className="flex items-center gap-3 mb-3">
             <motion.div
@@ -615,27 +697,22 @@ export default function OnboardingPage() {
           </div>
         </motion.div>
 
-        {/* Progress Indicator */}
-        <div className="flex justify-center mb-10">
+        {/* Progress Indicator - simplified animation */}
+        <div className="flex justify-center mb-8">
           <div className="relative w-56 h-1.5 bg-primary/10 dark:bg-primary/20 rounded-full overflow-hidden backdrop-blur-sm">
             <motion.div 
               className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-primary to-primary/70"
               initial={{ width: "0%" }}
               animate={{ width: step === 1 ? "25%" : step === 2 ? "50%" : step === 3 ? "75%" : "100%" }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             />
           </div>
         </div>
 
-            <motion.div
-          className="max-w-lg w-full relative z-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {/* Step Content */}
+        {/* Step Content */}
+        <AnimatePresence mode="wait">
           {step === 1 ? (
-            <FadeIn>
+            <FastFadeIn key="step1">
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -815,47 +892,26 @@ export default function OnboardingPage() {
                         </div>
                 </CardContent>
                 
-                <CardFooter className="flex justify-end pt-6 pb-8 px-8">
+                <CardFooter className="flex justify-between pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02, translateY: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
-                      onClick={handleNextStep} 
-                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
+                      variant="outline" 
+                      onClick={handlePreviousStep}
+                      className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
-                      <span className="relative z-10">Continue</span>
-                      <motion.div
-                        className="absolute z-10 right-6"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatType: "loop",
-                          ease: "easeInOut",
-                          repeatDelay: 1,
-                        }}
-                      >
-                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </motion.div>
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '100%' }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatDelay: 1
-                        }}
-                      />
+                      Back
                     </Button>
                   </motion.div>
+                  <ContinueButton onClick={handleNextStep} />
                 </CardFooter>
               </Card>
-            </FadeIn>
+            </FastFadeIn>
           ) : step === 2 ? (
-            <FadeIn>
+            <FastFadeIn key="step2">
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-6 pt-8">
                   <div className="flex justify-center mb-4">
@@ -914,8 +970,8 @@ export default function OnboardingPage() {
                 
                 <CardFooter className="flex justify-between pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02, translateY: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
@@ -926,47 +982,12 @@ export default function OnboardingPage() {
                       Back
                     </Button>
                   </motion.div>
-                  
-                  <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Button 
-                      onClick={handleNextStep} 
-                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
-                    >
-                      <span className="relative z-10">Continue</span>
-                      <motion.div
-                        className="absolute z-10 right-6"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatType: "loop",
-                          ease: "easeInOut",
-                          repeatDelay: 1,
-                        }}
-                      >
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </motion.div>
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '100%' }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatDelay: 1
-                        }}
-                      />
-                    </Button>
-                  </motion.div>
+                  <ContinueButton onClick={handleNextStep} />
                 </CardFooter>
               </Card>
-            </FadeIn>
+            </FastFadeIn>
           ) : step === 3 ? (
-            <FadeIn>
+            <FastFadeIn key="step3">
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -1143,8 +1164,8 @@ export default function OnboardingPage() {
                 
                 <CardFooter className="flex justify-between pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02, translateY: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
@@ -1155,47 +1176,12 @@ export default function OnboardingPage() {
                       Back
                     </Button>
                   </motion.div>
-                  
-                  <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Button 
-                      onClick={handleNextStep} 
-                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
-                    >
-                      <span className="relative z-10">Continue</span>
-                      <motion.div
-                        className="absolute z-10 right-6"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatType: "loop",
-                          ease: "easeInOut",
-                          repeatDelay: 1,
-                        }}
-                      >
-                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                      </motion.div>
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '100%' }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatDelay: 1
-                        }}
-                      />
-                    </Button>
-                  </motion.div>
+                  <ContinueButton onClick={handleNextStep} />
                 </CardFooter>
               </Card>
-            </FadeIn>
+            </FastFadeIn>
           ) : (
-            <FadeIn>
+            <FastFadeIn key="step4">
               <Card className="border-none shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] backdrop-blur-md bg-white/90 dark:bg-slate-900/90 overflow-hidden rounded-2xl">
                 <CardHeader className="space-y-2 text-center pb-8 pt-8">
                   <div className="flex justify-center mb-4">
@@ -1312,8 +1298,8 @@ export default function OnboardingPage() {
                 
                 <CardFooter className="flex justify-between pt-6 pb-8 px-8">
                   <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ scale: 1.02, translateY: -2 }}
+                    whileTap={{ scale: 0.98 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <Button 
@@ -1324,96 +1310,45 @@ export default function OnboardingPage() {
                       Back
                     </Button>
                   </motion.div>
-                  
-                  <motion.div
-                    whileHover={{ scale: 1.03, translateY: -5 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <Button 
+                  <ContinueButton 
                       onClick={handleNextStep} 
-                      disabled={isLoading}
-                      className="gap-2 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
-                    >
-                      <span className="relative z-10">
-                        {isLoading ? "Processing..." : "Complete Setup"}
-                      </span>
-                      {isLoading ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                          className="relative z-10 ml-1"
-                          >
-                            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                          </motion.div>
-                      ) : (
-                        <motion.div
-                          className="relative z-10"
-                          animate={{ rotate: [0, 15, -15, 0] }}
-                          transition={{ 
-                            duration: 2,
-                            repeat: Infinity,
-                            repeatDelay: 3
-                          }}
-                        >
-                          <Sparkles className="h-4 w-4" />
-                        </motion.div>
-                      )}
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '100%' }}
-                        transition={{ 
-                          duration: 1.5, 
-                          repeat: Infinity, 
-                          repeatDelay: 1
-                        }}
-                      />
-                    </Button>
-                  </motion.div>
+                    text="Complete Setup"
+                    isLoading={isLoading}
+                  />
                 </CardFooter>
               </Card>
-            </FadeIn>
+            </FastFadeIn>
           )}
-        </motion.div>
+        </AnimatePresence>
         
-        {/* Step Indicators */}
-        <div className="flex justify-center mt-8 gap-3">
-          <motion.button
-            onClick={() => !isLoading && setStep(1)}
-            className={`h-3 rounded-full transition-all duration-300 ${step === 1 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
-            animate={{ scale: step === 1 ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-            disabled={isLoading}
-          />
-          <motion.button
-            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.age <= 100 && setStep(2)}
-            className={`h-3 rounded-full transition-all duration-300 ${step === 2 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
-            animate={{ scale: step === 2 ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-            disabled={isLoading}
-          />
-          <motion.button
-            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.age <= 100 && setStep(3)}
-            className={`h-3 rounded-full transition-all duration-300 ${step === 3 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
-            animate={{ scale: step === 3 ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-            disabled={isLoading}
-          />
-          <motion.button
-            onClick={() => !isLoading && profile.name && profile.age >= 12 && profile.weight > 0 && profile.height > 0 && setStep(4)}
-            className={`h-3 rounded-full transition-all duration-300 ${step === 4 ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-md shadow-primary/20' : 'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'}`}
-            animate={{ scale: step === 4 ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-            disabled={isLoading}
-          />
+        {/* Step Indicators - simplified animation */}
+        <div className="flex justify-center mt-6 gap-3">
+          {[1, 2, 3, 4].map((stepNum) => (
+            <motion.button
+              key={`step-${stepNum}`}
+              onClick={() => !isLoading && canNavigateToStep(stepNum) && setStep(stepNum)}
+              className={`h-3 rounded-full transition-all duration-200 ${
+                step === stepNum ? 'w-8 bg-gradient-to-r from-primary to-primary/70 shadow-sm shadow-primary/20' : 
+                'w-3 bg-slate-300/50 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-700'
+              }`}
+              animate={{ scale: step === stepNum ? 1.05 : 1 }}
+              transition={{ duration: 0.2 }}
+              disabled={isLoading}
+            />
+          ))}
         </div>
       </motion.div>
     </div>
   );
+  
+  // Helper function to determine if user can navigate to a step
+  function canNavigateToStep(targetStep: number): boolean {
+    if (targetStep === 1) return true;
+    if (targetStep === 2) return Boolean(profile.name) && profile.age >= 12 && profile.age <= 100;
+    if (targetStep === 3) return Boolean(profile.name) && profile.age >= 12 && profile.age <= 100;
+    if (targetStep === 4) return Boolean(profile.name) && profile.age >= 12 && profile.weight > 0 && profile.height > 0;
+    return false;
+  }
 }
 
 interface NutritionInputProps {
