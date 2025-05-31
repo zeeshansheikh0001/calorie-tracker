@@ -15,6 +15,7 @@ import type { Goal } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Suspense } from "react";
 
 const initialGoals: Goal = {
   calories: 2000,
@@ -31,7 +32,7 @@ const recommendedRanges = {
   carbs: { min: 100, max: 350, unit: 'g' },
 };
 
-export default function GoalsPage() {
+function GoalsPageContent() {
   const [goals, setGoals] = useState<Goal>(initialGoals);
   const [isLoading, setIsLoading] = useState(false);
   const [activeField, setActiveField] = useState<keyof Goal | null>(null);
@@ -323,5 +324,13 @@ export default function GoalsPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+export default function GoalsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center">Loading nutrition goals...</div>}>
+      <GoalsPageContent />
+    </Suspense>
   );
 }

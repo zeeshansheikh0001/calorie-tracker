@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
 // Add type declaration for gtag
 declare global {
@@ -18,7 +18,7 @@ declare global {
 
 const GA_MEASUREMENT_ID = 'G-P3WL0JM7FM';
 
-export default function GoogleAnalytics() {
+function GoogleAnalyticsContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -52,5 +52,13 @@ export default function GoogleAnalytics() {
         }}
       />
     </>
+  );
+}
+
+export default function GoogleAnalytics() {
+  return (
+    <Suspense fallback={null}>
+      <GoogleAnalyticsContent />
+    </Suspense>
   );
 } 
