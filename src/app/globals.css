@@ -232,3 +232,21 @@
     @apply font-poppins text-xs font-medium;
   }
 }
+
+/* Add these patterns at the end of the file */
+
+.bg-pattern-food {
+  background-color: hsla(var(--background));
+  background-image: 
+    radial-gradient(circle at 25px 25px, hsla(var(--primary)/.03) 2%, transparent 0%), 
+    radial-gradient(circle at 75px 75px, hsla(var(--primary)/.03) 2%, transparent 0%);
+  background-size: 100px 100px;
+}
+
+.bg-pattern-dots {
+  background-image: 
+    radial-gradient(hsla(var(--primary)/.15) 1px, transparent 1px), 
+    radial-gradient(hsla(var(--primary)/.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
