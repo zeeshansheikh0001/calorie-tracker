@@ -10,7 +10,7 @@ const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/progress", label: "Stats", icon: BarChart2 },
   { href: "/ai-features", label: "AI", icon: Sparkles },
-  { href: "/diet-chart", label: "Diet Plan", icon: Apple }, // Changed label and href
+  { href: "/diet-chart", label: "Diet", icon: Apple }, // Changed label from "Diet Plan" to "Diet"
   { href: "/goals", label: "Health", icon: HeartPulse },
   { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
