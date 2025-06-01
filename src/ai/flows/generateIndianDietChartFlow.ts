@@ -102,25 +102,25 @@ Instructions:
     *   Adjust for activity level (Sedentary: BMR * 1.2; Lightly active: BMR * 1.375; Moderately active: BMR * 1.55; Very active: BMR * 1.725; Extra active: BMR * 1.9).
     *   Adjust for fitness goal (Weight loss: subtract ~500 kcal; Muscle gain: add ~300-500 kcal; Maintain: no change). This calculated value will be 'dailyCalories'.
 5.  **Meal Details**: For each meal:
-    *   `type`: Specify Breakfast, Lunch, Dinner, or Snack.
-    *   `name`: A descriptive Indian name for the meal (e.g., "Moong Dal Cheela with Mint Chutney", "Chicken Curry with 2 Rotis and Salad").
-    *   `ingredients`: List key ingredients (e.g., "Moong dal, Besan, Onion, Tomato, Spices", "Chicken breast, Onion-tomato gravy, Whole wheat flour").
-    *   `calories`: Provide an approximate calorie count for the meal. The sum of meal calories should be close to the `dailyCalories` target.
-    *   `nutrients`: Provide protein, carbs, fats in grams. Fiber is optional.
-    *   `preparationSteps`: Optional, 1-2 brief steps if helpful.
+    *   'type': Specify Breakfast, Lunch, Dinner, or Snack.
+    *   'name': A descriptive Indian name for the meal (e.g., "Moong Dal Cheela with Mint Chutney", "Chicken Curry with 2 Rotis and Salad").
+    *   'ingredients': List key ingredients (e.g., "Moong dal, Besan, Onion, Tomato, Spices", "Chicken breast, Onion-tomato gravy, Whole wheat flour").
+    *   'calories': Provide an approximate calorie count for the meal. The sum of meal calories should be close to the 'dailyCalories' target.
+    *   'nutrients': Provide protein, carbs, fats in grams. Fiber is optional.
+    *   'preparationSteps': Optional, 1-2 brief steps if helpful.
 6.  **Plan Duration**:
-    *   If `duration` is "daily", provide a plan for 1 day.
-    *   If `duration` is "weekly", provide a plan for 7 distinct days (e.g., Day 1, Day 2... or Monday, Tuesday...). The `day` field in `mealPlan` array objects should be populated.
+    *   If 'duration' is "daily", provide a plan for 1 day.
+    *   If 'duration' is "weekly", provide a plan for 7 distinct days (e.g., Day 1, Day 2... or Monday, Tuesday...). The 'day' field in 'mealPlan' array objects should be populated.
 7.  **Dietary Preferences & Restrictions**:
-    *   Strictly adhere to `dietaryPreferences`. Examples:
+    *   Strictly adhere to 'dietaryPreferences'. Examples:
         *   Vegetarian: No meat, fish, eggs. Include dairy, paneer, lentils.
         *   Non-Vegetarian: Can include chicken, fish, eggs, mutton (use lean options).
         *   Vegan: No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk.
         *   Jain: No onion, garlic, root vegetables. Strict vegetarian.
         *   Gluten-Free: Avoid wheat, barley, rye. Use rice, millets, jowar, bajra.
-    *   Avoid all `allergies`.
-    *   Consider `medicalConditions` (e.g., for diabetes, suggest low GI foods; for hypertension, low sodium).
-8.  **Macronutrient Breakdown**: Provide overall daily `protein`, `carbs`, `fats` in grams for the `macroBreakdown` object.
+    *   Avoid all 'allergies'.
+    *   Consider 'medicalConditions' (e.g., for diabetes, suggest low GI foods; for hypertension, low sodium).
+8.  **Macronutrient Breakdown**: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object.
 9.  **Nutrition Tips**: Offer 2-5 practical tips relevant to Indian eating habits and the user's goals.
 10. **Hydration**: Recommend daily water intake.
 
