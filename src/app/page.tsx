@@ -98,13 +98,20 @@ const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, prot
     >
       <Trash2 className="h-4 w-4" />
     </Button>
-    <CardContent className="p-4 space-y-3 mr-8">
-      <div className="flex justify-between items-start">
-        <h3 className="text-lg font-semibold text-foreground flex-1 truncate title-poppins" title={name}>{name}</h3>
-        <div className="flex items-center font-bold text-lg text-poppins" style={{color: 'hsl(var(--text-kcal-raw))'}}>
-          <Flame className="h-5 w-5 mr-1.5" />
-          {Math.round(calories)}
-          <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
+    <CardContent className="p-4 space-y-3">
+      <div className="flex flex-col space-y-1">
+        <div className="flex justify-between items-center pr-5">
+          <div className="max-w-[calc(100%-70px)]">
+            <h3 className="text-lg font-semibold text-foreground title-poppins line-clamp-1" title={name}>{name}</h3>
+            {name.length > 20 && (
+              <p className="text-xs text-muted-foreground -mt-0.5 line-clamp-1">{name}</p>
+            )}
+          </div>
+          <div className="flex items-center font-bold text-lg text-poppins shrink-0" style={{color: 'hsl(var(--text-kcal-raw))'}}>
+            <Flame className="h-5 w-5 mr-1.5" />
+            {Math.round(calories)}
+            <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
@@ -1137,11 +1144,11 @@ export default function DashboardPage() {
                     {/* Light background gradient */}
                     <div className="absolute inset-0 bg-gradient-to-r from-rose-50/80 to-pink-50/80 dark:from-rose-950/5 dark:to-pink-950/5 opacity-60"></div>
                     
-                    <CardContent className="p-4 sm:p-5 relative">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
+                    <CardContent className="relative p-4 sm:p-5">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
                           <motion.h3 
-                            className="text-lg font-bold truncate title-poppins" 
+                            className="text-lg font-bold line-clamp-1 title-poppins pr-8 sm:pr-0" 
                             title={entry.name}
                             initial={{ opacity: 0, x: -5 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -1150,7 +1157,7 @@ export default function DashboardPage() {
                             {entry.name}
                           </motion.h3>
                           
-                          <div className="mt-3 flex flex-wrap gap-2 sm:gap-4">
+                          <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
                             <motion.div 
                               className="flex items-center gap-1.5"
                               initial={{ opacity: 0, scale: 0.8 }}
@@ -1238,6 +1245,7 @@ export default function DashboardPage() {
                         </div>
                         
                         <motion.div
+                          className="absolute top-3 right-3 sm:static"
                           whileHover={{ rotate: 15, scale: 1.1 }}
                           transition={{ type: "spring", stiffness: 500 }}
                         >

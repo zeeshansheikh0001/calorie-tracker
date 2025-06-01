@@ -445,6 +445,7 @@ export default function LogFoodByPhotoPage() {
       action: <CheckCircle className="text-green-500" />,
     });
     resetPhotoState();
+    router.push('/');
   };
 
   const resetPhotoState = () => {

@@ -148,6 +148,9 @@ export default function ManualLogPage() {
     setEstimatedNutrition(null); 
     setFoodName(""); 
     setIsSubmittingLog(false);
+    
+      // Force a hard navigation to the home page with a full page reload
+      window.location.href = '/';
   };
 
   const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType, delay = 0) => {
