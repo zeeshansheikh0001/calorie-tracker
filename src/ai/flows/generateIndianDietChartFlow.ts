@@ -86,9 +86,9 @@ User Details:
 - Height: {{{height}}} cm
 - Activity Level: {{{activityLevel}}}
 - Fitness Goal: {{{fitnessGoal}}}
-- Dietary Preferences: {{#if dietaryPreferences.length}}{{join dietaryPreferences ", "}}{{else}}None specified (assume balanced omnivore Indian diet unless specified otherwise in common sense, e.g. Jain implies vegetarian){{/if}}
-- Allergies: {{#if allergies.length}}{{join allergies ", "}}{{else}}None specified{{/if}}
-- Medical Conditions: {{#if medicalConditions.length}}{{join medicalConditions ", "}}{{else}}None specified{{/if}}
+- Dietary Preferences: {{#if dietaryPreferences.length}}{{#each dietaryPreferences}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified (assume balanced omnivore Indian diet unless specified otherwise in common sense, e.g. Jain implies vegetarian){{/if}}
+- Allergies: {{#if allergies.length}}{{#each allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified{{/if}}
+- Medical Conditions: {{#if medicalConditions.length}}{{#each medicalConditions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified{{/if}}
 - Plan Duration: {{{duration}}}
 
 Instructions:
