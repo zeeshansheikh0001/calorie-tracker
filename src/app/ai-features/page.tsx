@@ -217,7 +217,7 @@ const ScheduleSection: React.FC<{
             transition={{ duration: 0.3 }}
           >
             <div className="p-4 text-sm">
-              {children}
+        {children}
             </div>
           </motion.div>
         )}
@@ -457,19 +457,19 @@ export default function AiFeaturesPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsContent value="planner" className="mt-0 space-y-8">
-          {/* AI Health Planner Section */}
+      {/* AI Health Planner Section */}
           <AnimatedCard>
             <Card className="w-full mx-auto shadow-xl overflow-hidden border-t-4 border-t-primary">
               <CardHeader className="bg-gradient-to-r from-primary/10 to-transparent">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-primary/20 rounded-full">
                     <Edit3 className="h-6 w-6 text-primary" />
-                  </div>
+          </div>
                   <div>
                     <CardTitle className="text-2xl font-bold">Personalized AI Health Planner</CardTitle>
                     <CardDescription className="mt-1">
                       Create your tailored daily health schedule with AI assistance
-                    </CardDescription>
+          </CardDescription>
                   </div>
                 </div>
                 
@@ -479,9 +479,9 @@ export default function AiFeaturesPage() {
                     Fill in your details below, and our AI will generate a comprehensive health plan tailored to your specific needs and goals.
                   </p>
                 </div>
-              </CardHeader>
+        </CardHeader>
               
-              <form onSubmit={handleGenerateScheduleSubmit}>
+        <form onSubmit={handleGenerateScheduleSubmit}>
                 <CardContent className="space-y-6 p-6">
                   <Accordion type="multiple" className="w-full space-y-4" defaultValue={["goals-macros"]}>
                     <AccordionItem value="goals-macros" className="border rounded-lg overflow-hidden shadow-sm">
@@ -492,8 +492,8 @@ export default function AiFeaturesPage() {
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-4 pb-4 bg-blue-50/30 dark:bg-blue-950/10 space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
                             <Label htmlFor="calorieGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Flame className="h-4 w-4" />
                               Daily Calorie Goal (kcal)
@@ -506,8 +506,8 @@ export default function AiFeaturesPage() {
                               onChange={handleInputChange} 
                               className="mt-1 border-blue-200 dark:border-blue-800/50 focus-visible:ring-blue-500" 
                             />
-                          </div>
-                          <div>
+                    </div>
+                    <div>
                             <Label htmlFor="proteinGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Drumstick className="h-4 w-4" />
                               Daily Protein Goal (g)
@@ -520,8 +520,8 @@ export default function AiFeaturesPage() {
                               onChange={handleInputChange} 
                               className="mt-1 border-blue-200 dark:border-blue-800/50 focus-visible:ring-blue-500" 
                             />
-                          </div>
-                          <div>
+                    </div>
+                    <div>
                             <Label htmlFor="fatGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Droplets className="h-4 w-4" />
                               Daily Fat Goal (g)
@@ -534,8 +534,8 @@ export default function AiFeaturesPage() {
                               onChange={handleInputChange} 
                               className="mt-1 border-blue-200 dark:border-blue-800/50 focus-visible:ring-blue-500" 
                             />
-                          </div>
-                          <div>
+                    </div>
+                    <div>
                             <Label htmlFor="carbGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Wheat className="h-4 w-4" />
                               Daily Carb Goal (g)
@@ -550,44 +550,8 @@ export default function AiFeaturesPage() {
                             />
                           </div>
                         </div>
-                        
-                        <div className="pt-2">
-                          <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                            <Info className="h-3 w-3" />
-                            <span>Current macronutrient distribution</span>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            {/* Protein progress */}
-                            <div>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="font-medium text-blue-600 dark:text-blue-400">Protein</span>
-                                <span>{Math.round((formState.proteinGoal * 4 / (formState.calorieGoal || 1)) * 100)}%</span>
-                              </div>
-                              <Progress value={(formState.proteinGoal * 4 / (formState.calorieGoal || 1)) * 100} className="h-2 bg-blue-100 dark:bg-blue-950/50" indicatorClassName="bg-blue-500" />
-                            </div>
-                            
-                            {/* Fat progress */}
-                            <div>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="font-medium text-yellow-600 dark:text-yellow-400">Fat</span>
-                                <span>{Math.round((formState.fatGoal * 9 / (formState.calorieGoal || 1)) * 100)}%</span>
-                              </div>
-                              <Progress value={(formState.fatGoal * 9 / (formState.calorieGoal || 1)) * 100} className="h-2 bg-yellow-100 dark:bg-yellow-950/50" indicatorClassName="bg-yellow-500" />
-                            </div>
-                            
-                            {/* Carbs progress */}
-                            <div>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="font-medium text-green-600 dark:text-green-400">Carbs</span>
-                                <span>{Math.round((formState.carbGoal * 4 / (formState.calorieGoal || 1)) * 100)}%</span>
-                              </div>
-                              <Progress value={(formState.carbGoal * 4 / (formState.calorieGoal || 1)) * 100} className="h-2 bg-green-100 dark:bg-green-950/50" indicatorClassName="bg-green-500" />
-                            </div>
-                          </div>
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                </AccordionContent>
+              </AccordionItem>
 
                     <AccordionItem value="lifestyle" className="border rounded-lg overflow-hidden shadow-sm">
                       <AccordionTrigger className="text-lg font-medium hover:no-underline px-4 py-3 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300">
@@ -598,7 +562,7 @@ export default function AiFeaturesPage() {
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-4 pb-4 bg-purple-50/30 dark:bg-purple-950/10 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
+                  <div>
                             <Label htmlFor="weightGoalType" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Award className="h-4 w-4" />
                               Primary Weight/Health Goal
@@ -611,13 +575,13 @@ export default function AiFeaturesPage() {
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
                                 <SelectValue placeholder="Select goal" />
                               </SelectTrigger>
-                              <SelectContent>
-                                {weightGoalTypes.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                      <SelectContent>
+                        {weightGoalTypes.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                           
-                          <div>
+                  <div>
                             <Label htmlFor="activityLevel" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Dumbbell className="h-4 w-4" />
                               Activity Level
@@ -630,13 +594,13 @@ export default function AiFeaturesPage() {
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
                                 <SelectValue placeholder="Select activity level" />
                               </SelectTrigger>
-                              <SelectContent>
-                                {activityLevels.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                      <SelectContent>
+                        {activityLevels.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                           
-                          <div>
+                  <div>
                             <Label htmlFor="primaryFocus" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Heart className="h-4 w-4" />
                               Primary Fitness/Health Focus
@@ -649,13 +613,13 @@ export default function AiFeaturesPage() {
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
                                 <SelectValue placeholder="Select primary focus" />
                               </SelectTrigger>
-                              <SelectContent>
-                                {primaryFocusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                        <SelectContent>
+                            {primaryFocusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                  </div>
                           
-                          <div>
+                   <div>
                             <Label htmlFor="sleepHoursGoal" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <BedDouble className="h-4 w-4" />
                               Target Sleep Hours
@@ -671,7 +635,7 @@ export default function AiFeaturesPage() {
                               min="0" 
                               max="16" 
                             />
-                          </div>
+                    </div>
                         </div>
                         
                         <div className="pt-2">
@@ -680,7 +644,7 @@ export default function AiFeaturesPage() {
                             Dietary Preferences/Restrictions
                           </Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
-                            {allDietaryPreferences.map(pref => (
+                      {allDietaryPreferences.map(pref => (
                               <div 
                                 key={pref.id} 
                                 className={`flex items-center space-x-2 p-3 border rounded-md transition-colors ${
@@ -689,10 +653,10 @@ export default function AiFeaturesPage() {
                                     : 'bg-background border-border hover:bg-purple-50 dark:hover:bg-purple-950/10'
                                 }`}
                               >
-                                <Checkbox
-                                  id={`diet-${pref.id}`}
-                                  checked={formState.dietaryPreferences?.includes(pref.id)}
-                                  onCheckedChange={(checked) => handleDietaryPreferenceChange(pref.id, checked)}
+                          <Checkbox
+                            id={`diet-${pref.id}`}
+                            checked={formState.dietaryPreferences?.includes(pref.id)}
+                            onCheckedChange={(checked) => handleDietaryPreferenceChange(pref.id, checked)}
                                   className="text-purple-600 border-purple-400 data-[state=checked]:bg-purple-600"
                                 />
                                 <Label 
@@ -701,14 +665,14 @@ export default function AiFeaturesPage() {
                                 >
                                   {pref.label}
                                 </Label>
-                              </div>
-                            ))}
-                          </div>
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
+                      ))}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
                 
                 <CardFooter className="border-t pt-6 pb-6 bg-muted/30">
                   <div className="w-full flex flex-col sm:flex-row justify-between gap-4 items-center">
@@ -730,25 +694,25 @@ export default function AiFeaturesPage() {
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generate My Health Schedule
+              Generate My Health Schedule
                         </>
                       )}
-                    </Button>
+            </Button>
                   </div>
-                </CardFooter>
-              </form>
-            </Card>
+          </CardFooter>
+        </form>
+      </Card>
           </AnimatedCard>
 
-          {scheduleError && (
-            <Alert variant="destructive" className="mt-6 w-full mx-auto animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{scheduleError}</AlertDescription>
-            </Alert>
-          )}
+      {scheduleError && (
+        <Alert variant="destructive" className="mt-6 w-full mx-auto animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{scheduleError}</AlertDescription>
+        </Alert>
+      )}
 
-          {schedule && !isLoadingSchedule && (
+      {schedule && !isLoadingSchedule && (
             <AnimatedCard delay={0.2}>
               <Card className="w-full mx-auto shadow-xl border-t-4 border-t-green-500 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-green-50 to-transparent dark:from-green-950/20 dark:to-transparent border-b">
@@ -758,8 +722,8 @@ export default function AiFeaturesPage() {
                     </div>
                     <div>
                       <CardTitle className="text-xl font-bold text-green-700 dark:text-green-400">
-                        {schedule.dailyScheduleTitle}
-                      </CardTitle>
+              {schedule.dailyScheduleTitle}
+            </CardTitle>
                       {schedule.introduction && (
                         <CardDescription className="pt-1 text-sm">
                           {schedule.introduction}
@@ -795,7 +759,7 @@ export default function AiFeaturesPage() {
                       </div>
                     </div>
                   </div>
-                </CardHeader>
+          </CardHeader>
                 
                 <CardContent className="p-0">
                   <div className="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x">
@@ -806,7 +770,7 @@ export default function AiFeaturesPage() {
                       </h3>
                       
                       <div className="space-y-3">
-                        {schedule.mealTimingsAndPortions.map((meal, index) => (
+                {schedule.mealTimingsAndPortions.map((meal, index) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, y: 10 }}
@@ -856,8 +820,8 @@ export default function AiFeaturesPage() {
                             </div>
                           )}
                         </div>
-                      </div>
-                      
+            </div>
+
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400 mt-6 pt-2">
                         <Brain className="h-5 w-5" />
                         Nutrient Balance Tip
@@ -906,8 +870,8 @@ export default function AiFeaturesPage() {
                             )}
                           </div>
                         </div>
-                        
-                        {schedule.generalNotes && (
+
+            {schedule.generalNotes && (
                           <div>
                             <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                               <Info className="h-5 w-5" />
@@ -922,7 +886,7 @@ export default function AiFeaturesPage() {
                       </div>
                     </div>
                   </div>
-                </CardContent>
+          </CardContent>
                 
                 <CardFooter className="bg-muted/30 p-4 border-t flex justify-center">
                   <Button 
@@ -936,25 +900,25 @@ export default function AiFeaturesPage() {
                     Print or Save This Plan
                   </Button>
                 </CardFooter>
-              </Card>
+        </Card>
             </AnimatedCard>
-          )}
+      )}
         </TabsContent>
 
         <TabsContent value="summary" className="mt-0 space-y-8">
-          {/* AI Daily Food Log Summary Section */}
+      {/* AI Daily Food Log Summary Section */}
           <AnimatedCard>
             <Card className="w-full mx-auto shadow-xl overflow-hidden border-t-4 border-t-blue-500">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-950/20 dark:to-transparent">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                     <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
+          </div>
                   <div>
                     <CardTitle className="text-2xl font-bold">AI Daily Food Log Summary</CardTitle>
                     <CardDescription className="mt-1">
                       Get AI-powered analysis of your daily nutrition
-                    </CardDescription>
+          </CardDescription>
                   </div>
                 </div>
                 
@@ -964,7 +928,7 @@ export default function AiFeaturesPage() {
                     Select a date below to analyze your food log entries. Our AI will provide personalized insights and suggestions based on your nutritional goals.
                   </p>
                 </div>
-              </CardHeader>
+        </CardHeader>
               
               <CardContent className="space-y-6 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -974,13 +938,13 @@ export default function AiFeaturesPage() {
                       Date for Summary
                     </Label>
                     
-                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
                           variant="outline"
                           className="w-full justify-start text-left font-normal border-blue-200 dark:border-blue-800/50 hover:bg-blue-50 dark:hover:bg-blue-950/20"
-                          disabled={isLoadingDailyLog}
-                        >
+                  disabled={isLoadingDailyLog}
+                >
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2">
                               <CalendarDays className="h-4 w-4 text-blue-500" />
@@ -999,29 +963,29 @@ export default function AiFeaturesPage() {
                             </div>
                             <ChevronDown className="h-4 w-4 opacity-50" />
                           </div>
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={summaryDate}
-                          onSelect={(date) => {
-                            setSummaryDate(date);
-                            setIsCalendarOpen(false);
-                          }}
-                          initialFocus
-                          disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={summaryDate}
+                  onSelect={(date) => {
+                    setSummaryDate(date);
+                    setIsCalendarOpen(false);
+                  }}
+                  initialFocus
+                  disabled={(date) => date > new Date() || date < new Date("2000-01-01")}
                           className="border border-blue-200 dark:border-blue-800/50 rounded-md"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                />
+              </PopoverContent>
+            </Popover>
                     
                     {!summaryDate && (
                       <p className="text-sm text-muted-foreground">
                         Please select a date for the summary.
                       </p>
                     )}
-                  </div>
+          </div>
                   
                   <div className="flex flex-col justify-end space-y-3">
                     <div className="text-sm text-muted-foreground">
@@ -1045,27 +1009,27 @@ export default function AiFeaturesPage() {
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-                          Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
+            Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
                         </>
                       )}
-                    </Button>
+          </Button>
                   </div>
                 </div>
-              </CardContent>
-              
-              {summaryError && (
+        </CardContent>
+        
+        {summaryError && (
                 <CardFooter className="border-t pt-4 bg-red-50/50 dark:bg-red-950/10">
-                  <Alert variant="destructive" className="w-full">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Summary Error</AlertTitle>
-                    <AlertDescription>{summaryError}</AlertDescription>
-                  </Alert>
-                </CardFooter>
-              )}
+            <Alert variant="destructive" className="w-full">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Summary Error</AlertTitle>
+              <AlertDescription>{summaryError}</AlertDescription>
+            </Alert>
+          </CardFooter>
+        )}
             </Card>
           </AnimatedCard>
 
-          {summary && !isLoadingSummary && (
+        {summary && !isLoadingSummary && (
             <AnimatedCard delay={0.2}>
               <Card className="w-full mx-auto shadow-xl border-t-4 border-t-blue-500 overflow-hidden">
                 <CardHeader className="bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-950/20 dark:to-transparent border-b">
@@ -1082,7 +1046,7 @@ export default function AiFeaturesPage() {
                     <Badge variant="outline" className="bg-blue-100/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">
                       AI Analysis
                     </Badge>
-                  </div>
+            </div>
                 </CardHeader>
                 
                 <CardContent className="p-0">
@@ -1096,8 +1060,8 @@ export default function AiFeaturesPage() {
                       <div className="p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
                         <p className="text-muted-foreground">{summary.overallAssessment}</p>
                       </div>
-                    </div>
-                    
+            </div>
+            
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <Utensils className="h-5 w-5" />
@@ -1107,8 +1071,8 @@ export default function AiFeaturesPage() {
                       <div className="p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
                         <p className="text-muted-foreground whitespace-pre-line">{summary.consumedItemsSummary}</p>
                       </div>
-                    </div>
-                    
+            </div>
+
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <ListChecks className="h-5 w-5" />
@@ -1127,7 +1091,7 @@ export default function AiFeaturesPage() {
                       </h3>
                       
                       <div className="space-y-2">
-                        {summary.actionableSuggestions.map((suggestion, index) => (
+                {summary.actionableSuggestions.map((suggestion, index) => (
                           <motion.div
                             key={index}
                             initial={{ opacity: 0, y: 10 }}
@@ -1163,9 +1127,9 @@ export default function AiFeaturesPage() {
                       <Printer className="mr-2 h-4 w-4" />
                       Print or Save This Summary
                     </Button>
-                  </div>
-                </CardFooter>
-              </Card>
+            </div>
+          </CardFooter>
+      </Card>
             </AnimatedCard>
           )}
         </TabsContent>

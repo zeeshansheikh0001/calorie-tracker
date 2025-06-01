@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent, type FC, type KeyboardEvent } from "react";
@@ -13,6 +12,7 @@ import { useDailyLog } from "@/hooks/use-daily-log";
 import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCrossed, Leaf, Activity, ShieldCheck } from "lucide-react";
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NutritionDisplayItemProps {
   icon: React.ElementType;
@@ -21,18 +21,43 @@ interface NutritionDisplayItemProps {
   unit?: string;
   color?: string;
   className?: string;
+  delay?: number;
 }
 
-const NutritionDisplayItem: FC<NutritionDisplayItemProps> = ({ icon: Icon, label, value, unit, color = "text-foreground", className }) => (
-  <div className={`flex items-center space-x-2 p-2.5 rounded-lg bg-background/70 shadow-sm ${className}`}>
-    <div className={`p-1.5 rounded-md ${color} bg-opacity-10`}>
+const NutritionDisplayItem: FC<NutritionDisplayItemProps> = ({ 
+  icon: Icon, 
+  label, 
+  value, 
+  unit, 
+  color = "text-foreground", 
+  className,
+  delay = 0
+}) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: delay }}
+    className={`flex items-center space-x-2 p-3 rounded-lg bg-background/70 backdrop-blur-sm shadow-md hover:shadow-lg transition-all ${className}`}
+  >
+    <motion.div 
+      whileHover={{ scale: 1.1, rotate: 5 }}
+      transition={{ type: "spring", stiffness: 300 }}
+      className={`p-2 rounded-md ${color} bg-opacity-10`}
+    >
       <Icon className={`h-5 w-5 flex-shrink-0`} />
-    </div>
+    </motion.div>
     <div>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
-      <p className={`font-semibold text-sm ${color}`}>{value}{unit && <span className="text-xs"> {unit}</span>}</p>
+      <motion.p 
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.3, delay: delay + 0.1 }}
+        className={`font-semibold text-sm ${color}`}
+      >
+        {value}{unit && <span className="text-xs"> {unit}</span>}
+      </motion.p>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default function ManualLogPage() {
@@ -125,173 +150,571 @@ export default function ManualLogPage() {
     setIsSubmittingLog(false);
   };
 
-  const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType) => {
+  const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType, delay = 0) => {
     if (!content || (typeof content === 'string' && content.trim() === '')) return null;
     const IconComponent = icon;
     return (
-      <div className="mt-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay }}
+        className="mt-4"
+      >
         <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
-          <IconComponent className="mr-2 h-5 w-5 text-primary/80" />
+          <motion.div 
+            initial={{ scale: 0, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", damping: 12, delay: delay + 0.1 }}
+          >
+            <IconComponent className="mr-2 h-5 w-5 text-primary/80" />
+          </motion.div>
           {title}
         </h3>
-        <p className="text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm whitespace-pre-line">
+        <motion.p 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          transition={{ duration: 0.4, delay: delay + 0.2 }}
+          className="text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm whitespace-pre-line"
+        >
           {content}
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     );
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
-       <Button variant="ghost" onClick={() => router.back()} className="mb-4 group text-sm">
-          <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </Button>
-      <Card className="max-w-2xl mx-auto shadow-xl animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-2xl font-bold flex items-center">
-            <Utensils className="mr-2 h-6 w-6 text-primary" />
-            Log Food Manually (AI Assisted)
-          </CardTitle>
-          <CardDescription className="mt-1 space-y-1">
-            <p>Describe your meal, and our AI will estimate its nutritional content.</p>
-            <p className="text-xs text-muted-foreground">
-              Logging for: {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'No date selected'}
-            </p>
-            <p className="text-xs text-muted-foreground italic">
-              Tip: For best results, include quantities (e.g., "200g chicken breast", "1 medium apple").
-            </p>
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="foodName" className="text-sm font-medium">Food Item Name / Description</Label>
-              <Input
-                id="foodName"
-                value={foodName}
-                onChange={(e) => {
-                  setFoodName(e.target.value);
-                  if(estimatedNutrition) setEstimatedNutrition(null); 
-                  setAiError(null); 
-                }}
-                onKeyDown={handleFoodNameKeyDown}
-                placeholder="e.g., 200g grilled salmon with asparagus and quinoa"
-                className="mt-1"
-                required
-              />
-               <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAiEstimate} 
-                disabled={isAiEstimating || !foodName.trim()}
-                className="mt-3 w-full sm:w-auto"
+    <div className="container mx-auto py-8 px-4 min-h-screen bg-background">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div
+          whileHover={{ x: -3 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <Button 
+            variant="ghost" 
+            onClick={() => router.back()} 
+            className="mb-4 group text-sm hover:bg-transparent"
+          >
+            <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+            Back
+          </Button>
+        </motion.div>
+      </motion.div>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-2xl mx-auto"
+      >
+        <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden backdrop-blur-sm bg-white/60 dark:bg-slate-900/60">
+          <CardHeader className="pb-4 border-b border-slate-100 dark:border-slate-800">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <Utensils className="h-6 w-6 text-primary" />
+                </motion.div>
+                <motion.span layoutId="title">Food Logger</motion.span>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring" }}
+                  className="ml-auto flex items-center gap-1 text-sm font-normal px-2 py-1 rounded-full bg-primary/10 text-primary"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>AI Powered</span>
+                </motion.div>
+              </CardTitle>
+              <CardDescription className="mt-2">
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-sm text-muted-foreground"
+                >
+                  Describe your meal to get instant nutrition estimates
+                </motion.p>
+              </CardDescription>
+            </motion.div>
+          </CardHeader>
+          
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-6 pt-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                className="space-y-3"
               >
-                {isAiEstimating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-4 w-4" />
-                )}
-                Estimate with AI
-              </Button>
-            </div>
-
-            {aiError && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>AI Estimation Error</AlertTitle>
-                <AlertDescription>{aiError}</AlertDescription>
-              </Alert>
-            )}
-
-            {estimatedNutrition && !isAiEstimating && (
-              <div className="mt-6 space-y-6 animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
-                <div>
-                  <h3 className="text-lg font-semibold text-primary mb-1">Estimated Nutritional Information</h3>
-                  {estimatedNutrition.estimatedQuantityNote && (
-                     <p className="text-xs text-muted-foreground flex items-center mb-3">
-                        <Info className="mr-1.5 h-3.5 w-3.5" />
-                        {estimatedNutrition.estimatedQuantityNote}
-                    </p>
-                  )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
-                    <NutritionDisplayItem icon={Flame} label="Calories" value={estimatedNutrition.calorieEstimate.toFixed(0)} unit="kcal" color="text-red-500" />
-                    <NutritionDisplayItem icon={Drumstick} label="Protein" value={estimatedNutrition.proteinEstimate.toFixed(1)} unit="g" color="text-sky-500" />
-                    <NutritionDisplayItem icon={Droplets} label="Fat" value={estimatedNutrition.fatEstimate.toFixed(1)} unit="g" color="text-amber-500" />
-                    <NutritionDisplayItem icon={Wheat} label="Carbs" value={estimatedNutrition.carbEstimate.toFixed(1)} unit="g" color="text-emerald-500" />
-                  </div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="foodName" className="text-sm font-medium flex items-center gap-2">
+                    <UtensilsCrossed className="h-4 w-4 text-primary" />
+                    Food Description
+                  </Label>
+                  <motion.span 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-xs text-muted-foreground px-2 py-1 rounded-full bg-muted/50"
+                  >
+                    {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'Today'}
+                  </motion.span>
                 </div>
                 
-                { (estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate > 0) ||
-                  (estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0) ||
-                  (estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0) ||
-                  (estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0) ||
-                  (estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0) ? (
-                  <div>
-                    <h3 className="text-lg font-semibold text-primary mb-2">Detailed Nutritional Breakdown</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 border rounded-lg bg-card shadow-sm">
-                      {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate >= 0 && <NutritionDisplayItem icon={Droplets} label="Saturated Fat" value={estimatedNutrition.saturatedFatEstimate.toFixed(1)} unit="g" color="text-orange-400" />}
-                      {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate >= 0 && <NutritionDisplayItem icon={Leaf} label="Dietary Fiber" value={estimatedNutrition.fiberEstimate.toFixed(1)} unit="g" color="text-lime-600" />}
-                      {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate >= 0 && <NutritionDisplayItem icon={Activity} label="Sugars" value={estimatedNutrition.sugarEstimate.toFixed(1)} unit="g" color="text-fuchsia-500" />}
-                      {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate >= 0 && <NutritionDisplayItem icon={Heart} label="Cholesterol" value={estimatedNutrition.cholesterolEstimate.toFixed(0)} unit="mg" color="text-purple-500" />}
-                      {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate >= 0 && <NutritionDisplayItem icon={UtensilsCrossed} label="Sodium" value={estimatedNutrition.sodiumEstimate.toFixed(0)} unit="mg" color="text-indigo-500" />}
-                    </div>
-                  </div>
-                ) : null}
+                <motion.div
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                >
+                  <Input
+                    id="foodName"
+                    value={foodName}
+                    onChange={(e) => {
+                      setFoodName(e.target.value);
+                      if(estimatedNutrition) setEstimatedNutrition(null); 
+                      setAiError(null); 
+                    }}
+                    onKeyDown={handleFoodNameKeyDown}
+                    placeholder="e.g., 200g grilled salmon with asparagus"
+                    className="w-full h-12 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    required
+                  />
+                </motion.div>
                 
-                {renderTextSection("How Ingredients Influence Nutrition", estimatedNutrition.commonIngredientsInfluence, Brain)}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-2 text-xs text-muted-foreground pl-1"
+                >
+                  <Info className="h-3 w-3" />
+                  <span>Include quantities for better accuracy</span>
+                </motion.div>
                 
-                {(() => {
-                  const benefits = estimatedNutrition.healthBenefits;
-                  // Ensure benefits is an array for mapping, treat non-empty string as a single benefit
-                  const benefitsToRender = Array.isArray(benefits)
-                    ? benefits.filter(b => typeof b === 'string' && b.trim() !== '') // Filter out empty strings
-                    : typeof benefits === 'string' && benefits.trim() !== ''
-                      ? [benefits]
-                      : [];
-
-                  if (benefitsToRender.length > 0) {
-                    return (
-                      <div className="mt-4">
-                        <h3 className="text-lg font-semibold text-primary mb-2 flex items-center">
-                          <ShieldCheck className="mr-2 h-5 w-5 text-primary/80" />
-                          Potential Health Benefits
-                        </h3>
-                        <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground bg-secondary/20 p-3 rounded-md shadow-sm">
-                          {benefitsToRender.map((benefit, index) => (
-                            <li key={index}>
-                              {benefit}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  }
-                  return null; // Don't render the block if there are no benefits to display
-                })()}
-
-                {renderTextSection("Tips for a Healthier Version", estimatedNutrition.healthierTips, Leaf)}
-                {renderTextSection("Estimation Disclaimer", estimatedNutrition.estimationDisclaimer, Info)}
-
-                <CardFooter className="px-0 pt-4 border-t">
-                  <Button type="submit" disabled={isSubmittingLog || isAiEstimating || !foodName.trim() || !estimatedNutrition} className="w-full sm:w-auto">
-                    {isSubmittingLog ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <motion.div
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <Button 
+                    type="button" 
+                    onClick={handleAiEstimate} 
+                    disabled={isAiEstimating || !foodName.trim()}
+                    className="w-full h-11 mt-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary relative overflow-hidden group"
+                  >
+                    <motion.span 
+                      className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                      animate={{ x: ["0%", "100%"] }}
+                      transition={{ 
+                        repeat: Infinity, 
+                        repeatType: "loop", 
+                        duration: 2,
+                        ease: "linear",
+                        repeatDelay: 0.5
+                      }}
+                    />
+                    {isAiEstimating ? (
+                      <motion.div 
+                        className="flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Analyzing...</span>
+                      </motion.div>
                     ) : (
-                      <Save className="mr-2 h-4 w-4" />
+                      <motion.div
+                        className="flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, 15, -15, 0] }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            repeatType: "loop", 
+                            duration: 2,
+                            repeatDelay: 1
+                          }}
+                        >
+                          <Sparkles className="mr-2 h-4 w-4" />
+                        </motion.div>
+                        <span>Analyze with AI</span>
+                      </motion.div>
                     )}
-                    Add to Log
                   </Button>
-                </CardFooter>
-              </div>
-            )}
-          </CardContent>
-        </form>
-      </Card>
+                </motion.div>
+              </motion.div>
+
+              <AnimatePresence>
+                {aiError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>{aiError}</AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {estimatedNutrition && !isAiEstimating && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="space-y-6 pt-4 border-t"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <motion.h3 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className="text-lg font-medium flex items-center gap-2"
+                        >
+                          <Flame className="h-5 w-5 text-primary" />
+                          Nutrition Facts
+                        </motion.h3>
+                        {estimatedNutrition.estimatedQuantityNote && (
+                          <motion.span 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-xs text-muted-foreground bg-muted/30 px-2 py-1 rounded-full"
+                          >
+                            {estimatedNutrition.estimatedQuantityNote}
+                          </motion.span>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <NutritionBar 
+                          label="Calories" 
+                          value={estimatedNutrition.calorieEstimate.toFixed(0)} 
+                          unit="kcal" 
+                          color="bg-red-500" 
+                          delay={0}
+                          percent={100}
+                        />
+                        
+                        <NutritionBar 
+                          label="Protein" 
+                          value={estimatedNutrition.proteinEstimate.toFixed(1)} 
+                          unit="g" 
+                          color="bg-blue-500" 
+                          delay={0.1}
+                          percent={90}
+                        />
+                        
+                        <NutritionBar 
+                          label="Carbs" 
+                          value={estimatedNutrition.carbEstimate.toFixed(1)} 
+                          unit="g" 
+                          color="bg-green-500" 
+                          delay={0.2}
+                          percent={80}
+                        />
+                        
+                        <NutritionBar 
+                          label="Fat" 
+                          value={estimatedNutrition.fatEstimate.toFixed(1)} 
+                          unit="g" 
+                          color="bg-amber-500" 
+                          delay={0.3}
+                          percent={70}
+                        />
+                      </div>
+                      
+                      { (estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate > 0) ||
+                        (estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate > 0) ||
+                        (estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate > 0) ||
+                        (estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate > 0) ||
+                        (estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate > 0) ? (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
+                        >
+                          <div className="grid grid-cols-3 gap-3 pt-3 border-t text-sm">
+                            {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate >= 0 && (
+                              <NutrientDetail 
+                                label="Sat. Fat" 
+                                value={`${estimatedNutrition.saturatedFatEstimate.toFixed(1)}g`} 
+                                delay={0.4}
+                              />
+                            )}
+                            {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate >= 0 && (
+                              <NutrientDetail 
+                                label="Fiber" 
+                                value={`${estimatedNutrition.fiberEstimate.toFixed(1)}g`} 
+                                delay={0.45}
+                              />
+                            )}
+                            {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate >= 0 && (
+                              <NutrientDetail 
+                                label="Sugar" 
+                                value={`${estimatedNutrition.sugarEstimate.toFixed(1)}g`} 
+                                delay={0.5}
+                              />
+                            )}
+                            {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate >= 0 && (
+                              <NutrientDetail 
+                                label="Cholesterol" 
+                                value={`${estimatedNutrition.cholesterolEstimate.toFixed(0)}mg`} 
+                                delay={0.55}
+                              />
+                            )}
+                            {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate >= 0 && (
+                              <NutrientDetail 
+                                label="Sodium" 
+                                value={`${estimatedNutrition.sodiumEstimate.toFixed(0)}mg`} 
+                                delay={0.6}
+                              />
+                            )}
+                          </div>
+                        </motion.div>
+                      ) : null}
+                    </div>
+                    
+                    {estimatedNutrition.commonIngredientsInfluence && (
+                      <InfoSection 
+                        icon={<Brain className="h-4 w-4 text-primary" />}
+                        title="Nutritional Insights"
+                        content={estimatedNutrition.commonIngredientsInfluence}
+                        delay={0.6}
+                      />
+                    )}
+                    
+                    {(() => {
+                      const benefits = estimatedNutrition.healthBenefits;
+                      // Ensure benefits is an array for mapping, treat non-empty string as a single benefit
+                      let benefitsToRender: string[] = [];
+                      
+                      if (Array.isArray(benefits)) {
+                        benefitsToRender = benefits.filter(b => typeof b === 'string' && b.trim() !== '');
+                      } else if (typeof benefits === 'string') {
+                        const benefitStr = benefits as string;
+                        if (benefitStr.trim() !== '') {
+                          benefitsToRender = [benefitStr];
+                        }
+                      }
+
+                      if (benefitsToRender.length > 0) {
+                        return (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.7 }}
+                            className="space-y-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className="h-4 w-4 text-primary" />
+                              <h4 className="text-sm font-medium">Health Benefits</h4>
+                            </div>
+                            <div className="space-y-2 text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
+                              {benefitsToRender.map((benefit, index) => (
+                                <motion.div 
+                                  key={index} 
+                                  className="flex items-start gap-2"
+                                  initial={{ opacity: 0, x: -5 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: 0.7 + (index * 0.1) }}
+                                >
+                                  <motion.div 
+                                    className="rounded-full h-1.5 w-1.5 bg-primary mt-1.5"
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 10, delay: 0.7 + (index * 0.1) }}
+                                  />
+                                  <div>{benefit}</div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {estimatedNutrition.healthierTips && (
+                      <InfoSection 
+                        icon={<Leaf className="h-4 w-4 text-primary" />}
+                        title="Healthier Options"
+                        content={estimatedNutrition.healthierTips}
+                        delay={0.8}
+                        bgClass="bg-green-50/30 dark:bg-green-900/10"
+                      />
+                    )}
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.9 }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmittingLog || isAiEstimating || !foodName.trim() || !estimatedNutrition} 
+                        className="w-full h-11 bg-primary group relative overflow-hidden"
+                      >
+                        <motion.span 
+                          className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
+                          animate={{ x: ["0%", "100%"] }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            repeatType: "loop", 
+                            duration: 2,
+                            ease: "linear",
+                            repeatDelay: 0.5
+                          }}
+                        />
+                        <motion.div className="flex items-center justify-center">
+                          {isSubmittingLog ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ 
+                                repeat: Infinity, 
+                                repeatType: "loop", 
+                                duration: 2,
+                                repeatDelay: 2
+                              }}
+                            >
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                            </motion.div>
+                          )}
+                          <span>Add to Food Log</span>
+                        </motion.div>
+                      </Button>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardContent>
+          </form>
+        </Card>
+      </motion.div>
     </div>
   );
 }
+
+const NutritionBar: FC<{
+  label: string;
+  value: string;
+  unit: string;
+  color: string;
+  delay: number;
+  percent: number;
+}> = ({ label, value, unit, color, delay, percent }) => (
+  <motion.div 
+    className="space-y-1"
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ type: "spring", stiffness: 300, damping: 20, delay }}
+  >
+    <div className="flex items-center justify-between">
+      <span className="text-sm">{label}</span>
+      <motion.span 
+        className="font-medium"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: delay + 0.1 }}
+      >
+        {value} {unit}
+      </motion.span>
+    </div>
+    <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <motion.div 
+        initial={{ width: 0 }}
+        animate={{ width: `${percent}%` }}
+        transition={{ duration: 0.8, delay: delay + 0.2, ease: "easeOut" }}
+        className={`h-full ${color}`}
+      />
+    </div>
+  </motion.div>
+);
+
+const NutrientDetail: FC<{
+  label: string;
+  value: string;
+  delay: number;
+}> = ({ label, value, delay }) => (
+  <motion.div 
+    className="py-2"
+    initial={{ opacity: 0, y: 5 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ type: "spring", stiffness: 300, damping: 20, delay }}
+  >
+    <motion.div 
+      className="text-muted-foreground"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: delay + 0.1 }}
+    >
+      {label}
+    </motion.div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: delay + 0.2 }}
+    >
+      {value}
+    </motion.div>
+  </motion.div>
+);
+
+const InfoSection: FC<{
+  icon: React.ReactNode;
+  title: string;
+  content: string;
+  delay: number;
+  bgClass?: string;
+}> = ({ icon, title, content, delay, bgClass = "bg-muted/50" }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ type: "spring", stiffness: 300, damping: 20, delay }}
+    className="space-y-2"
+  >
+    <motion.div 
+      className="flex items-center gap-2"
+      initial={{ opacity: 0, x: -5 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: delay + 0.1 }}
+    >
+      {icon}
+      <h4 className="text-sm font-medium">{title}</h4>
+    </motion.div>
+    <motion.p 
+      className={`text-xs text-muted-foreground ${bgClass} p-3 rounded-lg`}
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      transition={{ delay: delay + 0.2 }}
+    >
+      {content}
+    </motion.p>
+  </motion.div>
+);
 
 
     

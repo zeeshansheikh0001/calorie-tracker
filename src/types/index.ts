@@ -36,6 +36,8 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarUrl?: string;
+  age?: number;
+  gender?: "male" | "female" | "other";
 }
 
 export interface BlogPost {

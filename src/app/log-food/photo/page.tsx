@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type ChangeEvent, useEffect, useRef, useCallback } from "react";
@@ -8,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft, Info } from "lucide-react";
+import { Loader2, UploadCloud, AlertCircle, CheckCircle, Pizza, Camera, VideoOff, ThumbsDown, Zap, ZapOff, ZoomIn, ZoomOut, ChevronLeft, Info, ArrowRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { analyzeFoodPhoto, type AnalyzeFoodPhotoOutput, type AnalyzeFoodPhotoInput } from "@/ai/flows/analyze-food-photo";
 import NutritionDisplay from "@/components/food/nutrition-display";
@@ -30,6 +29,8 @@ export default function LogFoodByPhotoPage() {
   const { addFoodEntry } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals(); // Added
   const router = useRouter();
+  const analysisResultRef = useRef<HTMLDivElement>(null);
+  const [showResultsHighlight, setShowResultsHighlight] = useState(false);
 
   const [tabMode, setTabMode] = useState<'upload' | 'camera'>('upload');
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | undefined>(undefined);
@@ -289,10 +290,33 @@ export default function LogFoodByPhotoPage() {
     }
   };
 
+  // Function to handle scrolling to results
+  const scrollToResults = useCallback(() => {
+    if (analysisResultRef.current) {
+      // Set highlight flag to trigger attention animation
+      setShowResultsHighlight(true);
+      
+      // Calculate position to scroll to (with offset to account for header/margins)
+      const yOffset = -20; 
+      const element = analysisResultRef.current;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      
+      // Scroll to the element
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth'
+      });
+      
+      // Remove highlight after animation completes
+      setTimeout(() => setShowResultsHighlight(false), 2000);
+    }
+  }, []);
+
   const handleSubmit = async () => {
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
+    setShowResultsHighlight(false);
     let photoDataUriToAnalyze: string | null = null;
 
     if (capturedDataUriForAnalysis) { 
@@ -344,35 +368,45 @@ export default function LogFoodByPhotoPage() {
     try {
       const input: AnalyzeFoodPhotoInput = { photoDataUri: photoDataUriToAnalyze };
       const result = await analyzeFoodPhoto(input);
-      setAnalysisResult(result);
-
-      if (!result.isFoodItem) {
-        toast({
-          title: "Not a Food Item?",
-          description: "The AI thinks this might not be food. Nutritional analysis could be off.",
-          variant: "default",
-          action: <ThumbsDown className="text-yellow-500" />,
-        });
-      } else {
-        toast({
-          title: "Analysis Complete",
-          description: "Nutritional information has been estimated.",
-          variant: "default",
-          action: <CheckCircle className="text-green-500" />,
-        });
-      }
+      
+      // First set isLoading to false, ensuring the loading state is removed
+      setIsLoading(false);
+      
+      // Then set the analysis result, which will trigger the results UI
+      setTimeout(() => {
+        setAnalysisResult(result);
+        
+        if (!result.isFoodItem) {
+          toast({
+            title: "Not a Food Item?",
+            description: "The AI thinks this might not be food. Nutritional analysis could be off.",
+            variant: "default",
+            action: <ThumbsDown className="text-yellow-500" />,
+          });
+        } else {
+          toast({
+            title: "Analysis Complete",
+            description: "Nutritional information has been estimated.",
+            variant: "default",
+            action: <CheckCircle className="text-green-500" />,
+          });
+        }
+  
+        // Scroll to results after they're rendered
+        setTimeout(scrollToResults, 100);
+      }, 300); // Brief delay to ensure loading animation completes
+      
     } catch (err) {
       console.error("Analysis error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred during analysis.";
       setError(errorMessage);
+      setIsLoading(false);
       toast({
         title: "Analysis Failed",
         description: errorMessage,
         variant: "destructive",
         action: <AlertCircle className="text-red-500" />,
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -466,7 +500,7 @@ export default function LogFoodByPhotoPage() {
         <Button variant="ghost" onClick={() => router.back()} className="mb-2 md:mb-4 group text-sm flex items-center">
           <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
           <span className="group-hover:text-primary transition-colors">Back</span>
-      </Button>
+        </Button>
       </motion.div>
       
       <motion.div
@@ -484,7 +518,19 @@ export default function LogFoodByPhotoPage() {
           <CardHeader className="p-0 border-b-0 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/30 backdrop-blur-sm z-0">
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent"></div>
-              <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0.5 }}
+                animate={{ 
+                  scale: [0.9, 1.1, 0.9],
+                  opacity: [0.5, 0.7, 0.5]
+                }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="absolute -bottom-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl"
+              />
             </div>
             
             <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-4 pt-8 px-6 pb-10 md:pb-12">
@@ -507,7 +553,19 @@ export default function LogFoodByPhotoPage() {
                       ease: "easeInOut"
                     }}
                   />
-                  <Pizza className="h-8 w-8 md:h-10 md:w-10 text-primary relative z-10" />
+                  <motion.div
+                    initial={{ scale: 1 }}
+                    animate={{ 
+                      rotate: [0, 10, 0, -10, 0],
+                    }}
+                    transition={{
+                      duration: 5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <Camera className="h-8 w-8 md:h-10 md:w-10 text-primary relative z-10" />
+                  </motion.div>
                   <motion.div
                     animate={{ 
                       scale: [1, 1.2, 1],
@@ -522,6 +580,14 @@ export default function LogFoodByPhotoPage() {
                   />
                 </div>
                 <div className="absolute -inset-1 bg-gradient-to-br from-primary/30 to-transparent rounded-full opacity-0 hover:opacity-20 transition-opacity duration-300"></div>
+                <motion.div
+                  className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-accent/70 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                >
+                  <Sparkles className="h-2.5 w-2.5 text-accent-foreground" />
+                </motion.div>
               </motion.div>
 
               <div className="flex flex-col items-center md:items-start">
@@ -532,8 +598,8 @@ export default function LogFoodByPhotoPage() {
                   className="relative"
                 >
                   <CardTitle className="text-xl md:text-3xl font-bold flex items-center text-center md:text-left bg-gradient-to-r from-primary via-primary/90 to-primary/70 text-transparent bg-clip-text drop-shadow-sm">
-            Log Food with Photo AI
-          </CardTitle>
+                    Snap & Track Your Meal
+                  </CardTitle>
                   <motion.div 
                     className="absolute -bottom-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent" 
                     initial={{ scaleX: 0, opacity: 0 }}
@@ -549,16 +615,8 @@ export default function LogFoodByPhotoPage() {
                   className="mt-3 px-8 md:px-0"
                 >
                   <CardDescription className="text-sm md:text-base max-w-md text-center md:text-left text-foreground/80">
-                    Take a photo or upload an image of your meal, and our AI will analyze its nutritional content instantly.
-          </CardDescription>
-                </motion.div>
-                
-                <motion.div 
-                  className="absolute top-3 right-3 rounded-full bg-background/80 backdrop-blur-sm shadow-sm p-1.5 border border-border/30" 
-                  whileHover={{ scale: 1.1, backgroundColor: "rgba(var(--primary), 0.1)" }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Info className="h-4 w-4 text-primary/70" />
+                    Take a photo or upload an image of your meal, and our AI will instantly analyze its nutritional content.
+                  </CardDescription>
                 </motion.div>
               </div>
             </div>
@@ -569,16 +627,17 @@ export default function LogFoodByPhotoPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
             />
-        </CardHeader>
+          </CardHeader>
+
           <CardContent className="space-y-5 py-6 sm:py-8 px-4 sm:px-6 mt-2">
-          <Tabs value={tabMode} onValueChange={(value) => {
-            const newTabMode = value as 'upload' | 'camera';
-            setTabMode(newTabMode);
-            if (previewUrl) resetPhotoState(); 
-            if (newTabMode === 'camera' && !previewUrl) {
-                 setAttemptId(prev => prev + 1); 
-            }
-          }} className="w-full">
+            <Tabs value={tabMode} onValueChange={(value) => {
+              const newTabMode = value as 'upload' | 'camera';
+              setTabMode(newTabMode);
+              if (previewUrl) resetPhotoState(); 
+              if (newTabMode === 'camera' && !previewUrl) {
+                setAttemptId(prev => prev + 1); 
+              }
+            }} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6 rounded-full p-1 bg-muted/50 border border-border/20 shadow-inner">
                 <TabsTrigger value="upload" className="data-[state=active]:bg-gradient-to-r from-primary/30 to-primary/20 data-[state=active]:backdrop-blur-sm data-[state=active]:shadow-sm rounded-full transition-all duration-300">
                   <motion.div className="flex items-center" whileTap={{ scale: 0.95 }}>
@@ -592,7 +651,7 @@ export default function LogFoodByPhotoPage() {
                     <span className="hidden sm:inline">Use</span> Camera
                   </motion.div>
                 </TabsTrigger>
-            </TabsList>
+              </TabsList>
               
               <AnimatePresence mode="wait">
                 {tabMode === 'upload' && (
@@ -605,12 +664,16 @@ export default function LogFoodByPhotoPage() {
                   >
                     <TabsContent value="upload" className="mt-0">
                       <motion.div 
-                        className="mt-2 flex flex-col items-center justify-center px-4 sm:px-6 pt-6 pb-7 border-2 border-dashed rounded-xl border-primary/20 hover:border-primary transition-colors bg-secondary/5"
-                        whileHover={{ boxShadow: "0 0 0 2px hsla(var(--primary-hsl), 0.2)", backgroundColor: "hsla(var(--secondary-hsl), 0.1)" }}
+                        className="mt-2 flex flex-col items-center justify-center px-4 sm:px-6 pt-6 pb-7 border-2 border-dashed rounded-xl border-primary/20 hover:border-primary/40 transition-colors bg-gradient-to-br from-secondary/10 to-background"
+                        whileHover={{ 
+                          boxShadow: "0 0 0 2px hsla(var(--primary-hsl), 0.2)", 
+                          backgroundColor: "hsla(var(--secondary-hsl), 0.1)",
+                          y: -2
+                        }}
                         transition={{ duration: 0.2 }}
                       >
-                <div className="space-y-1 text-center">
-                  {previewUrl && (selectedFile || capturedDataUriForAnalysis) ? null : (
+                        <div className="space-y-1 text-center">
+                          {previewUrl && (selectedFile || capturedDataUriForAnalysis) ? null : (
                             <motion.div
                               initial={{ scale: 0.8 }}
                               animate={{ scale: 1 }}
@@ -619,8 +682,20 @@ export default function LogFoodByPhotoPage() {
                                 stiffness: 400, 
                                 damping: 10 
                               }}
-                              className="bg-primary/5 p-5 rounded-full shadow-inner"
+                              className="bg-gradient-to-br from-primary/10 to-primary/5 p-5 rounded-full shadow-inner relative"
                             >
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-primary/5"
+                                animate={{
+                                  scale: [1, 1.2, 1],
+                                  opacity: [0.2, 0.3, 0.2]
+                                }}
+                                transition={{
+                                  duration: 3,
+                                  repeat: Infinity,
+                                  ease: "easeInOut"
+                                }}
+                              />
                               <motion.div
                                 animate={{ 
                                   y: [0, -5, 0],
@@ -630,26 +705,42 @@ export default function LogFoodByPhotoPage() {
                                   repeat: Infinity,
                                   ease: "easeInOut"
                                 }}
+                                className="relative z-10"
                               >
                                 <UploadCloud className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary/80" />
                               </motion.div>
                             </motion.div>
-                  )}
+                          )}
                           <div className="flex flex-col sm:flex-row text-sm text-muted-foreground justify-center items-center mt-4">
-                    <label
-                      htmlFor="food-photo-input"
-                              className="relative cursor-pointer rounded-full px-4 py-2 bg-primary/10 hover:bg-primary/20 transition-colors font-medium text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ring"
-                    >
-                      <span>{selectedFile ? 'Change photo' : 'Upload a file'}</span>
-                      <Input id="food-photo-input" ref={fileInputRef} name="food-photo" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
-                    </label>
-                            {!selectedFile && <p className="pl-1 mt-2 sm:mt-0 sm:ml-2">or drag and drop</p>}
-                  </div>
+                            <motion.label
+                              htmlFor="food-photo-input"
+                              className="relative cursor-pointer rounded-full px-4 py-2 bg-primary/10 hover:bg-primary/20 transition-colors font-medium text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ring flex items-center"
+                              whileHover={{ 
+                                scale: 1.03,
+                                boxShadow: "0 0 0 2px hsla(var(--primary-hsl), 0.2)"
+                              }}
+                              whileTap={{ scale: 0.97 }}
+                            >
+                              <span>{selectedFile ? 'Change photo' : 'Upload a food photo'}</span>
+                              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                              <Input id="food-photo-input" ref={fileInputRef} name="food-photo" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
+                            </motion.label>
+                            {!selectedFile && (
+                              <motion.p 
+                                className="pl-1 mt-2 sm:mt-0 sm:ml-2"
+                                initial={{ opacity: 0.5 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
+                              >
+                                or drag and drop
+                              </motion.p>
+                            )}
+                          </div>
                           {!selectedFile && <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF up to 10MB</p>}
-                  {selectedFile && <p className="text-xs text-muted-foreground pt-2">{selectedFile.name}</p>}
-                </div>
+                          {selectedFile && <p className="text-xs text-muted-foreground pt-2">{selectedFile.name}</p>}
+                        </div>
                       </motion.div>
-            </TabsContent>
+                    </TabsContent>
                   </motion.div>
                 )}
                 
@@ -663,26 +754,52 @@ export default function LogFoodByPhotoPage() {
                   >
                     <TabsContent value="camera" className="mt-0">
                       <div className="mt-2 space-y-4 text-center">
-                {tabMode === 'camera' && !previewUrl && (
-                  <>
+                        {tabMode === 'camera' && !previewUrl && (
+                          <>
                             <motion.div 
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.1 }}
-                              className="w-full aspect-video rounded-xl bg-muted/80 border border-border/80 overflow-hidden relative shadow-xl"
+                              className="w-full aspect-video rounded-xl bg-muted/50 border border-border/80 overflow-hidden relative shadow-xl"
+                              whileHover={{ boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)" }}
                             >
-                              <motion.div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent z-10 pointer-events-none" />
-                      <video
-                        ref={videoRef}
-                        className="w-full h-full object-cover"
-                        autoPlay
-                        playsInline
-                        muted
-                        onCanPlay={() => console.log("Video: onCanPlay triggered")}
-                        onPlaying={() => console.log("Video: onPlaying triggered")}
-                        onError={(e) => console.error("Video: onError triggered", e)}
-                      />
-                      {isCameraLoading && (
+                              <motion.div 
+                                className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent z-10 pointer-events-none" 
+                              />
+                              <div className="absolute inset-0 bg-pattern-dots opacity-10 pointer-events-none z-0" />
+                              
+                              <video
+                                ref={videoRef}
+                                className="w-full h-full object-cover"
+                                autoPlay
+                                playsInline
+                                muted
+                                onCanPlay={() => console.log("Video: onCanPlay triggered")}
+                                onPlaying={() => console.log("Video: onPlaying triggered")}
+                                onError={(e) => console.error("Video: onError triggered", e)}
+                              />
+                              
+                              {/* Camera active indicator */}
+                              {isStreamActive && hasCameraPermission && (
+                                <motion.div 
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  className="absolute top-3 left-3 flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1 text-white text-xs z-20"
+                                >
+                                  <motion.div 
+                                    animate={{ 
+                                      backgroundColor: ["hsl(var(--success))", "hsla(var(--success), 0.3)"],
+                                      scale: [1, 1.2, 1]
+                                    }}
+                                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="h-2 w-2 rounded-full"
+                                  />
+                                  <span>Camera active</span>
+                                </motion.div>
+                              )}
+                              
+                              {/* Camera loading indicator */}
+                              {isCameraLoading && (
                                 <motion.div 
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
@@ -701,8 +818,10 @@ export default function LogFoodByPhotoPage() {
                                   </motion.div>
                                   <p className="font-medium">Starting camera...</p>
                                 </motion.div>
-                      )}
-                      {hasCameraPermission === false && !isCameraLoading && (
+                              )}
+                              
+                              {/* Camera permission denied */}
+                              {hasCameraPermission === false && !isCameraLoading && (
                                 <motion.div 
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
@@ -718,16 +837,18 @@ export default function LogFoodByPhotoPage() {
                                   </motion.div>
                                   <AlertTitle className="text-lg font-semibold mb-2">Camera Access Denied</AlertTitle>
                                   <AlertDescription className="text-sm mb-4 max-w-md mx-auto opacity-90">
-                            Please allow camera access in your browser settings. Ensure no other app is using the camera.
-                          </AlertDescription>
+                                    Please allow camera access in your browser settings. Ensure no other app is using the camera.
+                                  </AlertDescription>
                                   <motion.div whileTap={{ scale: 0.95 }}>
                                     <Button variant="secondary" size="sm" onClick={() => setAttemptId(prev => prev + 1)} className="rounded-full">
-                             Retry Access
-                          </Button>
+                                      Retry Access
+                                    </Button>
                                   </motion.div>
                                 </motion.div>
-                      )}
-                       {hasCameraPermission === true && !isStreamActive && !isCameraLoading && (
+                              )}
+                              
+                              {/* Camera stream initializing */}
+                              {hasCameraPermission === true && !isStreamActive && !isCameraLoading && (
                                 <motion.div 
                                   initial={{ opacity: 0 }}
                                   animate={{ opacity: 1 }}
@@ -746,75 +867,134 @@ export default function LogFoodByPhotoPage() {
                                   </motion.div>
                                   <p className="font-medium">Initializing camera stream...</p>
                                 </motion.div>
-                      )}
+                              )}
+                              
+                              {/* Camera viewfinder guides */}
+                              {isStreamActive && hasCameraPermission && (
+                                <motion.div 
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 0.5 }}
+                                  className="absolute inset-0 pointer-events-none z-20 flex items-center justify-center"
+                                >
+                                  <div className="w-3/4 h-3/4 border-2 border-white/30 rounded-lg border-dashed flex items-center justify-center">
+                                    <motion.div 
+                                      animate={{ scale: [0.8, 1.1, 0.8] }}
+                                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                      className="w-1/2 h-1/2 border border-white/40 rounded-lg"
+                                    />
+                                  </div>
+                                </motion.div>
+                              )}
                             </motion.div>
-                    {isStreamActive && hasCameraPermission && (
+                            
+                            {/* Camera controls */}
+                            {isStreamActive && hasCameraPermission && (
                               <motion.div 
                                 initial={{ opacity: 0, y: 5 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
                                 className="flex flex-row items-center justify-center gap-3 my-2"
                               >
-                        {hasFlash && (
+                                {hasFlash && (
                                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                    <Button onClick={toggleFlash} variant="outline" size="icon" title={isFlashOn ? "Turn Flash Off" : "Turn Flash On"} 
-                                      className={isFlashOn ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-full shadow-md" : "rounded-full shadow-md border-primary/10"}>
+                                    <Button 
+                                      onClick={toggleFlash} 
+                                      variant="outline" 
+                                      size="icon" 
+                                      title={isFlashOn ? "Turn Flash Off" : "Turn Flash On"} 
+                                      className={isFlashOn 
+                                        ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-full shadow-md border-yellow-200" 
+                                        : "rounded-full shadow-md border-primary/10 hover:bg-primary/5"
+                                      }
+                                    >
                                       {isFlashOn ? <ZapOff className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
-                          </Button>
+                                    </Button>
                                   </motion.div>
-                        )}
-                        {zoomCapabilities && (
+                                )}
+                                
+                                {zoomCapabilities && (
                                   <motion.div 
-                                    className="flex items-center gap-2 w-full max-w-[220px] bg-card/50 p-1.5 rounded-full shadow-inner border border-primary/10"
+                                    className="flex items-center gap-2 w-full max-w-[220px] bg-gradient-to-r from-card/80 to-card/60 p-1.5 rounded-full shadow-sm border border-primary/10 backdrop-blur-sm"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.4 }}
                                   >
                                     <ZoomOut className="h-4 w-4 text-muted-foreground ml-1.5" />
-                            <Slider
-                              min={zoomCapabilities.min}
-                              max={zoomCapabilities.max}
-                              step={zoomCapabilities.step}
-                              value={[zoomLevel]}
-                              onValueChange={(value) => handleZoomChange(value[0])}
+                                    <Slider
+                                      min={zoomCapabilities.min}
+                                      max={zoomCapabilities.max}
+                                      step={zoomCapabilities.step}
+                                      value={[zoomLevel]}
+                                      onValueChange={(value) => handleZoomChange(value[0])}
                                       className="w-full"
-                            />
+                                    />
                                     <ZoomIn className="h-4 w-4 text-muted-foreground mr-1.5" />
                                   </motion.div>
-                        )}
+                                )}
                               </motion.div>
-                    )}
-                  </>
-                )}
+                            )}
+                          </>
+                        )}
 
-                {tabMode === 'camera' && !previewUrl && hasCameraPermission === true && (
+                        {/* Capture button */}
+                        {tabMode === 'camera' && !previewUrl && hasCameraPermission === true && (
                           <motion.div 
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.2, type: "spring" }}
-                            className="mt-3"
+                            className="mt-4 mb-2"
                           >
-                     <Button
-                        onClick={handleCapturePhoto}
-                        size="lg"
-                              className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 transition-all rounded-full shadow-lg"
-                        disabled={!isStreamActive || isLoading || isCameraLoading}
-                      >
-                        <Camera className="mr-2 h-5 w-5" />
-                        {isStreamActive ? 'Capture Photo' : (isCameraLoading ? 'Camera Starting...' : 'Waiting for Camera...')}
-                      </Button>
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="inline-block"
+                            >
+                              <Button
+                                onClick={handleCapturePhoto}
+                                size="lg"
+                                className="w-auto bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 transition-all rounded-full shadow-lg px-8"
+                                disabled={!isStreamActive || isLoading || isCameraLoading}
+                              >
+                                <motion.div 
+                                  className="mr-2 relative"
+                                  animate={{
+                                    scale: isStreamActive && !isLoading && !isCameraLoading ? [1, 1.15, 1] : 1
+                                  }}
+                                  transition={{
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                >
+                                  <Camera className="h-5 w-5" />
+                                  <motion.div 
+                                    className="absolute inset-0 rounded-full bg-white/30 blur"
+                                    animate={{
+                                      opacity: isStreamActive && !isLoading && !isCameraLoading ? [0, 0.6, 0] : 0
+                                    }}
+                                    transition={{
+                                      duration: 2,
+                                      repeat: Infinity,
+                                      ease: "easeInOut"
+                                    }}
+                                  />
+                                </motion.div>
+                                {isStreamActive ? 'Capture Food Photo' : (isCameraLoading ? 'Camera Starting...' : 'Waiting for Camera...')}
+                              </Button>
+                            </motion.div>
                           </motion.div>
-                )}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
-              </div>
-            </TabsContent>
+                        )}
+                        <canvas ref={canvasRef} style={{ display: 'none' }} />
+                      </div>
+                    </TabsContent>
                   </motion.div>
                 )}
               </AnimatePresence>
-          </Tabs>
+            </Tabs>
 
+            {/* Food image preview */}
             <AnimatePresence>
-          {previewUrl && (
+              {previewUrl && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -823,34 +1003,56 @@ export default function LogFoodByPhotoPage() {
                   className="mt-8 border-t border-border/40 pt-6"
                 >
                   <motion.h3 
-                    className="text-lg font-medium text-center mb-3"
+                    className="text-lg font-medium text-center mb-3 flex items-center justify-center gap-1.5"
                     initial={{ y: -10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
                   >
-                    Photo Preview
+                    <Camera className="h-4 w-4 text-primary" />
+                    <span>Food Photo Preview</span>
                   </motion.h3>
                   <motion.div 
                     className="flex justify-center"
                     whileHover={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <div className="relative overflow-hidden rounded-xl shadow-lg w-full max-w-md group bg-black/5">
-                    <Image
-                        src={previewUrl}
-                        alt="Meal preview"
-                        width={400} 
-                        height={300}
-                          className="w-full h-auto max-h-[350px] object-contain bg-pattern-food"
-                        data-ai-hint="food meal"
-                    />
+                    <div className="relative overflow-hidden rounded-xl shadow-lg w-full max-w-md group bg-gradient-to-br from-card/80 to-card/90">
+                      <div className="absolute inset-0 bg-pattern-food opacity-10 z-0"></div>
                       <motion.div 
-                        className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.6 }}
-                        transition={{ delay: 0.3 }}
+                        className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-primary/10 to-transparent z-10 skew-x-12"
+                        animate={{
+                          left: ['-100%', '100%'],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          repeatDelay: 1
+                        }}
                       />
-                 </div>
+                      <div className="aspect-video bg-black/5 flex items-center justify-center overflow-hidden">
+                        <Image
+                          src={previewUrl}
+                          alt="Food preview"
+                          width={400} 
+                          height={300}
+                          className="w-full h-auto max-h-[350px] object-contain z-10"
+                          data-ai-hint="food meal"
+                        />
+                      </div>
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+                      />
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="absolute bottom-3 left-3 text-xs text-white/90 rounded-full px-2.5 py-1 bg-black/50 backdrop-blur-sm z-30 flex items-center gap-1.5"
+                      >
+                        <Sparkles className="h-3 w-3 text-accent" />
+                        <span>Ready for analysis</span>
+                      </motion.div>
+                    </div>
                   </motion.div>
                   <motion.div 
                     className="text-center mt-4"
@@ -858,40 +1060,50 @@ export default function LogFoodByPhotoPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <Button variant="outline" size="sm" onClick={resetPhotoState} className="rounded-full shadow-sm border-primary/20 hover:bg-primary/5">
-                        {capturedDataUriForAnalysis ? "Retake or Upload New" : "Clear Photo"}
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={resetPhotoState} 
+                        className="rounded-full shadow-sm border-primary/20 hover:bg-primary/5 group"
+                      >
+                        <span className="group-hover:mr-1 transition-all">{capturedDataUriForAnalysis ? "Retake or Upload New" : "Clear Photo"}</span>
+                      </Button>
+                    </motion.div>
                   </motion.div>
                 </motion.div>
-          )}
+              )}
             </AnimatePresence>
 
+            {/* Error display */}
             <AnimatePresence>
-          {error && (
+              {error && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <Alert variant="destructive" className="mt-4 rounded-xl border-red-300/20">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 </motion.div>
-          )}
+              )}
             </AnimatePresence>
 
+            {/* Analysis loading state */}
             <AnimatePresence>
-          {isLoading && analysisResult === null && (
+              {isLoading && analysisResult === null && (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-center p-6 bg-secondary/30 backdrop-blur-sm rounded-xl mt-4 shadow-inner border border-primary/5"
+                  transition={{ duration: 0.3 }}
+                  className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-secondary/20 to-background backdrop-blur-sm rounded-xl mt-6 shadow-md border border-primary/10"
                 >
                   <motion.div
-                    className="relative"
+                    className="relative mb-4"
                   >
                     <motion.div
                       animate={{ rotate: 360 }}
@@ -902,10 +1114,10 @@ export default function LogFoodByPhotoPage() {
                       }}
                       className="text-primary"
                     >
-                      <Loader2 className="h-8 w-8" />
+                      <Loader2 className="h-10 w-10" />
                     </motion.div>
                     <motion.div 
-                      className="absolute inset-0 bg-primary/10 rounded-full blur-lg"
+                      className="absolute -inset-4 bg-primary/10 rounded-full blur-lg"
                       animate={{
                         scale: [1, 1.5, 1],
                         opacity: [0.3, 0.5, 0.3]
@@ -917,32 +1129,108 @@ export default function LogFoodByPhotoPage() {
                       }}
                     />
                   </motion.div>
-                  <p className="ml-3 text-foreground/90 font-medium">Analyzing your meal, please wait...</p>
+                  <p className="text-foreground/90 font-medium text-center">Analyzing your meal with AI...</p>
+                  <p className="text-muted-foreground text-sm mt-2 text-center">This may take a few moments as we identify ingredients and calculate nutrition.</p>
+                  
+                  <motion.div
+                    className="w-48 h-2 bg-muted rounded-full overflow-hidden mt-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary/80 via-primary to-primary/80"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ 
+                        duration: 8,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  </motion.div>
                 </motion.div>
-          )}
+              )}
             </AnimatePresence>
 
-            <AnimatePresence>
-          {analysisResult && !isLoading && (
+            {/* Analysis results */}
+            <AnimatePresence mode="wait">
+              {analysisResult && !isLoading && (
                 <motion.div
+                  ref={analysisResultRef}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className="mt-6 pt-2 relative scroll-mt-4"
                 >
-            <NutritionDisplay 
-              result={analysisResult} 
-              estimatedQuantityNote={analysisResult.estimatedQuantityNote}
-              goals={goals}
-              isLoadingGoals={isLoadingGoals}
-            />
+                  <motion.div 
+                    className="absolute inset-0 rounded-xl bg-primary/5 -z-10"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ 
+                      opacity: [0, 0.7, 0],
+                      scale: [0.9, 1.05, 1.1]
+                    }}
+                    transition={{ 
+                      duration: 1.5,
+                      ease: "easeOut",
+                    }}
+                  />
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="flex items-center justify-center mb-4 relative"
+                  >
+                    <div className="h-px bg-primary/20 flex-grow max-w-[100px]" />
+                    <motion.div
+                      className="relative px-4"
+                    >
+                      <motion.div
+                        className="absolute inset-0 rounded-full bg-primary/10"
+                        initial={{ opacity: 0 }}
+                        animate={{ 
+                          opacity: showResultsHighlight ? [0, 0.8, 0] : 0,
+                          scale: showResultsHighlight ? [0.9, 1.1, 1.2] : 1
+                        }}
+                        transition={{ 
+                          duration: 1.8,
+                          ease: "easeOut",
+                        }}
+                      />
+                      <motion.h3 
+                        className="text-lg font-medium text-center flex items-center gap-2 relative z-10"
+                        initial={{ scale: 0.9 }}
+                        animate={{ 
+                          scale: showResultsHighlight ? [0.9, 1.2, 1] : [0.9, 1.1, 1]
+                        }}
+                        transition={{ 
+                          duration: showResultsHighlight ? 1 : 0.7, 
+                          type: "spring" 
+                        }}
+                      >
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span>AI Analysis Results</span>
+                        <Sparkles className="h-4 w-4 text-primary" />
+                      </motion.h3>
+                    </motion.div>
+                    <div className="h-px bg-primary/20 flex-grow max-w-[100px]" />
+                  </motion.div>
+                  
+                  <NutritionDisplay 
+                    result={analysisResult} 
+                    estimatedQuantityNote={analysisResult.estimatedQuantityNote}
+                    goals={goals}
+                    isLoadingGoals={isLoadingGoals}
+                  />
                 </motion.div>
-          )}
+              )}
             </AnimatePresence>
-        </CardContent>
-          <CardFooter className="flex flex-col sm:flex-row justify-end gap-3 pt-6 pb-6 border-t bg-muted/20 px-4 sm:px-6">
+          </CardContent>
+          
+          {/* Footer with action buttons */}
+          <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 pt-6 pb-6 border-t bg-gradient-to-br from-muted/30 to-card/60 backdrop-blur-sm px-4 sm:px-6">
             <AnimatePresence>
-          {analysisResult && !isLoading && analysisResult.isFoodItem && (
+              {analysisResult && !isLoading && analysisResult.isFoodItem && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -950,54 +1238,81 @@ export default function LogFoodByPhotoPage() {
                   transition={{ type: "spring", stiffness: 400 }}
                   className="w-full sm:w-auto"
                 >
-                  <Button 
-                    onClick={handleAddToLog} 
-                    className="w-full bg-gradient-to-r from-green-600 via-green-500 to-green-500 hover:brightness-110 text-white rounded-full shadow-md"
-                  >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Add to Daily Log
-            </Button>
-                </motion.div>
-          )}
-            </AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="w-full sm:w-auto"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-          <Button 
-            onClick={handleSubmit} 
-            disabled={(!selectedFile && !capturedDataUriForAnalysis && !previewUrl) || isLoading || isLoadingGoals} 
-                className="w-full bg-gradient-to-r from-primary/90 via-primary to-primary/90 hover:brightness-110 rounded-full shadow-md disabled:opacity-50"
-          >
-            {isLoading && !analysisResult ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ 
-                      repeat: Infinity,
-                      duration: 1,
-                      ease: "linear"
+                  <motion.div 
+                    whileTap={{ scale: 0.95 }} 
+                    whileHover={{ 
+                      scale: 1.03,
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
                     }}
                   >
-                    <Loader2 className="mr-2 h-4 w-4" />
+                    <Button 
+                      onClick={handleAddToLog} 
+                      className="w-full bg-gradient-to-r from-green-600 via-green-500 to-green-500 hover:brightness-110 text-white rounded-full shadow-md group overflow-hidden relative"
+                    >
+                      <motion.span
+                        className="absolute inset-0 bg-white/20"
+                        initial={{ x: "-100%", opacity: 0 }}
+                        whileHover={{ x: "100%", opacity: 0.3 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <CheckCircle className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                      <span className="relative z-10">Add to Daily Log</span>
+                    </Button>
                   </motion.div>
-            ) : (
-                  <motion.div
-                    initial={{ rotate: 0 }}
-                    whileHover={{ rotate: 15 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-              <Pizza className="mr-2 h-4 w-4" />
-                  </motion.div>
-            )}
-            {analysisResult ? 'Re-analyze' : 'Analyze Meal'}
-          </Button>
-            </motion.div>
-        </CardFooter>
-      </Card>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <div className="flex justify-end w-full sm:w-auto">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="w-full sm:w-auto"
+                whileHover={{ 
+                  scale: 1.03,
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)"
+                }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={(!selectedFile && !capturedDataUriForAnalysis && !previewUrl) || isLoading || isLoadingGoals} 
+                  className="w-full bg-gradient-to-r from-primary/90 via-primary to-primary/90 hover:brightness-110 rounded-full shadow-md disabled:opacity-50 group overflow-hidden relative"
+                >
+                  <motion.span
+                    className="absolute inset-0 bg-white/20"
+                    initial={{ x: "-100%", opacity: 0 }}
+                    whileHover={{ x: "100%", opacity: 0.3 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  {isLoading && !analysisResult ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ 
+                        repeat: Infinity,
+                        duration: 1,
+                        ease: "linear"
+                      }}
+                    >
+                      <Loader2 className="mr-2 h-4 w-4" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ rotate: 0 }}
+                      whileHover={{ rotate: 15 }}
+                      transition={{ type: "spring", stiffness: 400 }}
+                      className="group-hover:scale-110 transition-transform mr-2"
+                    >
+                      <Pizza className="h-4 w-4" />
+                    </motion.div>
+                  )}
+                  <span className="relative z-10">{analysisResult ? 'Re-analyze Food' : 'Analyze Food Photo'}</span>
+                </Button>
+              </motion.div>
+            </div>
+          </CardFooter>
+        </Card>
       </motion.div>
     </motion.div>
   );
