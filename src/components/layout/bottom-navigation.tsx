@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,7 +10,7 @@ const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/progress", label: "Stats", icon: BarChart2 },
   { href: "/ai-features", label: "AI", icon: Sparkles },
-  { href: "/diet-chart", label: "Diet", icon: Apple },
+  { href: "/diet-chart", label: "Diet Plan", icon: Apple }, // Changed label and href
   { href: "/goals", label: "Health", icon: HeartPulse },
   { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
@@ -49,3 +50,5 @@ export default function BottomNavigationBar() {
     </nav>
   );
 }
+
+    
