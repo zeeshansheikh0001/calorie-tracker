@@ -116,11 +116,17 @@ Instructions:
     *   If 'duration' is "weekly", provide a plan for **7 distinct days** (e.g., Day 1, Day 2... or Monday, Tuesday...). The 'day' field in 'mealPlan' array objects should be populated. Ensure variety across the 7 days.
 6.  **Dietary Preferences & Restrictions**:
     *   Strictly adhere to 'dietaryPreferences'. Examples:
-        *   Vegetarian: No meat, fish, eggs. Include dairy, paneer, lentils.
-        *   Non-Vegetarian: Can include chicken, fish, eggs, mutton (use lean options, mention if used).
-        *   Vegan: No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk, etc.
-        *   Jain: No onion, garlic, root vegetables. Strict vegetarian.
-        *   Gluten-Free: Avoid wheat, barley, rye. Use rice, millets (jowar, bajra, ragi), quinoa, amaranth.
+        *   'Vegetarian': No meat, fish, eggs. Include dairy, paneer, lentils.
+        *   'Non-Vegetarian': Can include chicken, fish, eggs, mutton (use lean options, mention if used).
+        *   'Eggetarian': No meat, fish. Can include eggs and dairy. Many Indian egg dishes like egg curry, anda bhurji are suitable.
+        *   'Vegan': No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk, etc.
+        *   'Jain': No onion, garlic, root vegetables. Strict vegetarian.
+        *   'Gluten-Free': Avoid wheat, barley, rye. Use rice, millets (jowar, bajra, ragi), quinoa, amaranth.
+        *   'Dairy-Free': Avoid milk, curd (yogurt), paneer, ghee, butter. Use plant-based milks (soy, almond, coconut), tofu instead of paneer, and oils instead of ghee/butter. Many South Indian dishes are naturally dairy-free.
+        *   'Nut-Free': Avoid all nuts (almonds, cashews, peanuts, etc.) and nut-based products/pastes. Be cautious with gravies that might use nut pastes; specify alternatives.
+        *   'Low Carb': Emphasize protein (paneer, tofu, chicken, fish, eggs, dals in moderation), non-starchy vegetables (leafy greens, cauliflower, brinjal, bhindi), and healthy fats. Limit grains (rice, roti), starchy vegetables (potatoes), and sugary fruits. Suggest options like cauliflower rice, almond flour roti (if nuts allowed and not nut-free).
+        *   'Keto': Very high fat, moderate protein, very low carb. Focus on Indian dishes like paneer tikka, baingan bharta (with extra oil/ghee, no sugar), egg bhurji, fish/chicken curries made with coconut cream/oil, non-starchy vegetable sabzis with ample fat. Avoid all grains, sugars, most fruits, and starchy vegetables.
+        *   'Paleo': Focus on lean meats (chicken, fish), eggs, fruits, vegetables (non-starchy preferred), and seeds. Avoid grains (rice, wheat, millets), legumes (dals, chana, rajma), dairy, processed foods, and refined sugars. Adapt Indian cooking by using allowed ingredients, e.g., vegetable curries without lentils, meat/fish preparations with simple spices.
     *   Avoid all specified 'allergies'.
     *   Consider 'medicalConditions' (e.g., for diabetes, suggest low GI foods, whole grains, and limit sugar; for hypertension, suggest low sodium options).
 7.  **Macronutrient Breakdown**: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object for an average day in the plan.

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react"; // Added useRef
@@ -56,6 +57,8 @@ import {
   Tag,
   X,
   ArrowLeft,
+  Egg, 
+  Leaf
 } from "lucide-react";
 // Import the Indian diet chart generation flow
 import {
@@ -134,7 +137,14 @@ const dietaryPreferences = [
     label: "Vegetarian",
     icon: <Salad className="h-3 w-3 mr-1" />,
   },
-  { id: "vegan", label: "Vegan", icon: <Apple className="h-3 w-3 mr-1" /> },
+  {
+    id: "non_vegetarian",
+    label: "Non-Vegetarian",
+    icon: <ChefHat className="h-3 w-3 mr-1" />,
+  },
+  { id: "eggetarian", label: "Eggetarian", icon: <Egg className="h-3 w-3 mr-1" /> },
+  { id: "vegan", label: "Vegan", icon: <Leaf className="h-3 w-3 mr-1" /> },
+  { id: "jain", label: "Jain", icon: <Salad className="h-3 w-3 mr-1" /> },
   {
     id: "gluten_free",
     label: "Gluten-Free",
@@ -153,17 +163,6 @@ const dietaryPreferences = [
   },
   { id: "keto", label: "Keto", icon: <Sandwich className="h-3 w-3 mr-1" /> },
   { id: "paleo", label: "Paleo", icon: <Salad className="h-3 w-3 mr-1" /> },
-  {
-    id: "non_vegetarian",
-    label: "Non-Vegetarian",
-    icon: <ChefHat className="h-3 w-3 mr-1" />,
-  }, // Added Non-Vegetarian
-  {
-    id: "eggetarian",
-    label: "Eggetarian",
-    icon: <Apple className="h-3 w-3 mr-1" />,
-  }, // Placeholder icon
-  { id: "jain", label: "Jain", icon: <Salad className="h-3 w-3 mr-1" /> },
 ];
 
 // Plan duration options
@@ -386,6 +385,7 @@ const Meal = React.memo(({
     </div>
   </motion.div>
 ));
+Meal.displayName = 'Meal';
 
 // Memoized Day component
 const DaySection = React.memo(({ 
@@ -446,6 +446,8 @@ const DaySection = React.memo(({
     </Collapsible>
   </motion.div>
 ));
+DaySection.displayName = 'DaySection';
+
 
 const calculateMacroPercentages = (
   protein: number,
