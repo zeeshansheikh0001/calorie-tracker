@@ -30,9 +30,9 @@ const indianDietChartInputSchema = z.object({
     "muscle_gain",
     "general_health",
   ]).describe('User fitness goal.'),
-  dietaryPreferences: z.array(z.string()).describe('List of dietary preferences (e.g., vegetarian, vegan, gluten-free). Focus on making it an Indian diet.'),
-  allergies: z.array(z.string()).optional().describe('List of food allergies.'),
-  medicalConditions: z.array(z.string()).optional().describe('List of medical conditions to consider.'),
+  dietaryPreferences: z.array(z.string()).describe('List of dietary preferences (e.g., vegetarian, vegan, gluten-free). Focus on making it an Indian diet. This is a CRITICAL input; the generated plan MUST strictly follow these preferences.'),
+  allergies: z.array(z.string()).optional().describe('List of food allergies. The plan MUST NOT include these allergens.'),
+  medicalConditions: z.array(z.string()).optional().describe('List of medical conditions to consider (e.g., diabetes, hypertension). Adapt the plan accordingly.'),
   duration: z.enum(["daily", "weekly"]).describe('Duration of the diet plan (daily or weekly).'),
 });
 
@@ -91,57 +91,49 @@ User Details:
 - Medical Conditions: {{#if medicalConditions.length}}{{#each medicalConditions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified{{/if}}
 - Plan Duration: {{{duration}}}
 
-Instructions:
-1.  **Output Format**: Adhere strictly to the 'indianDietChartOutputSchema'. The plan MUST be meal-by-meal (Breakfast, Lunch, Dinner, and 1-2 light Snacks per day).
-2.  **Authentic & Affordable Indian Cuisine**:
-    *   All meals MUST be authentically Indian and **mostly home-cooked**.
-    *   Focus on **budget-friendly** and **commonly available ingredients** found in a typical Indian kitchen.
-    *   Specifically include ingredients like **rice, roti (whole wheat), dal (various lentils like moong, masoor, toor), seasonal vegetables (e.g., bhindi, gobi, lauki, palak, carrots, beans, methi), curd (yogurt), sprouts, poha, upma, and basic fruits (e.g., banana, apple, guava, papaya, seasonal local fruits like mango in summer)**.
-    *   Use **simple spices** and common Indian cooking methods. Ensure variety across the plan.
-3.  **Health & Balance**: Ensure the diet is nutritionally balanced according to the user's profile and fitness goal.
+CRITICAL INSTRUCTIONS - Adherence to Dietary Preferences:
+The user's 'Dietary Preferences' are the MOST IMPORTANT constraints. The generated plan MUST STRICTLY adhere to ALL specified preferences. If a common Indian food item conflicts with a preference, find a suitable Indian alternative that fits the preference.
+
+Detailed Dietary Preference Guidelines (Indian Context):
+1.  'Vegetarian': ABSOLUTELY NO meat, fish, or eggs. MUST include dairy (milk, curd, paneer, ghee), lentils, legumes, vegetables, fruits, grains. Many Indian dishes are naturally vegetarian.
+2.  'Non-Vegetarian': Can include chicken, fish, mutton, eggs, and dairy. Prioritize lean meats and common Indian preparations (e.g., chicken curry, fish fry, egg bhurji).
+3.  'Eggetarian': ABSOLUTELY NO meat or fish. CAN include eggs (e.g., egg curry, boiled eggs, omelettes) and dairy products. Base meals around eggs, dairy, lentils, vegetables, and grains.
+4.  'Vegan': ABSOLUTELY NO animal products – no meat, fish, eggs, dairy (milk, paneer, ghee, curd), or honey. MUST use plant-based alternatives like tofu/tempeh (for paneer), plant-based milks (soy, almond, coconut), lentils, legumes, vegetables, fruits, grains. Many South Indian dishes (like idli, dosa without ghee, sambar) and North Indian lentil/vegetable dishes can be adapted.
+5.  'Jain': EXTREMELY STRICT. ABSOLUTELY NO onion, garlic, ginger, root vegetables (potatoes, carrots, beets, etc.). Strict vegetarian (no meat, fish, eggs). Focus on allowed vegetables (gourds, cabbage, cauliflower, tomatoes, peas, beans), fruits, lentils (like moong dal), grains (rice, wheat). Use asafoetida (hing) instead of onion/garlic.
+6.  'Gluten-Free': ABSOLUTELY NO wheat (roti, naan, paratha, suji/semolina, daliya), barley, or rye. MUST use gluten-free grains like rice (all varieties), millets (jowar, bajra, ragi, foxtail millet/kangni), quinoa, amaranth (rajgira), buckwheat (kuttu). Ensure items like poha, upma are made from gluten-free grains (e.g., rice poha, millet upma). Besan (gram flour) is gluten-free.
+7.  'Dairy-Free': ABSOLUTELY NO milk, curd (yogurt), paneer, cheese, ghee, butter, mawa/khoya. Use plant-based milks, coconut milk/cream for gravies, oils instead of ghee. Tofu can replace paneer. Many traditional Indian dishes can be made dairy-free.
+8.  'Nut-Free': ABSOLUTELY NO peanuts, almonds, cashews, walnuts, pistachios, or any other tree nuts or nut-based products (nut butters, nut pastes in gravies). Check ingredient lists carefully for hidden nuts. Use seeds like sunflower, pumpkin, sesame (if allowed) cautiously.
+9.  'Low Carb': SIGNIFICANTLY REDUCE grains (rice, roti, bread), starchy vegetables (potatoes, sweet potatoes), sugary fruits, and sweets. EMPHASIZE protein (paneer, tofu, chicken, fish, eggs, some dals in moderation), non-starchy vegetables (leafy greens, cauliflower, brinjal, bhindi, capsicum), and healthy fats (ghee if not dairy-free, coconut oil, mustard oil, avocados). Indian dishes like paneer tikka, baingan bharta, vegetable stir-fries, egg bhurji, and low-carb "roti" alternatives (e.g., almond flour roti if nuts allowed, or coconut flour roti) are suitable.
+10. 'Keto': VERY HIGH FAT, MODERATE PROTEIN, EXTREMELY LOW CARB (typically under 20-30g net carbs per day). FOCUS on high-fat dairy (paneer, cheese, cream, butter, ghee - if not dairy-free), eggs, meats (chicken, fish), non-starchy vegetables (spinach, cauliflower, cabbage, bell peppers), avocados, coconut oil, olive oil. Indian dishes include paneer/chicken tikka (no sugary marinades), egg bhurji with extra butter/oil, fish fried in coconut oil, vegetable sabzis cooked in ample fat, bulletproof coffee/tea. STRICTLY AVOID all grains, sugars, most fruits, starchy vegetables, and lentils/legumes.
+11. 'Paleo': FOCUS on lean meats (chicken, fish), eggs, fruits, vegetables (especially non-starchy), nuts and seeds (if not nut-free). ABSOLUTELY NO grains (rice, wheat, millets, oats), legumes (dals, chana, rajma), dairy products, processed foods, refined sugars, or refined vegetable oils. Adapt Indian cooking using allowed ingredients: vegetable curries without lentils, meat/fish preparations with simple spices and healthy fats like coconut oil or ghee.
+
+General Instructions (after applying dietary preferences):
+1.  Output Format: Adhere strictly to the 'indianDietChartOutputSchema'. The plan MUST be meal-by-meal (Breakfast, Lunch, Dinner, and 1-2 light Snacks per day).
+2.  Authentic & Affordable Indian Cuisine:
+    *   All meals MUST be authentically Indian and mostly home-cooked.
+    *   Focus on budget-friendly and commonly available ingredients found in a typical Indian kitchen.
+    *   Specifically include ingredients like rice, roti (whole wheat, or alternatives for gluten-free), dal (various lentils like moong, masoor, toor), seasonal vegetables (e.g., bhindi, gobi, lauki, palak, carrots, beans, methi), curd (yogurt, or alternatives for dairy-free/vegan), sprouts, poha, upma, and basic fruits (e.g., banana, apple, guava, papaya, seasonal local fruits).
+    *   Use simple spices and common Indian cooking methods. Ensure variety.
+3.  Health & Balance: Ensure the diet is nutritionally balanced according to the user's profile and fitness goal, AFTER satisfying all dietary preferences.
     *   First, estimate BMR (Basal Metabolic Rate) using Mifflin-St Jeor equation:
         *   Men: BMR = (10 * weight) + (6.25 * height) - (5 * age) + 5
         *   Women: BMR = (10 * weight) + (6.25 * height) - (5 * age) - 161
     *   Adjust for activity level (Sedentary: BMR * 1.2; Lightly active: BMR * 1.375; Moderately active: BMR * 1.55; Very active: BMR * 1.725; Extra active: BMR * 1.9).
     *   Adjust for fitness goal (Weight loss: subtract ~500 kcal; Muscle gain: add ~300-500 kcal; Maintain: no change). This calculated value will be 'dailyCalories'.
-4.  **Meal Details (Crucial for each meal)**:
+4.  Meal Details (Crucial for each meal):
     *   'type': Specify Breakfast, Lunch, Dinner, or Snack.
-    *   'name': A descriptive Indian name for the meal (e.g., "Vegetable Poha with Sprouts", "Moong Dal with 2 Rotis and Palak Sabzi", "Fruit Chaat with Curd").
-    *   'ingredients': List key Indian ingredients (e.g., "Poha, Mixed vegetables, Peanuts, Sprouts, Mustard seeds, Curry leaves", "Moong dal, Whole wheat flour, Spinach, Onion, Tomato, Ginger, Garlic, Turmeric").
-    *   **'calories'**: Provide an **approximate calorie count FOR THIS SPECIFIC MEAL**. The sum of meal calories for a day should be close to the overall 'dailyCalories' target for that day.
+    *   'name': A descriptive Indian name for the meal.
+    *   'ingredients': List key Indian ingredients.
+    *   'calories': Provide an approximate calorie count FOR THIS SPECIFIC MEAL. The sum of meal calories for a day should be close to the overall 'dailyCalories' target for that day.
     *   'nutrients': Provide protein, carbs, fats in grams for THIS MEAL. Fiber is optional but good to include.
-    *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful (e.g., "Soak poha. Sauté vegetables and spices. Mix poha and steam.").
-5.  **Plan Duration**:
+    *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful.
+5.  Plan Duration:
     *   If 'duration' is "daily", provide a plan for 1 day.
-    *   If 'duration' is "weekly", provide a plan for **7 distinct days** (e.g., Day 1, Day 2... or Monday, Tuesday...). The 'day' field in 'mealPlan' array objects should be populated. Ensure variety across the 7 days.
-6.  **Dietary Preferences & Restrictions**:
-    *   Strictly adhere to 'dietaryPreferences'. Examples:
-        *   'Vegetarian': No meat, fish, eggs. Include dairy, paneer, lentils.
-        *   'Non-Vegetarian': Can include chicken, fish, eggs, mutton (use lean options, mention if used).
-        *   'Eggetarian': No meat, fish. Can include eggs and dairy. Many Indian egg dishes like egg curry, anda bhurji are suitable.
-        *   'Vegan': No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk, etc.
-        *   'Jain': No onion, garlic, root vegetables. Strict vegetarian.
-        *   'Gluten-Free': Avoid wheat, barley, rye. Use rice, millets (jowar, bajra, ragi), quinoa, amaranth.
-        *   'Dairy-Free': Avoid milk, curd (yogurt), paneer, ghee, butter. Use plant-based milks (soy, almond, coconut), tofu instead of paneer, and oils instead of ghee/butter. Many South Indian dishes are naturally dairy-free.
-        *   'Nut-Free': Avoid all nuts (almonds, cashews, peanuts, etc.) and nut-based products/pastes. Be cautious with gravies that might use nut pastes; specify alternatives.
-        *   'Low Carb': Emphasize protein (paneer, tofu, chicken, fish, eggs, dals in moderation), non-starchy vegetables (leafy greens, cauliflower, brinjal, bhindi), and healthy fats. Limit grains (rice, roti), starchy vegetables (potatoes), and sugary fruits. Suggest options like cauliflower rice, almond flour roti (if nuts allowed and not nut-free).
-        *   'Keto': Very high fat, moderate protein, very low carb. Focus on Indian dishes like paneer tikka, baingan bharta (with extra oil/ghee, no sugar), egg bhurji, fish/chicken curries made with coconut cream/oil, non-starchy vegetable sabzis with ample fat. Avoid all grains, sugars, most fruits, and starchy vegetables.
-        *   'Paleo': Focus on lean meats (chicken, fish), eggs, fruits, vegetables (non-starchy preferred), and seeds. Avoid grains (rice, wheat, millets), legumes (dals, chana, rajma), dairy, processed foods, and refined sugars. Adapt Indian cooking by using allowed ingredients, e.g., vegetable curries without lentils, meat/fish preparations with simple spices.
-    *   Avoid all specified 'allergies'.
-    *   Consider 'medicalConditions' (e.g., for diabetes, suggest low GI foods, whole grains, and limit sugar; for hypertension, suggest low sodium options).
-7.  **Macronutrient Breakdown**: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object for an average day in the plan.
-8.  **Nutrition Tips**: Offer 2-5 practical tips relevant to Indian eating habits and the user's goals.
-9.  **Hydration**: Recommend daily water intake.
-
-Example for a meal:
-{
-  "type": "lunch",
-  "name": "Rajma Chawal with Cucumber Raita",
-  "ingredients": ["Rajma (Kidney Beans)", "Basmati Rice", "Onion", "Tomato", "Ginger-Garlic Paste", "Spices", "Cucumber", "Curd (Yogurt)"],
-  "calories": 450,
-  "nutrients": {"protein": 15, "carbs": 70, "fats": 10, "fiber": 12},
-  "preparationSteps": ["Cook rajma with onion-tomato gravy.", "Serve with steamed rice and cucumber raita."]
-}
+    *   If 'duration' is "weekly", provide a plan for 7 distinct days. The 'day' field in 'mealPlan' array objects should be populated. Ensure variety.
+6.  Allergies & Medical Conditions: AVOID all specified 'allergies'. CONSIDER 'medicalConditions' (e.g., for diabetes, suggest low GI foods, whole grains, and limit sugar; for hypertension, suggest low sodium options) AFTER meeting dietary preferences.
+7.  Macronutrient Breakdown: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object for an average day.
+8.  Nutrition Tips: Offer 2-5 practical tips relevant to Indian eating habits and user's goals.
+9.  Hydration: Recommend daily water intake.
 
 Ensure the response is a valid JSON object matching the output schema. Be thorough and provide realistic, actionable advice.
 `,
