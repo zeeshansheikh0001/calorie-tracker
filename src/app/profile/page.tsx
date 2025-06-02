@@ -17,7 +17,10 @@ import {
   RefreshCw,
   Shield,
   Camera,
-  FileText
+  FileText,
+  Apple,
+  Plus,
+  Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -140,6 +143,15 @@ export default function ProfilePage() {
   const getGenderLabel = (gender?: string) => {
     if (!gender) return "Not specified";
     return gender.charAt(0).toUpperCase() + gender.slice(1);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric'
+    });
   };
 
   return (
@@ -330,6 +342,93 @@ export default function ProfilePage() {
           <p>Calorie Tracker v1.0.0</p>
           <p className="mt-1">© 2025 All Rights Reserved</p>
         </div>
+
+        {/* Saved Diet Charts Section */}
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Apple className="h-5 w-5 text-primary" />
+                <CardTitle className="text-xl">Saved Diet Charts</CardTitle>
+              </div>
+              <Link href="/diet-chart">
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Diet Chart
+                </Button>
+              </Link>
+            </div>
+            <CardDescription>
+              Your saved diet plans and nutrition charts
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+            ) : userProfile.savedDietCharts && userProfile.savedDietCharts.length > 0 ? (
+              <div className="space-y-3">
+                {userProfile.savedDietCharts.map((chart) => (
+                  <div 
+                    key={chart.id} 
+                    className="p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-base">{chart.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Created on {formatDate(chart.createdAt)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link href={`/diet-chart?id=${chart.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {chart.dietChart.macroBreakdown && (
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div className="p-1 bg-primary/10 rounded">
+                          <div className="text-xs text-muted-foreground">Protein</div>
+                          <div className="font-medium">{chart.dietChart.macroBreakdown.protein}g</div>
+                        </div>
+                        <div className="p-1 bg-primary/10 rounded">
+                          <div className="text-xs text-muted-foreground">Carbs</div>
+                          <div className="font-medium">{chart.dietChart.macroBreakdown.carbs}g</div>
+                        </div>
+                        <div className="p-1 bg-primary/10 rounded">
+                          <div className="text-xs text-muted-foreground">Fats</div>
+                          <div className="font-medium">{chart.dietChart.macroBreakdown.fats}g</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10">
+                <div className="bg-primary/5 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                  <Apple className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-medium text-lg mb-2">No Saved Diet Charts</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You haven't saved any diet charts yet.
+                </p>
+                <Link href="/diet-chart">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create New Diet Chart
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </motion.div>
     </div>
   );

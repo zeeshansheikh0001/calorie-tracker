@@ -1,3 +1,5 @@
+import { GenerateIndianDietChartOutput } from "@/ai/flows/generateIndianDietChartFlow";
+
 export interface Goal {
   calories: number;
   protein: number;
@@ -38,6 +40,14 @@ export interface UserProfile {
   avatarUrl?: string;
   age?: number;
   gender?: "male" | "female" | "other";
+  savedDietCharts?: SavedDietChart[];
+}
+
+export interface SavedDietChart {
+  id: string;
+  name: string;
+  createdAt: string;
+  dietChart: GenerateIndianDietChartOutput;
 }
 
 export interface BlogPost {
