@@ -38,7 +38,7 @@ const indianDietChartInputSchema = z.object({
 
 export type GenerateIndianDietChartInput = z.infer<typeof indianDietChartInputSchema>;
 
-// Output schema to produce a meal-by-meal plan, similar to the original generic diet chart
+// Output schema to produce a meal-by-meal plan
 const indianDietChartOutputSchema = z.object({
   dailyCalories: z.number().describe('Recommended daily calorie intake for the Indian diet.'),
   macroBreakdown: z.object({
@@ -92,37 +92,40 @@ User Details:
 - Plan Duration: {{{duration}}}
 
 Instructions:
-1.  **Output Format**: Adhere strictly to the 'indianDietChartOutputSchema'. The plan MUST be meal-by-meal (Breakfast, Lunch, Dinner, and 1-2 light Snacks).
-2.  **Indian Cuisine Focus**: All meals must be authentically Indian, using common household ingredients like dal, rice, roti (whole wheat), seasonal vegetables (e.g., bhindi, gobi, lauki, palak), fruits, curd/yogurt, paneer, and simple spices. Ensure variety.
-3.  **Budget-Friendly & Availability**: Prioritize ingredients that are affordable and easily available in a typical Indian market.
-4.  **Health & Balance**: Ensure the diet is nutritionally balanced according to the user's profile and fitness goal.
+1.  **Output Format**: Adhere strictly to the 'indianDietChartOutputSchema'. The plan MUST be meal-by-meal (Breakfast, Lunch, Dinner, and 1-2 light Snacks per day).
+2.  **Authentic & Affordable Indian Cuisine**:
+    *   All meals MUST be authentically Indian and **mostly home-cooked**.
+    *   Focus on **budget-friendly** and **commonly available ingredients** found in a typical Indian kitchen.
+    *   Specifically include ingredients like **rice, roti (whole wheat), dal (various lentils like moong, masoor, toor), seasonal vegetables (e.g., bhindi, gobi, lauki, palak, carrots, beans, methi), curd (yogurt), sprouts, poha, upma, and basic fruits (e.g., banana, apple, guava, papaya, seasonal local fruits like mango in summer)**.
+    *   Use **simple spices** and common Indian cooking methods. Ensure variety across the plan.
+3.  **Health & Balance**: Ensure the diet is nutritionally balanced according to the user's profile and fitness goal.
     *   First, estimate BMR (Basal Metabolic Rate) using Mifflin-St Jeor equation:
         *   Men: BMR = (10 * weight) + (6.25 * height) - (5 * age) + 5
         *   Women: BMR = (10 * weight) + (6.25 * height) - (5 * age) - 161
     *   Adjust for activity level (Sedentary: BMR * 1.2; Lightly active: BMR * 1.375; Moderately active: BMR * 1.55; Very active: BMR * 1.725; Extra active: BMR * 1.9).
     *   Adjust for fitness goal (Weight loss: subtract ~500 kcal; Muscle gain: add ~300-500 kcal; Maintain: no change). This calculated value will be 'dailyCalories'.
-5.  **Meal Details**: For each meal:
+4.  **Meal Details (Crucial for each meal)**:
     *   'type': Specify Breakfast, Lunch, Dinner, or Snack.
-    *   'name': A descriptive Indian name for the meal (e.g., "Moong Dal Cheela with Mint Chutney", "Chicken Curry with 2 Rotis and Salad").
-    *   'ingredients': List key ingredients (e.g., "Moong dal, Besan, Onion, Tomato, Spices", "Chicken breast, Onion-tomato gravy, Whole wheat flour").
-    *   'calories': Provide an approximate calorie count for the meal. The sum of meal calories should be close to the 'dailyCalories' target.
-    *   'nutrients': Provide protein, carbs, fats in grams. Fiber is optional.
-    *   'preparationSteps': Optional, 1-2 brief steps if helpful.
-6.  **Plan Duration**:
+    *   'name': A descriptive Indian name for the meal (e.g., "Vegetable Poha with Sprouts", "Moong Dal with 2 Rotis and Palak Sabzi", "Fruit Chaat with Curd").
+    *   'ingredients': List key Indian ingredients (e.g., "Poha, Mixed vegetables, Peanuts, Sprouts, Mustard seeds, Curry leaves", "Moong dal, Whole wheat flour, Spinach, Onion, Tomato, Ginger, Garlic, Turmeric").
+    *   **'calories'**: Provide an **approximate calorie count FOR THIS SPECIFIC MEAL**. The sum of meal calories for a day should be close to the overall 'dailyCalories' target for that day.
+    *   'nutrients': Provide protein, carbs, fats in grams for THIS MEAL. Fiber is optional but good to include.
+    *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful (e.g., "Soak poha. Sauté vegetables and spices. Mix poha and steam.").
+5.  **Plan Duration**:
     *   If 'duration' is "daily", provide a plan for 1 day.
-    *   If 'duration' is "weekly", provide a plan for 7 distinct days (e.g., Day 1, Day 2... or Monday, Tuesday...). The 'day' field in 'mealPlan' array objects should be populated.
-7.  **Dietary Preferences & Restrictions**:
+    *   If 'duration' is "weekly", provide a plan for **7 distinct days** (e.g., Day 1, Day 2... or Monday, Tuesday...). The 'day' field in 'mealPlan' array objects should be populated. Ensure variety across the 7 days.
+6.  **Dietary Preferences & Restrictions**:
     *   Strictly adhere to 'dietaryPreferences'. Examples:
         *   Vegetarian: No meat, fish, eggs. Include dairy, paneer, lentils.
-        *   Non-Vegetarian: Can include chicken, fish, eggs, mutton (use lean options).
-        *   Vegan: No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk.
+        *   Non-Vegetarian: Can include chicken, fish, eggs, mutton (use lean options, mention if used).
+        *   Vegan: No animal products (meat, dairy, eggs, honey). Use tofu, lentils, plant-based milk, etc.
         *   Jain: No onion, garlic, root vegetables. Strict vegetarian.
-        *   Gluten-Free: Avoid wheat, barley, rye. Use rice, millets, jowar, bajra.
-    *   Avoid all 'allergies'.
-    *   Consider 'medicalConditions' (e.g., for diabetes, suggest low GI foods; for hypertension, low sodium).
-8.  **Macronutrient Breakdown**: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object.
-9.  **Nutrition Tips**: Offer 2-5 practical tips relevant to Indian eating habits and the user's goals.
-10. **Hydration**: Recommend daily water intake.
+        *   Gluten-Free: Avoid wheat, barley, rye. Use rice, millets (jowar, bajra, ragi), quinoa, amaranth.
+    *   Avoid all specified 'allergies'.
+    *   Consider 'medicalConditions' (e.g., for diabetes, suggest low GI foods, whole grains, and limit sugar; for hypertension, suggest low sodium options).
+7.  **Macronutrient Breakdown**: Provide overall daily 'protein', 'carbs', 'fats' in grams for the 'macroBreakdown' object for an average day in the plan.
+8.  **Nutrition Tips**: Offer 2-5 practical tips relevant to Indian eating habits and the user's goals.
+9.  **Hydration**: Recommend daily water intake.
 
 Example for a meal:
 {
@@ -134,7 +137,7 @@ Example for a meal:
   "preparationSteps": ["Cook rajma with onion-tomato gravy.", "Serve with steamed rice and cucumber raita."]
 }
 
-Ensure the response is a valid JSON object matching the output schema.
+Ensure the response is a valid JSON object matching the output schema. Be thorough and provide realistic, actionable advice.
 `,
   });
 
