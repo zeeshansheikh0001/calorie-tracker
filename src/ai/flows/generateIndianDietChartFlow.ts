@@ -30,7 +30,19 @@ const indianDietChartInputSchema = z.object({
     "muscle_gain",
     "general_health",
   ]).describe('User fitness goal.'),
-  dietaryPreferences: z.array(z.string()).describe('List of dietary preferences (e.g., vegetarian, vegan, gluten-free). Focus on making it an Indian diet. This is a CRITICAL input; the generated plan MUST strictly follow these preferences.'),
+  dietaryPreference: z.enum([
+    "vegetarian", 
+    "non_vegetarian", 
+    "eggetarian", 
+    "vegan", 
+    "jain", 
+    "gluten_free", 
+    "dairy_free", 
+    "nut_free", 
+    "low_carb", 
+    "keto", 
+    "paleo"
+  ]).describe('The primary dietary preference for the Indian diet plan.'),
   allergies: z.array(z.string()).optional().describe('List of food allergies. The plan MUST NOT include these allergens.'),
   medicalConditions: z.array(z.string()).optional().describe('List of medical conditions to consider (e.g., diabetes, hypertension). Adapt the plan accordingly.'),
   duration: z.enum(["daily", "weekly"]).describe('Duration of the diet plan (daily or weekly).'),
@@ -52,8 +64,15 @@ const indianDietChartOutputSchema = z.object({
       meals: z.array(
         z.object({
           type: z.enum(["breakfast", "lunch", "snack", "dinner"]).describe('Type of meal (e.g., Breakfast).'),
-          name: z.string().describe('Name of the Indian meal (e.g., "Masala Oats", "Dal Tadka with Brown Rice", "Sprout Salad", "Vegetable Pulao").'),
-          ingredients: z.array(z.string()).describe('List of main Indian ingredients (e.g., "Rolled Oats", "Mixed Vegetables", "Turmeric", "Moong Dal", "Basmati Rice").'),
+          name: z.string().describe('Name of the Indian meal (e.g., Masala Oats, Dal Tadka with Brown Rice, Sprout Salad, Vegetable Pulao).'),
+          recommendedTime: z.string().optional().describe('Recommended time for the meal (e.g., "8:00 AM - 9:00 AM", "Around 1 PM", "4:00 PM - 4:30 PM").'),
+          foodItems: z.array(
+            z.object({
+              name: z.string().describe("Name of the food item."),
+              quantity: z.string().describe("Specific quantity of the food item (e.g., '2 pieces', '1 bowl (150g)', '100 ml', '1 medium apple').")
+            })
+          ).min(1).describe("Detailed list of food items in the meal with their specific quantities."),
+          ingredients: z.array(z.string()).optional().describe('Optional: List of general Indian ingredients if foodItems list is very short or for context (e.g., "Rolled Oats", "Mixed Vegetables", "Turmeric", "Moong Dal", "Basmati Rice"). Prefer foodItems for detailed quantity.'),
           calories: z.number().int().describe('Approximate calories in the meal.'),
           nutrients: z.object({
             protein: z.number().describe('Protein content in grams.'),
@@ -86,13 +105,13 @@ User Details:
 - Height: {{{height}}} cm
 - Activity Level: {{{activityLevel}}}
 - Fitness Goal: {{{fitnessGoal}}}
-- Dietary Preferences: {{#if dietaryPreferences.length}}{{#each dietaryPreferences}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified (assume balanced omnivore Indian diet unless specified otherwise in common sense, e.g. Jain implies vegetarian){{/if}}
+- Dietary Preference: {{{dietaryPreference}}}
 - Allergies: {{#if allergies.length}}{{#each allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified{{/if}}
 - Medical Conditions: {{#if medicalConditions.length}}{{#each medicalConditions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None specified{{/if}}
 - Plan Duration: {{{duration}}}
 
 CRITICAL INSTRUCTIONS - Adherence to Dietary Preferences:
-The user's 'Dietary Preferences' are the MOST IMPORTANT constraints. The generated plan MUST STRICTLY adhere to ALL specified preferences. If a common Indian food item conflicts with a preference, find a suitable Indian alternative that fits the preference.
+The user's 'Dietary Preference' is the MOST IMPORTANT constraint. The generated plan MUST STRICTLY adhere to this preference. If a common Indian food item conflicts with a preference, find a suitable Indian alternative.
 
 Detailed Dietary Preference Guidelines (Indian Context):
 1.  'Vegetarian': ABSOLUTELY NO meat, fish, or eggs. MUST include dairy (milk, curd, paneer, ghee), lentils, legumes, vegetables, fruits, grains. Many Indian dishes are naturally vegetarian.
@@ -122,9 +141,11 @@ General Instructions (after applying dietary preferences):
     *   Adjust for fitness goal (Weight loss: subtract ~500 kcal; Muscle gain: add ~300-500 kcal; Maintain: no change). This calculated value will be 'dailyCalories'.
 4.  Meal Details (Crucial for each meal):
     *   'type': Specify Breakfast, Lunch, Dinner, or Snack.
-    *   'name': A descriptive Indian name for the meal.
-    *   'ingredients': List key Indian ingredients.
-    *   'calories': Provide an approximate calorie count FOR THIS SPECIFIC MEAL. The sum of meal calories for a day should be close to the overall 'dailyCalories' target for that day.
+    *   'name': A descriptive Indian name for the meal (e.g., Moong Dal Cheela with Mint Chutney, Chicken Curry with Roti and Salad).
+    *   'recommendedTime': Suggest a time for the meal (e.g., "8:00 AM - 9:00 AM", "Around 1 PM", "4:00 PM").
+    *   'foodItems': This is KEY. Provide a list of specific food items with their quantities (e.g., [{ "name": "Moong Dal Cheela", "quantity": "2 medium pieces" }, { "name": "Mint Chutney", "quantity": "2 tablespoons" }]). Be precise.
+    *   'ingredients': Optional. If 'foodItems' is very brief, list general ingredients here. Otherwise, 'foodItems' is preferred for detail.
+    *   'calories': Provide an approximate calorie count FOR THIS SPECIFIC MEAL. The sum of meal calories should be close to the 'dailyCalories' target.
     *   'nutrients': Provide protein, carbs, fats in grams for THIS MEAL. Fiber is optional but good to include.
     *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful.
 5.  Plan Duration:

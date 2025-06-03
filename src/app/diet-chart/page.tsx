@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react"; // Added useRef
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -58,15 +58,16 @@ import {
   X,
   ArrowLeft,
   Egg, 
-  Leaf
+  Leaf,
+  FileText,
+  ClockIcon
 } from "lucide-react";
-// Import the Indian diet chart generation flow
 import {
   generateIndianDietChart,
   type GenerateIndianDietChartInput,
   type GenerateIndianDietChartOutput,
-} from "@/ai/flows/generateIndianDietChartFlow"; // Updated import
-import { motion, AnimatePresence } from "framer-motion"; // Removed useScroll, useTransform, MotionValue
+} from "@/ai/flows/generateIndianDietChartFlow";
+import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,8 @@ import {
 } from "@/components/ui/dialog";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import Link from "next/link";
+import html2pdf from 'html2pdf.js';
+
 
 // CSS for grid patterns
 const gridPatternStyle = {
@@ -131,7 +134,7 @@ const fitnessGoals = [
 ];
 
 // Dietary preferences - Kept for the form UI
-const dietaryPreferences = [
+const indianDietaryPreferences = [
   {
     id: "vegetarian",
     label: "Vegetarian",
@@ -263,7 +266,7 @@ const Meal = React.memo(({
     }}
   >
     <div className="p-4 sm:p-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className={cn(
             "p-1.5 sm:p-2 rounded-full",
@@ -302,6 +305,12 @@ const Meal = React.memo(({
               {meal.type}
             </Badge>
             <h4 className="font-medium text-base sm:text-lg">{meal.name}</h4>
+            {meal.recommendedTime && (
+              <div className="text-xs text-muted-foreground mt-0.5 flex items-center">
+                <ClockIcon className="h-3 w-3 mr-1 opacity-70" />
+                {meal.recommendedTime}
+              </div>
+            )}
           </div>
         </div>
         <div className="text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-1.5 bg-primary/10 rounded-full text-primary">
@@ -309,26 +318,46 @@ const Meal = React.memo(({
         </div>
       </div>
       
-      <div className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div>
           <div className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 text-muted-foreground">
-            Ingredients
+            Food Items & Quantity
           </div>
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {meal.ingredients.map((ingredient: string, i: number) => (
+          <div className="space-y-1.5">
+            {meal.foodItems.map((item: {name: string, quantity: string}, i: number) => (
               <motion.div
                 key={i}
-                whileHover={{ scale: 1.05, y: -2 }}
+                whileHover={{ scale: 1.02, x: 2 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="flex justify-between items-center text-xs p-1.5 rounded bg-white/5 dark:bg-black/10"
               >
+                <span>{item.name}</span>
                 <Badge
                   variant="secondary"
                   className="text-xs font-normal bg-white/10 dark:bg-black/20 backdrop-blur-sm"
                 >
-                  {ingredient}
+                  {item.quantity}
                 </Badge>
               </motion.div>
             ))}
+             {meal.ingredients && meal.ingredients.length > 0 && !meal.foodItems && (
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {meal.ingredients.map((ingredient: string, i: number) => (
+                  <motion.div
+                    key={`ing-${i}`}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <Badge
+                      variant="secondary"
+                      className="text-xs font-normal bg-white/10 dark:bg-black/20 backdrop-blur-sm"
+                    >
+                      {ingredient}
+                    </Badge>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         
@@ -478,7 +507,7 @@ export default function DietChartPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [dietChart, setDietChart] =
-    useState<GenerateIndianDietChartOutput | null>(null); // Use IndianDietChartOutput
+    useState<GenerateIndianDietChartOutput | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState("generate");
   const [collapsibleStates, setCollapsibleStates] = useState<
@@ -491,26 +520,23 @@ export default function DietChartPage() {
   const [isViewingSaved, setIsViewingSaved] = useState(false);
   const [currentChartId, setCurrentChartId] = useState<string | null>(null);
 
-  // Use a ref to track if component is mounted to avoid unnecessary updates
   const isMountedRef = useRef(false);
 
   const [formData, setFormData] = useState<
     Partial<GenerateIndianDietChartInput>
   >({
-    // Use IndianDietChartInput
     age: undefined,
-    gender: undefined,
+    gender: "male",
     weight: undefined,
     height: undefined,
-    activityLevel: undefined,
-    fitnessGoal: undefined,
-    dietaryPreferences: [],
+    activityLevel: "moderately_active",
+    fitnessGoal: "general_health",
+    dietaryPreference: "vegetarian",
     allergies: [],
     medicalConditions: [],
     duration: "daily",
   });
 
-  // Check URL for saved diet chart ID
   useEffect(() => {
     const loadSavedChart = () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -525,16 +551,14 @@ export default function DietChartPage() {
           setIsViewingSaved(true);
           setActiveTab("results");
           
-          // Initialize collapsible states with only day-0 expanded
           const initialCollapsibleStates: Record<string, boolean> = {};
           if (savedChart.dietChart.mealPlan && savedChart.dietChart.mealPlan.length > 0) {
             savedChart.dietChart.mealPlan.forEach((_, index) => {
-              initialCollapsibleStates[`day-${index}`] = index === 0; // Only first day is expanded
+              initialCollapsibleStates[`day-${index}`] = index === 0;
             });
           }
           setCollapsibleStates(initialCollapsibleStates);
           
-          // Show success message
           toast({
             title: "Diet Chart Loaded",
             description: `Loaded: ${savedChart.name}`,
@@ -571,33 +595,13 @@ export default function DietChartPage() {
     name: keyof GenerateIndianDietChartInput,
     value: string
   ) => {
-    setFormData({ ...formData, [name]: value as any }); // Cast as any for enum types
+    setFormData({ ...formData, [name]: value as any });
   };
 
-  const handleDietaryPreferenceChange = (
-    preferenceId: string,
-    checked: boolean | "indeterminate"
-  ) => {
-    if (typeof checked === "boolean") {
-      // Ensure checked is boolean
-      setFormData((prev) => {
-        const currentPrefs = prev.dietaryPreferences || [];
-        if (checked) {
-          return {
-            ...prev,
-            dietaryPreferences: [...currentPrefs, preferenceId],
-          };
-        } else {
-          return {
-            ...prev,
-            dietaryPreferences: currentPrefs.filter(
-              (id) => id !== preferenceId
-            ),
-          };
-        }
-      });
-    }
+  const handleRadioChange = (value: string) => {
+    setFormData(prev => ({ ...prev, dietaryPreference: value as any }));
   };
+
 
   const handleListChange = (
     name: "allergies" | "medicalConditions",
@@ -626,6 +630,7 @@ export default function DietChartPage() {
       !formData.height ||
       !formData.activityLevel ||
       !formData.fitnessGoal ||
+      !formData.dietaryPreference ||
       !formData.duration
     ) {
       toast({
@@ -646,20 +651,19 @@ export default function DietChartPage() {
         height: formData.height!,
         activityLevel: formData.activityLevel! as any,
         fitnessGoal: formData.fitnessGoal! as any,
-        dietaryPreferences: formData.dietaryPreferences || [],
+        dietaryPreference: formData.dietaryPreference! as any,
         allergies: formData.allergies || [],
         medicalConditions: formData.medicalConditions || [],
         duration: formData.duration! as "daily" | "weekly",
       };
 
-      const result = await generateIndianDietChart(input); // Call the Indian diet chart flow
+      const result = await generateIndianDietChart(input);
       setDietChart(result);
       
-      // Initialize collapsible states with only day-0 expanded
       const initialCollapsibleStates: Record<string, boolean> = {};
       if (result.mealPlan && result.mealPlan.length > 0) {
         result.mealPlan.forEach((_, index) => {
-          initialCollapsibleStates[`day-${index}`] = index === 0; // Only first day is expanded
+          initialCollapsibleStates[`day-${index}`] = index === 0;
         });
       }
       setCollapsibleStates(initialCollapsibleStates);
@@ -671,11 +675,15 @@ export default function DietChartPage() {
         description: "Your personalized Indian diet chart is ready!",
         variant: "default",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating Indian diet chart:", error);
+      let description = "Failed to generate Indian diet chart. Please try again.";
+      if (error.message && (error.message.includes("503") || error.message.toLowerCase().includes("service unavailable") || error.message.toLowerCase().includes("model is overloaded"))) {
+        description = "The AI service is currently experiencing high demand. Please try again in a few minutes.";
+      }
       toast({
         title: "Error",
-        description: "Failed to generate Indian diet chart. Please try again.",
+        description: description,
         variant: "destructive",
       });
     } finally {
@@ -686,47 +694,37 @@ export default function DietChartPage() {
   const handleDownload = () => {
     if (!dietChart) return;
 
-    let content = `PERSONALIZED INDIAN DIET CHART\n\n`;
-    content += `Daily Calories: ${dietChart.dailyCalories} kcal\n\n`;
-    content += `MACRONUTRIENT BREAKDOWN:\n`;
-    content += `Protein: ${dietChart.macroBreakdown.protein}g\n`;
-    content += `Carbs: ${dietChart.macroBreakdown.carbs}g\n`;
-    content += `Fats: ${dietChart.macroBreakdown.fats}g\n\n`;
-
-    content += `MEAL PLAN:\n\n`;
-    dietChart.mealPlan.forEach((day) => {
-      if (day.day) content += `=== ${day.day.toUpperCase()} ===\n\n`;
-      day.meals.forEach((meal) => {
-        content += `${meal.type.toUpperCase()}: ${meal.name}\n`;
-        content += `Ingredients: ${meal.ingredients.join(", ")}\n`;
-        content += `Calories: ${meal.calories} kcal\n`;
-        content += `Nutrients: Protein ${meal.nutrients.protein}g, Carbs ${meal.nutrients.carbs}g, Fats ${meal.nutrients.fats}g`;
-        if (meal.nutrients.fiber) content += `, Fiber ${meal.nutrients.fiber}g`;
-        content += `\n`;
-        if (meal.preparationSteps && meal.preparationSteps.length > 0) {
-          content += `Preparation:\n${meal.preparationSteps
-            .map((step, i) => `${i + 1}. ${step}`)
-            .join("\n")}\n`;
-        }
-        content += `\n`;
+    const element = document.getElementById('dietChartPdfArea');
+    if (!element) {
+      toast({
+        title: "Error",
+        description: "Could not find chart content to download.",
+        variant: "destructive"
       });
-    });
+      return;
+    }
 
-    content += `NUTRITION TIPS:\n${dietChart.nutritionTips.join("\n")}\n\n`;
-    content += `HYDRATION: ${dietChart.hydrationRecommendation}\n`;
+    const opt = {
+      margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right in inches
+      filename:     'indian-diet-chart.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: true, letterRendering: true },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
 
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "indian-diet-chart.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Downloaded",
-      description: "Indian diet chart has been downloaded.",
+    html2pdf().from(element).set(opt).save().then(() => {
+      toast({
+        title: "Downloaded",
+        description: "Indian diet chart has been downloaded as PDF.",
+      });
+    }).catch(err => {
+      console.error("PDF generation error:", err);
+      toast({
+        title: "PDF Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive"
+      });
     });
   };
 
@@ -779,6 +777,7 @@ export default function DietChartPage() {
     
     return (
       <motion.div
+        id="dietChartPdfArea" // Added ID for PDF generation
         className="space-y-12"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -1387,49 +1386,39 @@ export default function DietChartPage() {
           Dietary Preferences
         </h2>
         <p className="text-muted-foreground text-sm">
-          Your dietary preferences and restrictions
+          Select your primary dietary preference.
         </p>
       </div>
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label>
-            Select dietary preferences (multiple allowed for Indian context)
-          </Label>
-          <motion.div
-            className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2"
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-          >
-            {dietaryPreferences.map((preference, index) => (
-              <motion.label
-                key={preference.id}
-                variants={itemVariants}
-                custom={index}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  "border rounded-lg p-3 cursor-pointer transition-all duration-200 hover:border-primary/50 flex items-center space-x-2",
-                  (formData.dietaryPreferences || []).includes(preference.id)
-                    ? "border-primary bg-primary/5 shadow-md"
-                    : "border-white/30 dark:border-white/10 bg-white/30 dark:bg-black/30 backdrop-blur-sm"
-                )}
-              >
-                <Checkbox
-                  id={`diet-${preference.id}`}
-                  checked={(formData.dietaryPreferences || []).includes(
-                    preference.id
-                  )}
-                  onCheckedChange={(checked) =>
-                    handleDietaryPreferenceChange(preference.id, checked)
-                  }
-                />
-                {preference.icon}{" "}
-                <span className="text-sm">{preference.label}</span>
-              </motion.label>
-            ))}
-          </motion.div>
-        </div>
+        <RadioGroup 
+          value={formData.dietaryPreference || "vegetarian"} 
+          onValueChange={handleRadioChange} 
+          className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2"
+        >
+          {indianDietaryPreferences.map((preference, index) => (
+             <motion.div
+             key={preference.id}
+             variants={itemVariants}
+             custom={index}
+             whileHover={{ scale: 1.05, y: -2 }}
+             whileTap={{ scale: 0.95 }}
+           >
+             <Label
+               htmlFor={`diet-${preference.id}`}
+               className={cn(
+                 "border rounded-lg p-3 cursor-pointer transition-all duration-200 hover:border-primary/50 flex items-center space-x-2",
+                 formData.dietaryPreference === preference.id
+                   ? "border-primary bg-primary/5 shadow-md"
+                   : "border-white/30 dark:border-white/10 bg-white/30 dark:bg-black/30 backdrop-blur-sm"
+               )}
+             >
+               <RadioGroupItem value={preference.id} id={`diet-${preference.id}`} />
+               {preference.icon}{" "}
+               <span className="text-sm">{preference.label}</span>
+             </Label>
+           </motion.div>
+          ))}
+        </RadioGroup>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <motion.div
             className="space-y-2"
@@ -1596,10 +1585,10 @@ export default function DietChartPage() {
               {formData.activityLevel?.replace("_", " ")}, Goal:{" "}
               {formData.fitnessGoal?.replace("_", " ")}
             </motion.p>
-            {(formData.dietaryPreferences || []).length > 0 && (
+            {formData.dietaryPreference && (
               <motion.p variants={itemVariants}>
-                <span className="text-muted-foreground">Preferences:</span>{" "}
-                {formData.dietaryPreferences?.join(", ")}
+                <span className="text-muted-foreground">Preference:</span>{" "}
+                {formData.dietaryPreference.charAt(0).toUpperCase() + formData.dietaryPreference.slice(1)}
               </motion.p>
             )}
             {(formData.allergies || []).length > 0 && (
@@ -1851,8 +1840,8 @@ export default function DietChartPage() {
                       onClick={handleDownload}
                       className="flex-1 sm:flex-auto flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2 h-auto"
                     >
-                      <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                      Download
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                      Download as PDF
                     </Button>
                     {!isViewingSaved && (
                       <Button
@@ -1944,3 +1933,4 @@ export default function DietChartPage() {
     </>
   );
 }
+
