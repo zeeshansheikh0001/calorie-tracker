@@ -37,8 +37,8 @@ ChartJS.register(
 interface NutritionDisplayProps {
   result: AnalyzeFoodPhotoOutput;
   estimatedQuantityNote?: string;
-  goals?: Goal | null; // Added goals prop
-  isLoadingGoals?: boolean; // Added isLoadingGoals prop
+  goals?: Goal | null; 
+  isLoadingGoals?: boolean; 
 }
 
 // 3D Card effect with mouse tracking
@@ -51,9 +51,9 @@ const Card3D: React.FC<{
 }> = ({ 
   children, 
   className = "", 
-  glareIntensity = 0.15, // Default active glare
+  glareIntensity = 0, 
   perspective = 1000,
-  rotationIntensity = 10  // Default active rotation
+  rotationIntensity = 0  
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -322,7 +322,6 @@ interface NutritionItemProps {
   percentage?: number;
   delay?: number;
   showRadial?: boolean;
-  highlight?: boolean;
   radialLabel?: string;
 }
 
@@ -335,8 +334,7 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
   percentage = 0,
   delay = 0,
   showRadial = false,
-  highlight = false,
-  radialLabel = "of Daily Goal" // Default radial label
+  radialLabel = "of Daily Goal"
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const bgColor = colorClass.replace('text-', 'bg-').replace('500', '100');
@@ -383,18 +381,12 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
       animate={isInView ? { 
         opacity: 1, 
         y: 0,
-        scale: highlight ? [1, 1.02, 1] : 1
       } : { opacity: 0, y: 20 }}
       transition={{ 
         type: "spring", 
         stiffness: 400, 
         damping: 20, 
         delay: 0.1 + delay,
-        scale: {
-          repeat: highlight ? Infinity : 0,
-          repeatType: "reverse",
-          duration: 2
-        }
       }}
       className="relative rounded-xl overflow-hidden backdrop-blur-sm p-4 border border-border/30"
       style={{
@@ -564,7 +556,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
   const quantityNote = result.estimatedQuantityNote || estimatedQuantityNote;
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<'macros' | 'calories' | 'chart'>('macros');
-  const [selectedNutrient, setSelectedNutrient] = useState<string | null>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1146,10 +1138,12 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-red-500" 
                       delay={0}
                       percentage={caloriePercentage}
-                      highlight={selectedNutrient === 'calories'}
                       radialLabel="of Daily Goal"
+                      showRadial={true}
                     />
-                    
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <NutritionItem 
                       icon={Drumstick} 
                       label="Protein" 
@@ -1158,8 +1152,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-blue-500" 
                       percentage={proteinPercentage}
                       delay={0.1}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'protein'}
+                      showRadial={true} 
                       radialLabel="of Daily Goal"
                     />
                     
@@ -1171,8 +1164,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-yellow-500" 
                       percentage={fatPercentage}
                       delay={0.2}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'fat'}
+                      showRadial={true}
                       radialLabel="of Daily Goal"
                     />
                     
@@ -1184,8 +1176,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       colorClass="text-green-500" 
                       percentage={carbPercentage}
                       delay={0.3}
-                      showRadial={false} // Keep linear bar for daily goal comparison
-                      highlight={selectedNutrient === 'carbs'}
+                      showRadial={true}
                       radialLabel="of Daily Goal"
                     />
                   </div>
@@ -1573,7 +1564,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                     className="bg-muted/30 rounded-lg p-3"
                   >
                     <div className="flex items-center space-x-2 mb-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                      <Info className="h-4 w-4 text-amber-500" />
                       <span className="text-sm font-medium">Important Notes</span>
         </div>
                     <motion.p 

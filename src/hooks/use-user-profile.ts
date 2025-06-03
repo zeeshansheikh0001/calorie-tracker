@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { UserProfile } from '@/types';
+import type { UserProfile, SavedDietChart } from '@/types';
+import { generateId } from '@/lib/utils';
 
 const DEFAULT_USER_PROFILE: UserProfile = {
   name: "Guest User",
   email: "", 
   avatarUrl: "https://placehold.co/100x100.png",
+  savedDietCharts: [],
 };
 
 const LOCAL_STORAGE_KEY = 'userProfile';
@@ -32,6 +34,7 @@ export function useUserProfile() {
           avatarUrl: parsedProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl,
           age: parsedProfile.age,
           gender: parsedProfile.gender,
+          savedDietCharts: parsedProfile.savedDietCharts || [],
         });
       } else if (onboardingProfile) {
         // If no regular profile exists but onboarding data does, use that
@@ -42,6 +45,7 @@ export function useUserProfile() {
           avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
           age: parsedOnboardingData.age,
           gender: parsedOnboardingData.gender,
+          savedDietCharts: [],
         });
         
         // Save this data to the regular profile storage to consolidate
@@ -51,6 +55,7 @@ export function useUserProfile() {
           avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
           age: parsedOnboardingData.age,
           gender: parsedOnboardingData.gender,
+          savedDietCharts: [],
         }));
       } else {
         setUserProfile(DEFAULT_USER_PROFILE);
@@ -78,6 +83,34 @@ export function useUserProfile() {
     });
   };
 
+  const saveDietChart = (name: string, dietChart: any) => {
+    setUserProfile(prevProfile => {
+      const savedDietCharts = [...(prevProfile.savedDietCharts || [])];
+      
+      const newDietChart: SavedDietChart = {
+        id: generateId(),
+        name,
+        createdAt: new Date().toISOString(),
+        dietChart,
+      };
+      
+      savedDietCharts.push(newDietChart);
+      
+      const updatedProfile = { 
+        ...prevProfile, 
+        savedDietCharts 
+      };
+      
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProfile));
+      } catch (error) {
+        console.error("Failed to save diet chart to localStorage", error);
+      }
+      
+      return updatedProfile;
+    });
+  };
 
-  return { userProfile, isLoading, updateUserProfile };
+
+  return { userProfile, isLoading, updateUserProfile, saveDietChart };
 }

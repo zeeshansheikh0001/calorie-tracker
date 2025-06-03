@@ -1,14 +1,16 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles } from "lucide-react";
+import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles, Apple } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const bottomNavItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/progress", label: "Stats", icon: BarChart2 },
   { href: "/ai-features", label: "AI", icon: Sparkles },
+  { href: "/diet-chart", label: "Diet", icon: Apple }, // Changed label from "Diet Plan" to "Diet"
   { href: "/goals", label: "Health", icon: HeartPulse },
   { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
@@ -29,13 +31,13 @@ export default function BottomNavigationBar() {
             >
               <item.icon
                 className={cn(
-                  "h-6 w-6",
+                  "h-5 w-5",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
               />
               <span
                 className={cn(
-                  "mt-0.5 text-xs font-poppins",
+                  "mt-0.5 text-[10px] font-poppins",
                   isActive ? "text-primary font-medium" : "text-muted-foreground"
                 )}
               >
@@ -48,3 +50,5 @@ export default function BottomNavigationBar() {
     </nav>
   );
 }
+
+    
