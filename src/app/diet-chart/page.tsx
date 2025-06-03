@@ -531,7 +531,7 @@ export default function DietChartPage() {
     height: undefined,
     activityLevel: "moderately_active",
     fitnessGoal: "general_health",
-    dietaryPreference: "vegetarian",
+    dietaryPreference: "vegetarian", // Singular string
     allergies: [],
     medicalConditions: [],
     duration: "daily",
@@ -630,7 +630,7 @@ export default function DietChartPage() {
       !formData.height ||
       !formData.activityLevel ||
       !formData.fitnessGoal ||
-      !formData.dietaryPreference ||
+      !formData.dietaryPreference || // Ensure singular preference is present
       !formData.duration
     ) {
       toast({
@@ -651,7 +651,7 @@ export default function DietChartPage() {
         height: formData.height!,
         activityLevel: formData.activityLevel! as any,
         fitnessGoal: formData.fitnessGoal! as any,
-        dietaryPreference: formData.dietaryPreference! as any,
+        dietaryPreference: formData.dietaryPreference! as any, // Pass singular preference
         allergies: formData.allergies || [],
         medicalConditions: formData.medicalConditions || [],
         duration: formData.duration! as "daily" | "weekly",
@@ -1934,3 +1934,5 @@ export default function DietChartPage() {
   );
 }
 
+
+    

@@ -30,7 +30,7 @@ const indianDietChartInputSchema = z.object({
     "muscle_gain",
     "general_health",
   ]).describe('User fitness goal.'),
-  dietaryPreference: z.enum([
+  dietaryPreference: z.enum([ // Singular preference
     "vegetarian", 
     "non_vegetarian", 
     "eggetarian", 
@@ -72,7 +72,7 @@ const indianDietChartOutputSchema = z.object({
               quantity: z.string().describe("Specific quantity of the food item (e.g., '2 pieces', '1 bowl (150g)', '100 ml', '1 medium apple').")
             })
           ).min(1).describe("Detailed list of food items in the meal with their specific quantities."),
-          ingredients: z.array(z.string()).optional().describe('Optional: List of general Indian ingredients if foodItems list is very short or for context (e.g., "Rolled Oats", "Mixed Vegetables", "Turmeric", "Moong Dal", "Basmati Rice"). Prefer foodItems for detailed quantity.'),
+          ingredients: z.array(z.string()).optional().describe('Optional: List of general Indian ingredients if foodItems list is very short or for context (e.g., Rolled Oats, Mixed Vegetables, Turmeric, Moong Dal, Basmati Rice). Prefer foodItems for detailed quantity.'),
           calories: z.number().int().describe('Approximate calories in the meal.'),
           nutrients: z.object({
             protein: z.number().describe('Protein content in grams.'),
@@ -80,7 +80,7 @@ const indianDietChartOutputSchema = z.object({
             fats: z.number().describe('Fat content in grams.'),
             fiber: z.number().optional().describe('Fiber content in grams (optional).'),
           }).describe('Nutritional information for the meal.'),
-          preparationSteps: z.array(z.string()).optional().describe('Optional brief preparation steps for the Indian meal.'),
+          preparationSteps: z.array(z.string()).optional().describe('Optional brief preparation steps for the Indian meal (1-2 steps).'),
         })
       ).min(3).describe('At least 3-4 meals for the day (Breakfast, Lunch, Dinner, optional Snack), focusing on Indian cuisine.'),
     })
@@ -122,7 +122,7 @@ Detailed Dietary Preference Guidelines (Indian Context):
 6.  'Gluten-Free': ABSOLUTELY NO wheat (roti, naan, paratha, suji/semolina, daliya), barley, or rye. MUST use gluten-free grains like rice (all varieties), millets (jowar, bajra, ragi, foxtail millet/kangni), quinoa, amaranth (rajgira), buckwheat (kuttu). Ensure items like poha, upma are made from gluten-free grains (e.g., rice poha, millet upma). Besan (gram flour) is gluten-free.
 7.  'Dairy-Free': ABSOLUTELY NO milk, curd (yogurt), paneer, cheese, ghee, butter, mawa/khoya. Use plant-based milks, coconut milk/cream for gravies, oils instead of ghee. Tofu can replace paneer. Many traditional Indian dishes can be made dairy-free.
 8.  'Nut-Free': ABSOLUTELY NO peanuts, almonds, cashews, walnuts, pistachios, or any other tree nuts or nut-based products (nut butters, nut pastes in gravies). Check ingredient lists carefully for hidden nuts. Use seeds like sunflower, pumpkin, sesame (if allowed) cautiously.
-9.  'Low Carb': SIGNIFICANTLY REDUCE grains (rice, roti, bread), starchy vegetables (potatoes, sweet potatoes), sugary fruits, and sweets. EMPHASIZE protein (paneer, tofu, chicken, fish, eggs, some dals in moderation), non-starchy vegetables (leafy greens, cauliflower, brinjal, bhindi, capsicum), and healthy fats (ghee if not dairy-free, coconut oil, mustard oil, avocados). Indian dishes like paneer tikka, baingan bharta, vegetable stir-fries, egg bhurji, and low-carb "roti" alternatives (e.g., almond flour roti if nuts allowed, or coconut flour roti) are suitable.
+9.  'Low Carb': SIGNIFICANTLY REDUCE grains (rice, roti, bread), starchy vegetables (potatoes, sweet potatoes), sugary fruits, and sweets. EMPHASIZE protein (paneer, tofu, chicken, fish, eggs, some dals in moderation), non-starchy vegetables (leafy greens, cauliflower, brinjal, bhindi, capsicum), and healthy fats (ghee if not dairy-free, coconut oil, mustard oil, avocados). Indian dishes like paneer tikka, baingan bharta, vegetable stir-fries, egg bhurji, and low-carb 'roti' alternatives (e.g., almond flour roti if nuts allowed, or coconut flour roti) are suitable.
 10. 'Keto': VERY HIGH FAT, MODERATE PROTEIN, EXTREMELY LOW CARB (typically under 20-30g net carbs per day). FOCUS on high-fat dairy (paneer, cheese, cream, butter, ghee - if not dairy-free), eggs, meats (chicken, fish), non-starchy vegetables (spinach, cauliflower, cabbage, bell peppers), avocados, coconut oil, olive oil. Indian dishes include paneer/chicken tikka (no sugary marinades), egg bhurji with extra butter/oil, fish fried in coconut oil, vegetable sabzis cooked in ample fat, bulletproof coffee/tea. STRICTLY AVOID all grains, sugars, most fruits, starchy vegetables, and lentils/legumes.
 11. 'Paleo': FOCUS on lean meats (chicken, fish), eggs, fruits, vegetables (especially non-starchy), nuts and seeds (if not nut-free). ABSOLUTELY NO grains (rice, wheat, millets, oats), legumes (dals, chana, rajma), dairy products, processed foods, refined sugars, or refined vegetable oils. Adapt Indian cooking using allowed ingredients: vegetable curries without lentils, meat/fish preparations with simple spices and healthy fats like coconut oil or ghee.
 
@@ -147,7 +147,7 @@ General Instructions (after applying dietary preferences):
     *   'ingredients': Optional. If 'foodItems' is very brief, list general ingredients here. Otherwise, 'foodItems' is preferred for detail.
     *   'calories': Provide an approximate calorie count FOR THIS SPECIFIC MEAL. The sum of meal calories should be close to the 'dailyCalories' target.
     *   'nutrients': Provide protein, carbs, fats in grams for THIS MEAL. Fiber is optional but good to include.
-    *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful.
+    *   'preparationSteps': Optional, 1-2 brief, simple preparation steps if helpful. For example: "Cook dal with turmeric and salt. Sauté onion, tomato, and spices. Mix with dal."
 5.  Plan Duration:
     *   If 'duration' is "daily", provide a plan for 1 day.
     *   If 'duration' is "weekly", provide a plan for 7 distinct days. The 'day' field in 'mealPlan' array objects should be populated. Ensure variety.
@@ -177,4 +177,6 @@ Ensure the response is a valid JSON object matching the output schema. Be thorou
   
   return indianDietChartFlow(input);
 }
+    
+
     
