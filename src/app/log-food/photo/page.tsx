@@ -101,7 +101,13 @@ export default function LogFoodByPhotoPage() {
       const videoNode = videoRef.current;
       if (!videoNode) {
         console.error("Camera: startCamera - videoRef.current is null. Aborting.");
-        toast({ variant: 'destructive', title: 'Camera Component Error', description: 'Camera element not ready. Please refresh or try again.' });
+        setTimeout(() => {
+          toast({ 
+            variant: 'destructive', 
+            title: 'Camera Component Error', 
+            description: 'Camera element not ready. Please refresh or try the upload option instead.' 
+          });
+        }, 100);
         setHasCameraPermission(false);
         setIsCameraLoading(false);
         return;
@@ -220,9 +226,22 @@ export default function LogFoodByPhotoPage() {
     if (tabMode === 'camera' && !previewUrl) {
       startCameraTimeoutId = setTimeout(() => {
         if (tabMode === 'camera' && !previewUrl) { 
-          startCamera();
+          if (videoRef.current) {
+            console.log("Camera: Starting camera with video element ready");
+            startCamera();
+          } else {
+            console.error("Camera: Cannot start camera - video element not found in DOM");
+            setTimeout(() => {
+              toast({ 
+                variant: 'destructive', 
+                title: 'Camera Initialization Error', 
+                description: 'Camera element not found. Please try again or use upload option.' 
+              });
+            }, 100);
+            setHasCameraPermission(false);
+          }
         }
-      }, 0); 
+      }, 500); // Increased delay to ensure DOM is fully rendered
     } else {
       performCleanup();
     }
@@ -230,6 +249,36 @@ export default function LogFoodByPhotoPage() {
     return performCleanup;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabMode, previewUrl, attemptId]);
+
+  // Add a separate useEffect for camera initialization with a delay
+  useEffect(() => {
+    let initTimeoutId: NodeJS.Timeout | null = null;
+    
+    if (tabMode === 'camera' && !previewUrl) {
+      // Add a small delay to ensure DOM is rendered before accessing videoRef
+      initTimeoutId = setTimeout(() => {
+        // Only start camera if videoRef is available
+        if (videoRef.current) {
+          console.log("Camera: DOM is ready, videoRef exists, starting camera");
+          setAttemptId(prev => prev + 1); 
+        } else {
+          console.warn("Camera: videoRef is still null after delay");
+          toast({ 
+            variant: "destructive", 
+            title: "Camera Component Error", 
+            description: "Camera initialization failed. Please try refreshing the page." 
+          });
+          setHasCameraPermission(false);
+        }
+      }, 300); // 300ms delay to ensure DOM is ready
+    }
+    
+    return () => {
+      if (initTimeoutId) {
+        clearTimeout(initTimeoutId);
+      }
+    };
+  }, [tabMode, previewUrl, toast]);
 
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -251,42 +300,62 @@ export default function LogFoodByPhotoPage() {
     const videoNode = videoRef.current;
     const canvasNode = canvasRef.current;
     console.log("Attempting to capture photo. Stream active:", isStreamActive, "Video Ref:", videoNode);
-    if (videoNode && canvasNode && videoNode.srcObject && isStreamActive) {
-      if (videoNode.videoWidth === 0 || videoNode.videoHeight === 0) {
-        console.error("Capture failed: Video dimensions are zero.", { w: videoNode.videoWidth, h: videoNode.videoHeight });
-        setError("Camera reported zero dimensions. Cannot capture. Try reopening camera tab or re-granting permission.");
-        toast({ variant: "destructive", title: "Camera Error", description: "Video dimensions are zero. Please ensure the camera has started correctly." });
-        return;
-      }
+    
+    // First check if we have valid refs
+    if (!videoNode || !canvasNode) {
+      console.error("Capture failed: Video or canvas ref is null", { videoRef: !!videoNode, canvasRef: !!canvasNode });
+      toast({ 
+        variant: "destructive", 
+        title: "Capture Failed", 
+        description: "Camera component not properly initialized. Please try again or use upload option." 
+      });
+      return;
+    }
+    
+    // Then check if we have a valid stream
+    if (!videoNode.srcObject || !isStreamActive) {
+      console.error("Capture failed: No active stream", { 
+        srcObject: !!videoNode.srcObject, 
+        isStreamActive 
+      });
+      toast({ 
+        variant: "destructive", 
+        title: "Camera Not Ready", 
+        description: "Camera stream not active. Please wait for camera to initialize or try again." 
+      });
+      return;
+    }
+    
+    // Finally check if the video has valid dimensions
+    if (videoNode.videoWidth === 0 || videoNode.videoHeight === 0) {
+      console.error("Capture failed: Video dimensions are zero.", { w: videoNode.videoWidth, h: videoNode.videoHeight });
+      toast({ 
+        variant: "destructive", 
+        title: "Camera Error", 
+        description: "Video dimensions are zero. Please ensure the camera has started correctly." 
+      });
+      return;
+    }
 
-      canvasNode.width = videoNode.videoWidth;
-      canvasNode.height = videoNode.videoHeight;
-      console.log(`Canvas dimensions set to: ${canvasNode.width}x${canvasNode.height}`);
+    // Proceed with capture since all checks passed
+    canvasNode.width = videoNode.videoWidth;
+    canvasNode.height = videoNode.videoHeight;
+    console.log(`Canvas dimensions set to: ${canvasNode.width}x${canvasNode.height}`);
 
-      const context = canvasNode.getContext('2d');
-      if (context) {
-        context.drawImage(videoNode, 0, 0, canvasNode.width, canvasNode.height);
-        console.log("Image drawn to canvas");
-        const dataUri = canvasNode.toDataURL('image/jpeg');
-        setPreviewUrl(dataUri); 
-        setCapturedDataUriForAnalysis(dataUri);
-        setSelectedFile(null);
-        setAnalysisResult(null);
-        setError(null);
-      } else {
-        console.error("Could not get 2D context from canvas.");
-        setError("Could not get canvas context to capture photo.");
-        toast({ variant: "destructive", title: "Capture Error", description: "Failed to process image from camera." });
-      }
+    const context = canvasNode.getContext('2d');
+    if (context) {
+      context.drawImage(videoNode, 0, 0, canvasNode.width, canvasNode.height);
+      console.log("Image drawn to canvas");
+      const dataUri = canvasNode.toDataURL('image/jpeg');
+      setPreviewUrl(dataUri); 
+      setCapturedDataUriForAnalysis(dataUri);
+      setSelectedFile(null);
+      setAnalysisResult(null);
+      setError(null);
     } else {
-      let logMessage = "Capture prerequisites not met: ";
-      if (!videoNode) logMessage += "videoRef is null. ";
-      if (!canvasNode) logMessage += "canvasRef is null. ";
-      if (videoNode && !videoNode.srcObject) logMessage += "video srcObject is null. ";
-      if (!isStreamActive) logMessage += "Stream is not marked as active. ";
-      console.error(logMessage, { videoSrcObj: videoNode?.srcObject, isStreamActiveVal: isStreamActive });
-      setError("Camera or canvas not available, or stream not active for capture.");
-      toast({ variant: "destructive", title: "Camera Not Ready", description: "Camera not ready to capture. Please try reopening the camera tab or check permissions." });
+      console.error("Could not get 2D context from canvas.");
+      setError("Could not get canvas context to capture photo.");
+      toast({ variant: "destructive", title: "Capture Error", description: "Failed to process image from camera." });
     }
   };
 
@@ -309,6 +378,14 @@ export default function LogFoodByPhotoPage() {
       
       // Remove highlight after animation completes
       setTimeout(() => setShowResultsHighlight(false), 2000);
+    }
+  }, []);
+
+  // Always render the canvas element outside of conditional blocks
+  useEffect(() => {
+    // Ensure canvas is initialized on component mount
+    if (!canvasRef.current) {
+      console.warn("Canvas ref is null on mount, which could cause issues with photo capture");
     }
   }, []);
 
@@ -1315,6 +1392,13 @@ export default function LogFoodByPhotoPage() {
           </CardFooter>
         </Card>
       </motion.div>
+      
+      {/* Hidden canvas for photo capture */}
+      <canvas 
+        ref={canvasRef} 
+        style={{ display: 'none' }} 
+        aria-hidden="true"
+      />
     </motion.div>
   );
 }
