@@ -134,6 +134,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="canonical" href="https://calorietracker.in" />
+        <meta name="google-adsense-account" content="ca-pub-3014018771524962" />
         {/* Structured data for Recipe App */}
         <script
           type="application/ld+json"
