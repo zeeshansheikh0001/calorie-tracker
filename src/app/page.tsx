@@ -434,27 +434,27 @@ export default function DashboardPage() {
         {/* Modern gradient background - softer pastels */}
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-300/90 via-purple-300/90 to-pink-300/90 dark:from-indigo-700/80 dark:via-purple-700/80 dark:to-pink-700/80"></div>
         
-        {/* Abstract geometric shapes in background */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/15 rounded-full -translate-y-1/2 translate-x-1/4 blur-xl"></div>
-        <div className="absolute bottom-0 left-20 w-48 h-48 bg-indigo-200/20 dark:bg-indigo-300/10 rounded-full translate-y-1/3 blur-xl"></div>
-        <div className="absolute top-1/3 left-1/4 w-24 h-24 bg-pink-200/20 dark:bg-pink-300/10 rounded-full blur-lg"></div>
+        {/* Abstract geometric shapes in background - reduced size */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/15 rounded-full -translate-y-1/2 translate-x-1/4 blur-xl"></div>
+        <div className="absolute bottom-0 left-20 w-32 h-32 bg-indigo-200/20 dark:bg-indigo-300/10 rounded-full translate-y-1/3 blur-xl"></div>
+        <div className="absolute top-1/3 left-1/4 w-16 h-16 bg-pink-200/20 dark:bg-pink-300/10 rounded-full blur-lg"></div>
         
         {/* Subtle pattern overlay */}
         <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
              style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
         
-        {/* Animated particles */}
+        {/* Animated particles - reduced number */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(5)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <motion.div
               key={`particle-${i}`}
-              className="absolute h-2 w-2 rounded-full bg-white/40"
+              className="absolute h-1.5 w-1.5 rounded-full bg-white/40"
               style={{
                 top: `${20 + (i * 15)}%`,
                 left: `${10 + (i * 20)}%`,
               }}
               animate={{
-                y: [0, -20, 0],
+                y: [0, -10, 0],
                 opacity: [0.4, 0.8, 0.4],
               }}
               transition={{
@@ -468,12 +468,12 @@ export default function DashboardPage() {
           ))}
         </div>
         
-        <div className="relative p-6 flex justify-between items-center z-10">
-          <div className="flex items-center gap-4">
+        <div className="relative p-4 flex justify-between items-center z-10">
+          <div className="flex items-center gap-3">
           {isLoadingProfile ? (
             <>
-                <Skeleton className="h-12 w-12 rounded-full bg-white/20" />
-                <Skeleton className="h-7 w-32 bg-white/20" />
+                <Skeleton className="h-10 w-10 rounded-full bg-white/20" />
+                <Skeleton className="h-6 w-28 bg-white/20" />
             </>
           ) : (
             <>
@@ -483,11 +483,12 @@ export default function DashboardPage() {
                     whileTap={{ scale: 0.95 }}
                     className="relative"
                   >
+                    {/* Modern glow effect */}
                     <motion.div 
-                      className="absolute -inset-1.5 rounded-full bg-white/30 blur-sm opacity-70"
+                      className="absolute -inset-1.5 rounded-full bg-white/40 blur-md opacity-80"
                       animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [0.5, 0.7, 0.5]
+                        scale: [1, 1.15, 1],
+                        opacity: [0.6, 0.8, 0.6]
                       }}
                       transition={{ 
                         duration: 3,
@@ -495,15 +496,15 @@ export default function DashboardPage() {
                         repeatType: "reverse"
                       }}
                     />
-                    <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-white/40 hover:ring-white/70 transition-all relative z-10 border-2 border-white/80">
-                  <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} data-ai-hint="user avatar" />
-                      <AvatarFallback className="bg-primary-foreground text-primary">{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                </Avatar>
+                    <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-white/50 hover:ring-white/80 transition-all relative z-10 border-2 border-white/90 shadow-lg">
+                      <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} className="object-cover" data-ai-hint="user avatar" />
+                      <AvatarFallback className="bg-primary-foreground/10 text-white font-semibold">{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
                   </motion.div>
               </Link>
                 <div className="flex flex-col">
                   <motion.h1 
-                    className="text-2xl font-bold text-white"
+                    className="text-xl font-bold text-white tracking-tight"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
@@ -523,20 +524,20 @@ export default function DashboardPage() {
                       👋
                     </motion.span>
                   </motion.h1>
-                  <span className="text-white/80 text-sm">Track your nutrition journey</span>
+                  <span className="text-white/90 text-xs font-medium">Track your nutrition journey</span>
                 </div>
             </>
           )}
         </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <div className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white">
+              <div className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm">
                 <ThemeToggle />
               </div>
             </motion.div>
            <Link href="/reminders" legacyBehavior>
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Button variant="outline" size="icon" className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white">
+                <Button variant="outline" size="icon" className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm">
                   <Bell className="h-5 w-5" />
                 </Button>
               </motion.div>
