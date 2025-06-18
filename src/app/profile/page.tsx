@@ -20,7 +20,9 @@ import {
   FileText,
   Apple,
   Plus,
-  Eye
+  Eye,
+  Scale,
+  Ruler
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -145,6 +147,19 @@ export default function ProfilePage() {
     return gender.charAt(0).toUpperCase() + gender.slice(1);
   };
 
+  // Format height in feet-inches when the unit is feet
+  const formatHeight = (height?: number, unit?: string) => {
+    if (!height) return "";
+    
+    if (unit === "ft") {
+      const feet = Math.floor(height / 12);
+      const inches = Math.round(height % 12);
+      return `${feet}'${inches}"`;
+    }
+    
+    return `${height} ${unit || "cm"}`;
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -243,6 +258,18 @@ export default function ProfilePage() {
                           {userProfile.age} years
                         </Badge>
                       )}
+                      {userProfile.height && (
+                        <Badge variant="secondary" className="font-normal py-0.5">
+                          <Ruler className="h-3 w-3 mr-1" />
+                          {formatHeight(userProfile.height, userProfile.heightUnit)}
+                        </Badge>
+                      )}
+                      {userProfile.weight && (
+                        <Badge variant="secondary" className="font-normal py-0.5">
+                          <Scale className="h-3 w-3 mr-1" />
+                          {userProfile.weight} {userProfile.weightUnit || "kg"}
+                        </Badge>
+                      )}
                       {userProfile.email && (
                         <Badge variant="secondary" className="font-normal py-0.5 max-w-[180px] truncate">
                           {userProfile.email}
@@ -337,11 +364,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
         
-        {/* App Version */}
-        <div className="mt-8 text-center text-xs text-muted-foreground">
-          <p>Calorie Tracker v1.0.0</p>
-          <p className="mt-1">© 2025 All Rights Reserved</p>
-        </div>
+       
 
         {/* Saved Diet Charts Section */}
         <Card className="mt-6">
@@ -429,6 +452,11 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
+         {/* App Version */}
+         <div className="mt-8 text-center text-xs text-muted-foreground">
+          <p>Calorie Tracker v1.0.0</p>
+          <p className="mt-1">© 2025 All Rights Reserved</p>
+        </div>
       </motion.div>
     </div>
   );

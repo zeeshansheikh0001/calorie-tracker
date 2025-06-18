@@ -39,7 +39,11 @@ export interface UserProfile {
   email: string;
   avatarUrl?: string;
   age?: number;
+  height?: number;  // in centimeters
+  weight?: number;  // in kilograms
   gender?: "male" | "female" | "other";
+  heightUnit?: "cm" | "ft"; // Unit for height (centimeters or feet-inches)
+  weightUnit?: "kg" | "lbs"; // Unit for weight (kilograms or pounds)
   savedDietCharts?: SavedDietChart[];
 }
 
