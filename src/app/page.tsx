@@ -28,6 +28,11 @@ import {
   Loader2,
   Sparkles,
   InfoIcon,
+  MoreVertical,
+  Egg,
+  Delete,
+  DeleteIcon,
+  Trash,
 } from "lucide-react";
 import { useState, type FC, useEffect, ReactNode, useMemo } from "react";
 import type { FoodEntry as LoggedFoodEntry, BlogPost, DailyLogEntry } from "@/types";
@@ -88,48 +93,60 @@ interface MealCardProps {
 }
 
 const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, protein, fat, carbs, onDelete }) => (
-  <Card className="shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] overflow-hidden rounded-xl relative">
-    <Button
-      variant="ghost"
-      size="icon"
-      className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-destructive z-10"
-      onClick={() => onDelete(id)}
-      aria-label="Delete meal"
-    >
-      <Trash2 className="h-4 w-4" />
-    </Button>
-    <CardContent className="p-4 space-y-3">
-      <div className="flex flex-col space-y-1">
-        <div className="flex justify-between items-center pr-5">
-          <div className="max-w-[calc(100%-70px)]">
-            <h3 className="text-lg font-semibold text-foreground title-poppins line-clamp-1" title={name}>{name}</h3>
-            {name.length > 20 && (
-              <p className="text-xs text-muted-foreground -mt-0.5 line-clamp-1">{name}</p>
-            )}
+  <motion.div
+    key={id}
+    initial={{ opacity: 0, y: 20, scale: 0.98 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+    transition={{ 
+      duration: 0.4, 
+      delay: 0.1,
+      type: "spring",
+      stiffness: 100
+    }}
+    layout
+    whileHover={{ 
+      y: -3,
+      boxShadow: "0 10px 30px -10px rgba(0,0,0,0.15)",
+      transition: { duration: 0.2 }
+    }}
+  >
+    <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-xl relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-white to-amber-50/20 dark:from-gray-900/80 dark:to-amber-900/10 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-50/30 dark:to-amber-800/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+      <div className="relative z-10 p-4">
+        <div className="flex flex-col space-y-1">
+          <div className="flex justify-between items-center pr-5">
+            <div className="max-w-[calc(100%-70px)]">
+              <h3 className="text-lg font-semibold text-foreground title-poppins line-clamp-1" title={name}>{name}</h3>
+              {name.length > 20 && (
+                <p className="text-xs text-muted-foreground -mt-0.5 line-clamp-1">{name}</p>
+              )}
+            </div>
+            <div className="flex items-center font-bold text-lg text-poppins shrink-0" style={{color: 'hsl(var(--text-kcal-raw))'}}>
+              <Flame className="h-5 w-5 mr-1.5" />
+              {Math.round(calories)}
+              <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
+            </div>
           </div>
-          <div className="flex items-center font-bold text-lg text-poppins shrink-0" style={{color: 'hsl(var(--text-kcal-raw))'}}>
-            <Flame className="h-5 w-5 mr-1.5" />
-            {Math.round(calories)}
-            <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+          <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+            <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
+            <span className="text-poppins">Protein</span>
+          </div>
+          <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+            <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
+            <span className="text-poppins">Fat</span>
+          </div>
+          <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
+            <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
+            <span className="text-poppins">Carbs</span>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
-          <span className="text-poppins">Protein</span>
-        </div>
-        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
-          <span className="text-poppins">Fat</span>
-        </div>
-        <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
-          <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
-          <span className="text-poppins">Carbs</span>
-        </div>
-      </div>
-    </CardContent>
-  </Card>
+    </Card>
+  </motion.div>
 ));
 MealCard.displayName = 'MealCard';
 
@@ -401,20 +418,29 @@ const InfoTooltip = ({ title, description, color }: { title: string; description
   
   return (
     <>
-      <button 
+      <motion.button 
         className="h-6 w-6 rounded-full bg-white/30 flex items-center justify-center hover:bg-white/50 transition-colors"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setOpen(true);
         }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
       >
         <InfoIcon className="h-4 w-4 text-white" />
-      </button>
+      </motion.button>
       
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={`bg-gradient-to-b ${color} text-white border-none rounded-2xl`}>
-          <DialogHeader>
+        <DialogContent className={`bg-gradient-to-br ${color} text-white border-none rounded-2xl shadow-xl`}>
+          <motion.div 
+            className="absolute inset-0 bg-white opacity-5 rounded-2xl"
+            animate={{
+              opacity: [0.03, 0.05, 0.03]
+            }}
+            transition={{ duration: 5, repeat: Infinity }}
+          />
+          <DialogHeader className="relative z-10">
             <DialogTitle className="text-white">{title}</DialogTitle>
             <DialogDescription className="text-white/90">
               {description}
@@ -536,12 +562,33 @@ export default function DashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
       >
-        {/* Modern gradient background - Apple Health inspired */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#FF2D55] to-[#FF3B30] dark:from-[#FF2D55] dark:to-[#FF3B30]"></div>
+        {/* Animated gradient background */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-r from-[#FF2D55] via-[#FF9500] to-[#FF3B30]"
+          animate={{
+            background: [
+              "linear-gradient(to right, #FF2D55, #FF9500, #FF3B30)",
+              "linear-gradient(to right, #FF3B30, #FF2D55, #FF9500)",
+              "linear-gradient(to right, #FF9500, #FF3B30, #FF2D55)",
+              "linear-gradient(to right, #FF2D55, #FF9500, #FF3B30)"
+            ]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
         
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
+        {/* Animated particles overlay */}
+        <div className="absolute inset-0 opacity-10 mix-blend-overlay" 
              style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
+        
+        {/* Animated shine effect */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0" 
+          animate={{
+            left: ["-100%", "100%"],
+            opacity: [0, 0.1, 0]
+          }}
+          transition={{ duration: 3, repeat: Infinity, repeatDelay: 7 }}
+        />
         
         <div className="relative p-4 flex justify-between items-center z-10">
           <div className="flex items-center gap-3">
@@ -616,30 +663,34 @@ export default function DashboardPage() {
         className="mt-8 w-full"
       >
         <Card className="relative overflow-hidden rounded-xl border-none shadow-md bg-white dark:bg-black/20">
-          {/* Apple Health style background */}
-          <div className="absolute inset-0 bg-white dark:bg-black/20"></div>
+          {/* Subtle gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-white to-gray-50 dark:from-black/30 dark:via-black/20 dark:to-black/10"></div>
           
           {/* Header with title */}
           <div className="relative px-6 pt-5 pb-2 flex items-center justify-between border-b border-[#E5E5EA] dark:border-gray-800/30">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-[#FF3B30] flex items-center justify-center">
+              <motion.div 
+                className="h-7 w-7 rounded-full bg-gradient-to-br from-[#FF3B30] to-[#FF2D55] flex items-center justify-center"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
                 <Flame className="h-4 w-4 text-white" />
-        </div>
+              </motion.div>
               <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white">Calories</h3>
-        </div>
+            </div>
                       
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1 text-sm font-normal h-8 text-[#8E8E93]">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
-                    <ChevronDown className="h-3.5 w-3.5" />
-              </Button>
-                          </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button variant="ghost" size="sm" className="flex items-center gap-1 text-sm font-normal h-8 text-[#8E8E93]">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </Button>
+              </motion.div>
             </PopoverTrigger>
               <PopoverContent className="w-auto p-0 shadow-xl border border-[#E5E5EA]/30 bg-white dark:bg-black/90 backdrop-blur-lg rounded-2xl" align="end">
               <Calendar
@@ -759,20 +810,29 @@ export default function DashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.5 }}
             >
-              <div className="flex flex-col items-center p-3 rounded-lg bg-[#5AC8FA]/10">
+              <motion.div 
+                className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#5AC8FA]/20 to-[#007AFF]/10"
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              >
                 <span className="text-xs text-[#8E8E93] mb-1">Carbs</span>
                 <span className="text-lg font-semibold text-[#007AFF]">{Math.round(todayCarbs)}g</span>
-              </div>
+              </motion.div>
               
-              <div className="flex flex-col items-center p-3 rounded-lg bg-[#4CD964]/10">
+              <motion.div 
+                className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#4CD964]/20 to-[#34C759]/10"
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              >
                 <span className="text-xs text-[#8E8E93] mb-1">Protein</span>
                 <span className="text-lg font-semibold text-[#34C759]">{Math.round(todayProtein)}g</span>
-              </div>
+              </motion.div>
               
-              <div className="flex flex-col items-center p-3 rounded-lg bg-[#FF9500]/10">
+              <motion.div 
+                className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#FF9500]/20 to-[#FF9500]/10"
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              >
                 <span className="text-xs text-[#8E8E93] mb-1">Fat</span>
                 <span className="text-lg font-semibold text-[#FF9500]">{Math.round(todayFat)}g</span>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
 </Card>
@@ -803,26 +863,35 @@ export default function DashboardPage() {
             <Link href="/log-food/photo" className="flex-1" passHref>
               <motion.div
                 whileHover={{ 
-                  y: -2,
-                  boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                  y: -5,
+                  boxShadow: "0 15px 30px -5px rgba(255, 59, 48, 0.2)"
                 }}
                 whileTap={{ scale: 0.98 }}
                 className="h-full rounded-xl"
               >
                 <Card className="relative h-full border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-black/20">
-                {/* Info button with Dialog */}
+                  {/* Gradient background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white to-[#FF3B30]/5 dark:from-black/30 dark:to-[#FF3B30]/10 opacity-50"></div>
+                  
+                  {/* Info button with Dialog */}
                   <div className="absolute top-3 right-3 z-20">
-                  <InfoTooltip 
-                    title="AI Food Detection"
+                    <InfoTooltip 
+                      title="AI Food Detection"
                       description="Take a picture of your food or upload an image and our AI will detect what you're eating and calculate the nutritional information"
-                      color="from-[#FF3B30]/95 to-[#FF3B30]/95"
-                  />
-                </div>
+                      color="from-[#FF3B30] to-[#FF2D55]"
+                    />
+                  </div>
                 
-                  <CardContent className="p-6 flex flex-col items-center text-center">
-                    <div className="h-14 w-14 rounded-full bg-[#FF3B30]/10 flex items-center justify-center mb-4">
-                      <Camera className="h-7 w-7 text-[#FF3B30]" />
-            </div>
+                  <CardContent className="p-6 flex flex-col items-center text-center relative z-10">
+                    <motion.div 
+                      className="h-14 w-14 rounded-full bg-gradient-to-br from-[#FF3B30] to-[#FF2D55] flex items-center justify-center mb-4"
+                      animate={{ 
+                        boxShadow: ["0px 0px 0px rgba(255, 59, 48, 0.4)", "0px 0px 20px rgba(255, 59, 48, 0.2)", "0px 0px 0px rgba(255, 59, 48, 0.4)"] 
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <Camera className="h-7 w-7 text-white" />
+                    </motion.div>
             
                     <div className="text-center">
                       <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Take Photo</h3>
@@ -837,26 +906,35 @@ export default function DashboardPage() {
             <Link href="/log-food/manual" className="flex-1" passHref>
               <motion.div
                 whileHover={{ 
-                  y: -2,
-                  boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                  y: -5,
+                  boxShadow: "0 15px 30px -5px rgba(0, 122, 255, 0.2)"
                 }}
                 whileTap={{ scale: 0.98 }}
                 className="h-full rounded-xl"
               >
                 <Card className="relative h-full border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-black/20">
-                {/* Info button with Dialog */}
+                  {/* Gradient background */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white to-[#007AFF]/5 dark:from-black/30 dark:to-[#007AFF]/10 opacity-50"></div>
+                  
+                  {/* Info button with Dialog */}
                   <div className="absolute top-3 right-3 z-20">
-                  <InfoTooltip 
-                    title="Custom Food Entry"
-                    description="Manually log food items with precise measurements and access our extensive database of nutritional information"
-                      color="from-[#007AFF]/95 to-[#007AFF]/95"
-                  />
-                </div>
+                    <InfoTooltip 
+                      title="Custom Food Entry"
+                      description="Manually log food items with precise measurements and access our extensive database of nutritional information"
+                      color="from-[#007AFF] to-[#5AC8FA]"
+                    />
+                  </div>
                 
-                  <CardContent className="p-6 flex flex-col items-center text-center">
-                    <div className="h-14 w-14 rounded-full bg-[#007AFF]/10 flex items-center justify-center mb-4">
-                      <FilePenLine className="h-7 w-7 text-[#007AFF]" />
-                    </div>
+                  <CardContent className="p-6 flex flex-col items-center text-center relative z-10">
+                    <motion.div 
+                      className="h-14 w-14 rounded-full bg-gradient-to-br from-[#007AFF] to-[#5AC8FA] flex items-center justify-center mb-4"
+                      animate={{ 
+                        boxShadow: ["0px 0px 0px rgba(0, 122, 255, 0.4)", "0px 0px 20px rgba(0, 122, 255, 0.2)", "0px 0px 0px rgba(0, 122, 255, 0.4)"] 
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                    >
+                      <FilePenLine className="h-7 w-7 text-white" />
+                    </motion.div>
                     
                     <div className="text-center">
                       <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Manual Entry</h3>
@@ -893,20 +971,23 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <Card className="p-5 shadow-sm border border-[#E5E5EA] dark:border-gray-800/20 rounded-xl overflow-hidden bg-white dark:bg-black/20">
+          <Card className="p-5 shadow-md border border-[#E5E5EA] dark:border-gray-800/20 rounded-xl overflow-hidden bg-gradient-to-br from-white to-gray-50/50 dark:from-black/30 dark:to-black/10 backdrop-blur">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {/* Calories */}
-              <div className="flex flex-col justify-between">
+              <motion.div 
+                className="flex flex-col justify-between"
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              >
                 <div className="mb-2">
                   <span className="text-sm text-[#8E8E93]">Calories</span>
-                  <h3 className="text-2xl font-semibold text-[#FF3B30]">
+                  <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FF3B30] to-[#FF2D55]">
                     {Math.round(todayCalories)}
                   </h3>
                   <span className="text-xs text-[#8E8E93]">kcal</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-[#FF3B30]/10">
+                  <div className="p-1.5 rounded-full bg-gradient-to-r from-[#FF3B30]/20 to-[#FF2D55]/10">
                     <Flame className="h-4 w-4 text-[#FF3B30]" />
                   </div>
                   <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
@@ -914,24 +995,27 @@ export default function DashboardPage() {
                       initial={{ width: 0 }}
                       animate={{ width: goalCalories > 0 ? `${Math.min((todayCalories / goalCalories) * 100, 100)}%` : '10%' }}
                       transition={{ duration: 1, delay: 0.5 }}
-                      className={`h-full rounded-full bg-[#FF3B30] ${todayCalories === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[#FF3B30] to-[#FF2D55] ${todayCalories === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
               {/* Carbs */}
-              <div className="flex flex-col justify-between">
+              <motion.div 
+                className="flex flex-col justify-between"
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              >
                 <div className="mb-2">
                   <span className="text-sm text-[#8E8E93]">Carbs</span>
-                  <h3 className="text-2xl font-semibold text-[#007AFF]">
+                  <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#007AFF] to-[#5AC8FA]">
                     {Math.round(todayCarbs)}
                   </h3>
                   <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-[#007AFF]/10">
+                  <div className="p-1.5 rounded-full bg-gradient-to-r from-[#007AFF]/20 to-[#5AC8FA]/10">
                     <Wheat className="h-4 w-4 text-[#007AFF]" />
                   </div>
                   <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
@@ -939,24 +1023,27 @@ export default function DashboardPage() {
                       initial={{ width: 0 }}
                       animate={{ width: todayCarbs > 0 ? '60%' : '10%' }}
                       transition={{ duration: 1, delay: 0.6 }}
-                      className={`h-full rounded-full bg-[#007AFF] ${todayCarbs === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[#007AFF] to-[#5AC8FA] ${todayCarbs === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
               {/* Protein */}
-              <div className="flex flex-col justify-between">
+              <motion.div 
+                className="flex flex-col justify-between"
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              >
                 <div className="mb-2">
                   <span className="text-sm text-[#8E8E93]">Protein</span>
-                  <h3 className="text-2xl font-semibold text-[#34C759]">
+                  <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#34C759] to-[#4CD964]">
                     {Math.round(todayProtein)}
                   </h3>
                   <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-[#34C759]/10">
+                  <div className="p-1.5 rounded-full bg-gradient-to-r from-[#34C759]/20 to-[#4CD964]/10">
                     <Drumstick className="h-4 w-4 text-[#34C759]" />
                   </div>
                   <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
@@ -964,24 +1051,27 @@ export default function DashboardPage() {
                       initial={{ width: 0 }}
                       animate={{ width: todayProtein > 0 ? '75%' : '10%' }}
                       transition={{ duration: 1, delay: 0.7 }}
-                      className={`h-full rounded-full bg-[#34C759] ${todayProtein === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[#34C759] to-[#4CD964] ${todayProtein === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </div>
+              </motion.div>
               
               {/* Fat */}
-              <div className="flex flex-col justify-between">
+              <motion.div 
+                className="flex flex-col justify-between"
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              >
                 <div className="mb-2">
                   <span className="text-sm text-[#8E8E93]">Fat</span>
-                  <h3 className="text-2xl font-semibold text-[#FF9500]">
+                  <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FF9500] to-[#FFCC00]">
                     {Math.round(todayFat)}
                   </h3>
                   <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-full bg-[#FF9500]/10">
+                  <div className="p-1.5 rounded-full bg-gradient-to-r from-[#FF9500]/20 to-[#FFCC00]/10">
                     <Droplets className="h-4 w-4 text-[#FF9500]" />
                   </div>
                   <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
@@ -989,11 +1079,11 @@ export default function DashboardPage() {
                       initial={{ width: 0 }}
                       animate={{ width: todayFat > 0 ? '40%' : '10%' }}
                       transition={{ duration: 1, delay: 0.8 }}
-                      className={`h-full rounded-full bg-[#FF9500] ${todayFat === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-gradient-to-r from-[#FF9500] to-[#FFCC00] ${todayFat === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </Card>
         )}
@@ -1006,22 +1096,34 @@ export default function DashboardPage() {
         className="mt-8 w-full"
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="h-7 w-7 rounded-full bg-[#FF9500] flex items-center justify-center">
+          <motion.div 
+            className="h-7 w-7 rounded-full bg-gradient-to-r from-[#FF9500] to-[#FFCC00] flex items-center justify-center"
+            whileHover={{ scale: 1.1 }}
+            animate={{ 
+              boxShadow: ["0px 0px 0px rgba(255, 149, 0, 0)", "0px 0px 8px rgba(255, 149, 0, 0.4)", "0px 0px 0px rgba(255, 149, 0, 0)"]
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
             <Utensils className="h-4 w-4 text-white" />
-          </div>
+          </motion.div>
           <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Food Journal</h2>
           
           <div className="ml-auto">
-          <Link href="/log-food/photo" passHref>
-              <Button 
-                variant="default" 
-                size="sm" 
-                className="text-sm bg-[#FF9500] hover:bg-[#FF9500]/90 text-white border-none shadow-sm hover:shadow-md px-4 rounded-full h-8"
+            <Link href="/log-food/photo" passHref>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="text-sm bg-gradient-to-r from-[#FF9500] to-[#FFCC00] hover:opacity-90 text-white border-none shadow-sm hover:shadow-md px-4 rounded-full h-8"
+                >
+                  <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
                   Add Meal
-              </Button>
-          </Link>
+                </Button>
+              </motion.div>
+            </Link>
           </div>
         </div>
         
@@ -1034,7 +1136,7 @@ export default function DashboardPage() {
         ) : foodEntries.length > 0 ? (
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {displayedFoodEntries.map((entry: LoggedFoodEntry, index) => (
+              {displayedFoodEntries.map((entry: LoggedFoodEntry) => (
                 <motion.div
                   key={entry.id}
                   initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -1042,88 +1144,103 @@ export default function DashboardPage() {
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
                   transition={{ 
                     duration: 0.4, 
-                    delay: 0.1 + (index * 0.05),
+                    delay: 0.1,
                     type: "spring",
                     stiffness: 100
                   }}
                   layout
                   whileHover={{ 
-                    y: -2,
+                    y: -3,
+                    boxShadow: "0 10px 30px -10px rgba(0,0,0,0.15)",
                     transition: { duration: 0.2 }
                   }}
+                  className="group"
                 >
-                  <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-xl relative bg-white dark:bg-black/20">
-                    <CardContent className="relative p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-semibold line-clamp-1 pr-8 sm:pr-0 text-[#1C1C1E] dark:text-white" title={entry.name}>
-                            {entry.name}
-                          </h3>
-                          
-                          <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
-                            <div className="flex items-center gap-1.5">
-                              <div className="p-1.5 rounded-full bg-[#FF3B30]/10">
-                                <Flame className="h-4 w-4 text-[#FF3B30]" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-[#FF3B30]">
-                                  {Math.round(entry.calories)}
-                                </div>
-                                <div className="text-xs text-[#8E8E93]">kcal</div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5">
-                              <div className="p-1.5 rounded-full bg-[#34C759]/10">
-                                <Drumstick className="h-4 w-4 text-[#34C759]" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-[#34C759]">
-                                  {Math.round(entry.protein)}g
-                                </div>
-                                <div className="text-xs text-[#8E8E93]">protein</div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5">
-                              <div className="p-1.5 rounded-full bg-[#FF9500]/10">
-                                <Droplets className="h-4 w-4 text-[#FF9500]" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-[#FF9500]">
-                                  {Math.round(entry.fat)}g
-                                </div>
-                                <div className="text-xs text-[#8E8E93]">fat</div>
-                              </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-1.5">
-                              <div className="p-1.5 rounded-full bg-[#007AFF]/10">
-                                <Wheat className="h-4 w-4 text-[#007AFF]" />
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-[#007AFF]">
-                                  {Math.round(entry.carbs)}g
-                                </div>
-                                <div className="text-xs text-[#8E8E93]">carbs</div>
-                              </div>
+                  <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-xl relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white to-amber-50/20 dark:from-gray-900/80 dark:to-amber-900/10 z-0"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-50/30 dark:to-amber-800/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+                    
+                    <div className="relative z-10 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 max-w-[85%]">
+                          <motion.div 
+                            className="w-12 h-12 bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-500/20 dark:to-amber-600/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                            whileHover={{ scale: 1.05 }}
+                            animate={{ 
+                              boxShadow: ["0px 0px 0px rgba(245, 158, 11, 0)", "0px 0px 8px rgba(245, 158, 11, 0.3)", "0px 0px 0px rgba(245, 158, 11, 0)"]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Egg className="h-6 w-6 text-amber-500" />
+                          </motion.div>
+                          <div className="min-w-0">
+                            <h3 className="text-xl font-semibold text-[#1C1C1E] dark:text-white truncate">
+                              {entry.name}
+                            </h3>
+                            <div className="flex items-center gap-1 text-sm text-[#8E8E93] mt-1">
+                              <Flame className="h-3.5 w-3.5 text-orange-500" />
+                              <span className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">{Math.round(entry.calories)} kcal</span>
                             </div>
                           </div>
                         </div>
-                        
-                        <div className="absolute top-3 right-3 sm:static sm:flex sm:items-center">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-[#8E8E93] hover:text-[#FF3B30] hover:bg-[#FF3B30]/10 rounded-full"
-                            onClick={() => deleteFoodEntry(entry.id)}
-                            aria-label="Delete meal"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-[#8E8E93] hover:text-[#FF3B30] dark:hover:text-orange-400 rounded-full flex-shrink-0"
+                          onClick={() => deleteFoodEntry(entry.id)}
+                          aria-label="Menu options"
+                        >
+                          <Trash className="h-5 w-5" />
+                        </Button>
+                      </div>
+
+                      <div className="mt-6 grid grid-cols-3 gap-4">
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-lg font-semibold text-[#1C1C1E] dark:text-white">{Math.round(entry.protein)}g</span>
+                          </div>
+                          <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (entry.protein / 50) * 100)}%` }}
+                              transition={{ duration: 0.8, delay: 0.2 }}
+                            ></motion.div>
+                          </div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Protein</span>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-lg font-semibold text-[#1C1C1E] dark:text-white">{Math.round(entry.fat)}g</span>
+                          </div>
+                          <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (entry.fat / 50) * 100)}%` }}
+                              transition={{ duration: 0.8, delay: 0.3 }}
+                            ></motion.div>
+                          </div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Fats</span>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-lg font-semibold text-[#1C1C1E] dark:text-white">{Math.round(entry.carbs)}g</span>
+                          </div>
+                          <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full"
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, (entry.carbs / 50) * 100)}%` }}
+                              transition={{ duration: 0.8, delay: 0.4 }}
+                            ></motion.div>
+                          </div>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Carbs</span>
                         </div>
                       </div>
-                    </CardContent>
+                    </div>
                   </Card>
                 </motion.div>
               ))}
@@ -1142,35 +1259,66 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm rounded-xl overflow-hidden text-center py-8 px-6 relative bg-white dark:bg-black/20">
+          <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-md rounded-xl overflow-hidden text-center py-8 px-6 relative bg-white dark:bg-black/20">
+            {/* Gradient background effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-50/50 dark:from-black/30 dark:to-black/10"></div>
+            
+            {/* Animated gradient ring */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full opacity-30">
+              <motion.div 
+                className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FF9500] via-[#FFCC00] to-[#FF9500]"
+                animate={{ 
+                  rotate: [0, 360],
+                  background: [
+                    "linear-gradient(to right, #FF9500, #FFCC00, #FF9500)",
+                    "linear-gradient(to right, #FFCC00, #FF9500, #FFCC00)",
+                    "linear-gradient(to right, #FF9500, #FFCC00, #FF9500)"
+                  ]
+                }}
+                transition={{ 
+                  rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+                  background: { duration: 5, repeat: Infinity, ease: "linear" },
+                }}
+              />
+            </div>
+            
             <div className="relative z-10">
-              <div className="w-16 h-16 mx-auto mb-4 bg-[#FF9500]/10 rounded-full flex items-center justify-center">
-                <Camera className="h-8 w-8 text-[#FF9500]" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#FF9500] to-[#FFCC00] rounded-full flex items-center justify-center">
+                <Camera className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2 text-[#1C1C1E] dark:text-white">No meals logged yet</h3>
               <p className="text-[#8E8E93] mb-5 text-sm max-w-md mx-auto">
-                  Track what you eat to get insights about your nutrition for{" "}
+                Track what you eat to get insights about your nutrition for{" "}
                 <span className="font-medium text-[#1C1C1E] dark:text-white">
-                    {currentSelectedDate
-                      ? isToday(currentSelectedDate)
-                        ? "today"
-                        : format(currentSelectedDate, "MMM d, yyyy")
-                      : "the selected date"}
+                  {currentSelectedDate
+                    ? isToday(currentSelectedDate)
+                      ? "today"
+                      : format(currentSelectedDate, "MMM d, yyyy")
+                    : "the selected date"}
                 </span>
-                </p>
+              </p>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button 
                   variant="default" 
                   size="sm" 
-                  className="bg-[#FF9500] hover:bg-[#FF9500]/90 text-white border-none hover:opacity-90 rounded-full px-4 shadow-sm"
+                  className="bg-gradient-to-r from-[#FF9500] to-[#FFCC00] hover:opacity-90 text-white border-none hover:opacity-90 rounded-full px-4 shadow-md"
                   asChild
                 >
                   <Link href="/log-food/photo">
-                    <span className="flex items-center gap-1.5">
+                    <motion.span 
+                      className="flex items-center gap-1.5"
+                      initial={{ x: 0 }}
+                      whileHover={{ x: 3 }}
+                    >
                       Add Your First Meal
                       <ArrowRight className="h-4 w-4" />
-                    </span>
+                    </motion.span>
                   </Link>
                 </Button>
+              </motion.div>
             </div>
           </Card>
         )}
@@ -1363,47 +1511,59 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3 mb-5">
           <div className="relative">
             <motion.div
-              className="absolute inset-0 rounded-full"
+              className="absolute -inset-1 rounded-full"
               animate={{ 
                 boxShadow: [
                   "0 0 0 0 rgba(175, 82, 222, 0)",
-                  "0 0 0 8px rgba(175, 82, 222, 0.12)",
+                  "0 0 0 15px rgba(175, 82, 222, 0.1)",
                   "0 0 0 0 rgba(175, 82, 222, 0)"
                 ]
               }}
-              transition={{ duration: 2, repeat: Infinity }}
+              transition={{ duration: 2.5, repeat: Infinity }}
             />
             <motion.div
-              className="h-9 w-9 rounded-full bg-[#AF52DE] flex items-center justify-center shadow-md relative z-10"
+              className="h-9 w-9 rounded-full bg-gradient-to-r from-[#AF52DE] to-[#5856D6] flex items-center justify-center shadow-md relative z-10"
               animate={{ 
                 rotate: [0, 5, 0, -5, 0]
               }}
               transition={{ duration: 5, repeat: Infinity }}
             >
-              <Lightbulb className="h-5 w-5 text-white" />
+              <Sparkles className="h-5 w-5 text-white" />
             </motion.div>
           </div>
-          <h2 className="text-xl font-bold text-[#1C1C1E] dark:text-white">AI Nutrition Insights</h2>
+          <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#AF52DE] to-[#5856D6] dark:from-[#AF52DE] dark:to-[#5856D6]">AI Nutrition Insights</h2>
         </div>
         
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
-          whileHover={{ y: -5 }}
+          whileHover={{ y: -5, transition: { duration: 0.3 } }}
           className="pb-1 px-0.5"
         >
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#AF52DE]/20 via-[#AF52DE]/30 to-[#AF52DE]/20 rounded-xl blur-md opacity-60" />
+            {/* Animated gradient border effect */}
+            <motion.div 
+              className="absolute -inset-1 rounded-xl blur-md"
+              animate={{
+                background: [
+                  "linear-gradient(to right, rgba(175, 82, 222, 0.3), rgba(88, 86, 214, 0.3))",
+                  "linear-gradient(to right, rgba(88, 86, 214, 0.3), rgba(175, 82, 222, 0.3))",
+                  "linear-gradient(to right, rgba(175, 82, 222, 0.3), rgba(88, 86, 214, 0.3))"
+                ]
+              }}
+              transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+            />
+            
             <div className="relative z-10">
-        <SmartInsights 
-          goals={goals}
-          dailyLog={dailyLog}
-          currentSelectedDate={currentSelectedDate}
-          previousLogs={previousLogs}
-          loading={isDataLoading || isPreviousLogsLoading}
-        />
-      </div>
+              <SmartInsights 
+                goals={goals}
+                dailyLog={dailyLog}
+                currentSelectedDate={currentSelectedDate}
+                previousLogs={previousLogs}
+                loading={isDataLoading || isPreviousLogsLoading}
+              />
+            </div>
           </div>
         </motion.div>
       </motion.div>
@@ -1420,27 +1580,53 @@ export default function DashboardPage() {
           >
             <Link href="/log-food/photo">
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-[#FF3B30]/80 rounded-full opacity-75 group-hover:opacity-100 blur group-hover:blur-md transition-all duration-300"></div>
-                <Button 
-                  className="h-14 w-14 rounded-full bg-[#FF3B30] shadow-lg hover:shadow-xl hover:shadow-[#FF3B30]/20 border-none text-white relative"
-                  size="icon"
+                {/* Animated gradient glow effect */}
+                <motion.div 
+                  className="absolute -inset-0.5 rounded-full opacity-75 group-hover:opacity-100 blur-md"
+                  animate={{
+                    background: [
+                      "linear-gradient(to right, #FF3B30, #FF2D55)",
+                      "linear-gradient(to right, #FF2D55, #FF3B30)",
+                      "linear-gradient(to right, #FF3B30, #FF2D55)"
+                    ]
+                  }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                />
+                
+                {/* Pulsing animation */}
+                <motion.div
+                  className="absolute -inset-4 rounded-full opacity-0"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [0, 0.3, 0],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    background: "radial-gradient(circle, rgba(255,59,48,0.5) 0%, rgba(255,59,48,0) 70%)"
+                  }}
+                />
+                
+                <motion.button 
+                  className="h-14 w-14 rounded-full bg-gradient-to-r from-[#FF3B30] to-[#FF2D55] shadow-lg hover:shadow-xl hover:shadow-[#FF3B30]/20 border-none text-white relative flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.9 }}
                 >
                   <PlusCircle className="h-6 w-6" />
                   <span className="sr-only">Add food</span>
-                </Button>
+                </motion.button>
               </div>
             </Link>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Update the background to match Apple Health style */}
+      {/* Update the background to match Apple Health style with subtle gradient */}
       <style jsx global>{`
         body {
-          background-color: #F2F2F7;
+          background: linear-gradient(to bottom right, #F2F2F7, #F9F9F9);
         }
         .dark body {
-          background-color: #000;
+          background: linear-gradient(to bottom right, #000000, #0A0A0A);
         }
       `}</style>
     </div>
