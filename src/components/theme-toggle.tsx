@@ -101,8 +101,8 @@ export const ThemeToggle = () => {
         onClick={handleToggle}
         className={`relative z-20 h-10 w-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
           isDark 
-            ? "bg-slate-800 text-slate-200 border border-slate-700" 
-            : "bg-sky-50 text-slate-700 border border-sky-100"
+            ? "bg-slate-800 text-slate-200 border border-slate-700 shadow-md" 
+            : "bg-white text-slate-700 border border-slate-200 shadow-md hover:bg-slate-50"
         }`}
         aria-label="Toggle theme"
       >

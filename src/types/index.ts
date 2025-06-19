@@ -61,4 +61,14 @@ export interface BlogPost {
   imageUrl: string;
   imageHint?: string;
   readMoreLink: string; // This will be used to construct the dynamic route
+  author?: string | {
+    name: string;
+    role: string;
+    imageUrl: string;
+  };
+  authorRole?: string;
+  authorImage?: string;
+  publishDate?: string;
+  category?: string;
+  content?: string;
 }

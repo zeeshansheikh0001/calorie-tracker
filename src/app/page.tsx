@@ -156,36 +156,136 @@ SummaryCard.displayName = 'SummaryCard';
 export const mockBlogData: BlogPost[] = [
   {
     id: "1",
-    title: "The Surprising Benefits of Morning Workouts",
-    excerpt: "Discover how starting your day with exercise can boost your metabolism and mood.",
-    imageUrl: "https://emi.parkview.com/media/Image/Dashboard_952_The-many-health-benefits-of-regular-exercise_11_20.jpg",
-    imageHint: "morning workout",
+    title: "The Science Behind Morning Workouts: Boost Your Metabolism",
+    excerpt: "Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.",
+    imageUrl: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
+    imageHint: "morning workout routine",
     readMoreLink: "/blog/1",
+    author: {
+      name: "John Doe",
+      role: "Fitness Expert",
+      imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-15",
+    category: "Fitness",
+    content: `
+      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
+      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
+      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
+      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
+      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
+    `,
   },
   {
     id: "2",
-    title: "Understanding Macronutrients: Your Guide to Balanced Eating",
-    excerpt: "Learn the roles of protein, carbs, and fats in your diet and how to balance them.",
-    imageUrl: "https://www.cedars-sinai.org/content/dam/cedars-sinai/blog/2022/1/what-are-macronutrients-s.jpg",
-    imageHint: "healthy food",
+    title: "Macronutrients Demystified: Building Your Optimal Diet Plan",
+    excerpt: "Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.",
+    imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    imageHint: "balanced nutrition macronutrients",
     readMoreLink: "/blog/2",
+    author: {
+      name: "Jane Smith",
+      role: "Nutritionist",
+      imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-14",
+    category: "Nutrition",
+    content: `
+      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
+      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
+      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
+      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
+      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
+    `,
   },
   {
     id: "3",
-    title: "Mindful Eating: How to Enjoy Your Food and Improve Digestion",
-    excerpt: "Explore techniques for mindful eating to enhance your relationship with food.",
-    imageUrl: "https://www.letslive.shop/cdn/shop/articles/What_is_mindful_eating_and_how_is_it_beneficial.png?v=1687949647",
-    imageHint: "mindful eating",
+    title: "Mindful Eating: Transform Your Relationship with Food",
+    excerpt: "Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.",
+    imageUrl: "https://images.unsplash.com/photo-1515023115689-589c33041d3c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
+    imageHint: "mindful eating meditation",
     readMoreLink: "/blog/3",
+    author: {
+      name: "Emily Johnson",
+      role: "Wellness Coach",
+      imageUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-13",
+    category: "Wellness",
+    content: `
+      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
+      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
+      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
+      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
+      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
+    `,
   },
   {
     id: "4",
-    title: "Hydration Secrets: Are You Drinking Enough Water?",
-    excerpt: "Uncover the importance of hydration for overall health and performance.",
-    imageUrl: "https://www.nutritionnews.abbott/content/dam/an/newsroom/us/en/images/articles/healthy-living/diet-wellness/What%20Happens%20When%20You%20Drink%20Too%20Much%20Water-930x405.jpg",
-    imageHint: "water hydration",
+    title: "Hydration Science: Optimizing Water Intake for Health and Performance",
+    excerpt: "Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.",
+    imageUrl: "https://images.unsplash.com/photo-1502208327471-d5dde4d78995?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    imageHint: "hydration water health",
     readMoreLink: "/blog/4",
+    author: {
+      name: "Michael Brown",
+      role: "Sports Nutritionist",
+      imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-12",
+    category: "Nutrition",
+    content: `
+      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
+      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
+      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
+      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
+      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
+    `,
   },
+  {
+    id: "5",
+    title: "Strength Training for Longevity: Why Everyone Should Lift Weights",
+    excerpt: "Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.",
+    imageUrl: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    imageHint: "senior strength training",
+    readMoreLink: "/blog/5",
+    author: {
+      name: "Sarah Wilson",
+      role: "Personal Trainer",
+      imageUrl: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-11",
+    category: "Fitness",
+    content: `
+      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
+      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
+      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
+      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
+      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
+    `,
+  },
+  {
+    id: "6",
+    title: "The Gut-Brain Connection: How Diet Affects Mental Health",
+    excerpt: "Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.",
+    imageUrl: "https://images.unsplash.com/photo-1511909525232-61113c912358?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1472&q=80",
+    imageHint: "gut brain connection",
+    readMoreLink: "/blog/6",
+    author: {
+      name: "David Johnson",
+      role: "Psychiatrist",
+      imageUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
+    },
+    publishDate: "2023-07-10",
+    category: "Wellness",
+    content: `
+      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
+      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
+      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
+      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
+      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
+    `,
+  }
 ];
 
 
@@ -245,36 +345,41 @@ interface InsightCardProps {
   icon: React.ElementType;
   title: string;
   description: string;
-  color: "emerald" | "blue" | "amber" | "rose";
+  color: "blue" | "orange" | "green" | "red" | "purple";
 }
 
 const InsightCard: React.FC<InsightCardProps> = ({ icon: Icon, title, description, color }) => {
   const colors = {
-    emerald: {
-      bg: "bg-emerald-500/10",
-      text: "text-emerald-500",
-      icon: "text-emerald-500"
-    },
     blue: {
-      bg: "bg-blue-500/10",
-      text: "text-blue-500",
-      icon: "text-blue-500"
+      bg: "bg-[#5AC8FA]/10",
+      text: "text-[#007AFF]",
+      icon: "text-[#007AFF]"
     },
-    amber: {
-      bg: "bg-amber-500/10",
-      text: "text-amber-500",
-      icon: "text-amber-500"
+    green: {
+      bg: "bg-[#4CD964]/10",
+      text: "text-[#34C759]",
+      icon: "text-[#34C759]"
     },
-    rose: {
-      bg: "bg-rose-500/10",
-      text: "text-rose-500",
-      icon: "text-rose-500"
+    orange: {
+      bg: "bg-[#FF9500]/10",
+      text: "text-[#FF9500]",
+      icon: "text-[#FF9500]"
+    },
+    red: {
+      bg: "bg-[#FF3B30]/10",
+      text: "text-[#FF3B30]",
+      icon: "text-[#FF3B30]"
+    },
+    purple: {
+      bg: "bg-[#AF52DE]/10",
+      text: "text-[#AF52DE]",
+      icon: "text-[#AF52DE]"
     }
   };
   
   return (
     <motion.div 
-      className="p-4 rounded-xl border border-border/50 hover:border-border"
+      className="p-4 rounded-xl border border-[#E5E5EA] dark:border-[#38383A]/50 hover:border-[#C7C7CC]"
       whileHover={{ x: 5 }}
     >
       <div className="flex gap-3">
@@ -283,7 +388,7 @@ const InsightCard: React.FC<InsightCardProps> = ({ icon: Icon, title, descriptio
         </div>
         <div className="space-y-1">
           <h4 className={`text-sm font-semibold ${colors[color].text}`}>{title}</h4>
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-xs text-[#8E8E93] dark:text-[#8E8E93]">{description}</p>
         </div>
       </div>
     </motion.div>
@@ -308,7 +413,7 @@ const InfoTooltip = ({ title, description, color }: { title: string; description
       </button>
       
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className={`bg-gradient-to-b ${color} text-white border-none`}>
+        <DialogContent className={`bg-gradient-to-b ${color} text-white border-none rounded-2xl`}>
           <DialogHeader>
             <DialogTitle className="text-white">{title}</DialogTitle>
             <DialogDescription className="text-white/90">
@@ -423,50 +528,20 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col gap-5 p-6 max-w-3xl mx-auto bg-background">
-      {/* Header - Completely redesigned */}
+    <div className="flex flex-col gap-5 p-6 max-w-2xl mx-auto bg-[#F2F2F7] dark:bg-background">
+      {/* Header - Apple Health Inspired */}
       <motion.div 
-        className="relative overflow-hidden rounded-2xl shadow-xl"
+        className="relative overflow-hidden rounded-2xl shadow-lg w-full"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
       >
-        {/* Modern gradient background - softer pastels */}
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-300/90 via-purple-300/90 to-pink-300/90 dark:from-indigo-700/80 dark:via-purple-700/80 dark:to-pink-700/80"></div>
-        
-        {/* Abstract geometric shapes in background - reduced size */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/15 rounded-full -translate-y-1/2 translate-x-1/4 blur-xl"></div>
-        <div className="absolute bottom-0 left-20 w-32 h-32 bg-indigo-200/20 dark:bg-indigo-300/10 rounded-full translate-y-1/3 blur-xl"></div>
-        <div className="absolute top-1/3 left-1/4 w-16 h-16 bg-pink-200/20 dark:bg-pink-300/10 rounded-full blur-lg"></div>
+        {/* Modern gradient background - Apple Health inspired */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FF2D55] to-[#FF3B30] dark:from-[#FF2D55] dark:to-[#FF3B30]"></div>
         
         {/* Subtle pattern overlay */}
         <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
              style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-        
-        {/* Animated particles - reduced number */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(3)].map((_, i) => (
-            <motion.div
-              key={`particle-${i}`}
-              className="absolute h-1.5 w-1.5 rounded-full bg-white/40"
-              style={{
-                top: `${20 + (i * 15)}%`,
-                left: `${10 + (i * 20)}%`,
-              }}
-              animate={{
-                y: [0, -10, 0],
-                opacity: [0.4, 0.8, 0.4],
-              }}
-              transition={{
-                duration: 3 + i,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut",
-                delay: i * 0.5,
-              }}
-            />
-          ))}
-        </div>
         
         <div className="relative p-4 flex justify-between items-center z-10">
           <div className="flex items-center gap-3">
@@ -483,23 +558,10 @@ export default function DashboardPage() {
                     whileTap={{ scale: 0.95 }}
                     className="relative"
                   >
-                    {/* Modern glow effect */}
-                    <motion.div 
-                      className="absolute -inset-1.5 rounded-full bg-white/40 blur-md opacity-80"
-                      animate={{ 
-                        scale: [1, 1.15, 1],
-                        opacity: [0.6, 0.8, 0.6]
-                      }}
-                      transition={{ 
-                        duration: 3,
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                      }}
-                    />
                     <Avatar className="h-12 w-12 cursor-pointer ring-2 ring-white/50 hover:ring-white/80 transition-all relative z-10 border-2 border-white/90 shadow-lg">
                       <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name || ""} className="object-cover" data-ai-hint="user avatar" />
-                      <AvatarFallback className="bg-primary-foreground/10 text-white font-semibold">{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
+                      <AvatarFallback className="bg-white/10 text-white font-semibold">{userProfile.name?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+                </Avatar>
                   </motion.div>
               </Link>
                 <div className="flex flex-col">
@@ -546,73 +608,25 @@ export default function DashboardPage() {
       </div>
       </motion.div>
 
-      {/* Your Progress Card - Completely redesigned */}
+      {/* Your Progress Card - Apple Health Style */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1, type: "spring" }}
+        className="mt-8 w-full"
       >
-        <Card className="relative overflow-hidden rounded-2xl border-none shadow-xl">
-          {/* Elegant gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-200/90 via-teal-200/80 to-emerald-100/70 dark:from-emerald-800/50 dark:via-teal-800/40 dark:to-emerald-700/30"></div>
+        <Card className="relative overflow-hidden rounded-xl border-none shadow-md bg-white dark:bg-black/20">
+          {/* Apple Health style background */}
+          <div className="absolute inset-0 bg-white dark:bg-black/20"></div>
           
-          {/* Abstract shape elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/4 blur-xl"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-teal-100/30 dark:bg-teal-400/10 rounded-full translate-y-1/3 -translate-x-1/4 blur-xl"></div>
-          
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 opacity-10 mix-blend-overlay" 
-               style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-
-  {/* Foreground Content */}
-          <CardContent className="relative p-6 z-10">
-    {isDataLoading ? (
-      <div className="flex flex-row items-start gap-3">
-        <div className="flex-1 space-y-2 text-left">
-                  <Skeleton className="h-5 w-24 bg-white/30" />
-                  <Skeleton className="h-10 sm:h-12 w-20 sm:w-24 bg-white/30" />
-                  <Skeleton className="h-4 w-20 bg-white/30" />
+          {/* Header with title */}
+          <div className="relative px-6 pt-5 pb-2 flex items-center justify-between border-b border-[#E5E5EA] dark:border-gray-800/30">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full bg-[#FF3B30] flex items-center justify-center">
+                <Flame className="h-4 w-4 text-white" />
         </div>
-        <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center relative">
-                  <Skeleton className="w-full h-full rounded-full bg-white/30" />
-                  <Loader2 className="absolute h-8 w-8 animate-spin text-white/60" />
+              <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white">Calories</h3>
         </div>
-      </div>
-    ) : (
-              <div className="flex flex-col items-stretch gap-5 sm:flex-row sm:items-center"> 
-                <div className="flex-1 space-y-3">
-                  <motion.div 
-                    className="flex items-center gap-2 text-emerald-800/90 dark:text-emerald-200/90"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: 0.2 }}
-                  >
-                    <motion.div 
-                      className="p-1.5 rounded-full bg-white/30 flex items-center justify-center"
-                      animate={{ 
-                        boxShadow: [
-                          "0 0 0 0 rgba(255, 255, 255, 0)",
-                          "0 0 0 4px rgba(255, 255, 255, 0.2)",
-                          "0 0 0 0 rgba(255, 255, 255, 0)"
-                        ]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <Sparkles className="h-4 w-4 text-emerald-800 dark:text-emerald-200" />
-                    </motion.div>
-                    <span className="text-base font-medium">Today's Progress</span>
-                  </motion.div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <motion.div 
-                        className="text-5xl font-bold text-emerald-800 dark:text-emerald-100 tracking-tight"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: 0.3, type: "spring" }}
-                      >
-            {goalCalories > 0 ? `${percentAchieved}%` : "-"}
-                      </motion.div>
                       
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
@@ -620,14 +634,14 @@ export default function DashboardPage() {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            <Button variant="outline" className="flex items-center gap-1 text-sm text-emerald-800 dark:text-emerald-100 border-emerald-300/50 dark:border-emerald-600/50 bg-white/25 hover:bg-white/40">
-                <CalendarDays className="h-4 w-4" />
-                <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
-                <ChevronDown className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="flex items-center gap-1 text-sm font-normal h-8 text-[#8E8E93]">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
+                    <ChevronDown className="h-3.5 w-3.5" />
               </Button>
                           </motion.div>
             </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 shadow-xl border border-border/30 bg-background/95 backdrop-blur-lg" align="start">
+              <PopoverContent className="w-auto p-0 shadow-xl border border-[#E5E5EA]/30 bg-white dark:bg-black/90 backdrop-blur-lg rounded-2xl" align="end">
               <Calendar
                 mode="single"
                 selected={currentSelectedDate || undefined}
@@ -644,57 +658,91 @@ export default function DashboardPage() {
             </PopoverContent>
           </Popover>
         </div>
+          
+          {/* Main content */}
+          <CardContent className="relative px-6 py-5 z-10">
+            {isDataLoading ? (
+              <div className="flex justify-between items-center gap-3">
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-10 w-28 bg-[#E5E5EA]/70" />
+                  <Skeleton className="h-4 w-20 bg-[#E5E5EA]/70" />
+                </div>
+                <div className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center">
+                  <Skeleton className="w-full h-full rounded-full bg-[#E5E5EA]/70" />
+                  <Loader2 className="absolute h-8 w-8 animate-spin text-[#8E8E93]/60" />
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <div className="flex flex-col">
+                    <motion.div 
+                      className="text-4xl font-bold text-[#1C1C1E] dark:text-white tracking-tight"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.3 }}
+                    >
+                      {Math.round(consumedCalories)}
+                      <span className="text-base font-normal text-[#8E8E93] ml-1">kcal</span>
+                    </motion.div>
 
                     {goalCalories > 0 && (
-                      <div className="mt-4 bg-white/30 h-2.5 rounded-full overflow-hidden">
                         <motion.div 
-                          className="h-full bg-white rounded-full"
+                        className="flex items-center gap-2 mt-1.5 text-sm text-[#8E8E93]"
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.4 }}
+                      >
+                        <div className="flex items-center">
+                          <span className="font-medium">{percentAchieved}%</span>
+                          <span className="mx-1">of</span>
+                          <span>{goalCalories} goal</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Apple Health style ring progress */}
+                    {goalCalories > 0 && (
+                      <motion.div 
+                        className="mt-4 w-full max-w-xs"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.5 }}
+                      >
+                        <div className="h-2 bg-[#E5E5EA] dark:bg-gray-800/50 rounded-full overflow-hidden">
+                          <motion.div 
+                            className="h-full rounded-full"
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.min(percentAchieved, 100)}%` }}
-                          transition={{ duration: 1, delay: 0.5, type: "spring" }}
+                            transition={{ duration: 1, delay: 0.6 }}
                           style={{
-                            backgroundImage: percentAchieved > 100 
-                              ? 'linear-gradient(to right, rgba(255,255,255,0.9), rgba(249,168,212,0.9))' 
-                              : 'linear-gradient(to right, rgba(255,255,255,0.9), rgba(167,243,208,0.9))'
+                              backgroundColor: percentAchieved >= 100 
+                                ? '#FF3B30' // Apple Health red
+                                : '#FF3B30' // Apple Health red
                           }}
                         />
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-3 mt-2 text-emerald-800 dark:text-emerald-100">
-                    <div className="flex items-center gap-1 text-sm">
-                      <Flame className="h-4 w-4 opacity-90" />
-                      <span className="font-medium">{Math.round(consumedCalories)} kcal</span>
-                    </div>
-                    {goalCalories > 0 && (
-                      <div className="flex items-center gap-1 text-sm opacity-80">
-                        <span>of</span>
-                        <span className="font-medium">{goalCalories} kcal goal</span>
-                      </div>
+                      </motion.div>
                     )}
                   </div>
                 </div>
 
+                {/* Apple Health style ring chart */}
                 <motion.div 
-                  className="w-[120px] h-[120px] mx-auto sm:mx-0 flex-shrink-0 flex justify-center items-center relative"
-                  initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4, type: "spring" }}
+                  className="w-[120px] h-[120px] flex-shrink-0 flex justify-center items-center"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                  <motion.div 
-                    className="absolute inset-0 rounded-full"
-                    animate={{ 
-                      boxShadow: [
-                        "0 0 0 0 rgba(255, 255, 255, 0)",
-                        "0 0 20px 0px rgba(255, 255, 255, 0.3)",
-                        "0 0 0 0 rgba(255, 255, 255, 0)"
-                      ]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  />
           <CalorieDonutChart 
-            chartData={chartData} 
+                    chartData={chartData.map(item => ({
+                      ...item,
+                      fill: item.name === 'Consumed' || item.name === 'ConsumedNoGoal' 
+                        ? '#FF3B30' // Apple Health red
+                        : item.name === 'Remaining' 
+                          ? '#E5E5EA' // Apple light gray
+                          : '#E5E5EA' // Apple light gray
+                    }))} 
             consumedCalories={consumedCalories} 
             goalCalories={goalCalories} 
           />
@@ -702,413 +750,285 @@ export default function DashboardPage() {
       </div>
     )}
           </CardContent>
+          
+          {/* Nutrition breakdown - Apple Health style */}
+          <div className="relative px-6 pb-5">
+            <motion.div 
+              className="grid grid-cols-3 gap-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+            >
+              <div className="flex flex-col items-center p-3 rounded-lg bg-[#5AC8FA]/10">
+                <span className="text-xs text-[#8E8E93] mb-1">Carbs</span>
+                <span className="text-lg font-semibold text-[#007AFF]">{Math.round(todayCarbs)}g</span>
+              </div>
+              
+              <div className="flex flex-col items-center p-3 rounded-lg bg-[#4CD964]/10">
+                <span className="text-xs text-[#8E8E93] mb-1">Protein</span>
+                <span className="text-lg font-semibold text-[#34C759]">{Math.round(todayProtein)}g</span>
+              </div>
+              
+              <div className="flex flex-col items-center p-3 rounded-lg bg-[#FF9500]/10">
+                <span className="text-xs text-[#8E8E93] mb-1">Fat</span>
+                <span className="text-lg font-semibold text-[#FF9500]">{Math.round(todayFat)}g</span>
+              </div>
+            </motion.div>
+          </div>
 </Card>
       </motion.div>
 
-      {/* Action Buttons - Completely redesigned */}
+      {/* Action Buttons - Apple Health Style */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
-        className="mt-6"
+        className="mt-6 mx-auto max-w-2xl"
       >
         {isDataLoading ? (
-          <div className="flex flex-row gap-2 w-full">
-            {[1,2,3].map(i => (
-              <Card key={`skel-action-${i}`} className="shadow-lg bg-muted/30 flex-1">
-                <CardContent className="p-4 flex flex-col items-center gap-2">
-                  <Skeleton className="h-10 w-10 rounded-full bg-background/40" />
-                  <Skeleton className="h-4 w-16 bg-background/40" />
+          <div className="grid grid-cols-2 gap-4 w-full">
+            {[1, 2].map(i => (
+              <Card key={`skel-action-${i}`} className="shadow-sm bg-white dark:bg-black/20 flex-1 relative overflow-hidden border border-[#E5E5EA]/20 rounded-xl">
+                <CardContent className="p-5">
+                  <Skeleton className="h-12 w-12 rounded-full bg-[#E5E5EA]/40 mb-4 mx-auto" />
+                  <Skeleton className="h-4 w-28 bg-[#E5E5EA]/40 mb-2 mx-auto" />
+                  <Skeleton className="h-3 w-36 bg-[#E5E5EA]/40 mx-auto" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : (
-          <div className="flex flex-row gap-2 w-full">
-            {/* Snap Photo Card */}
-            <div className="flex-1">
-              <Card className="relative overflow-hidden shadow-lg cursor-pointer h-full border-none">
+          <div className="grid grid-cols-2 gap-4 w-full">
+            {/* Take Photo Card */}
+            <Link href="/log-food/photo" className="flex-1" passHref>
+              <motion.div
+                whileHover={{ 
+                  y: -2,
+                  boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="h-full rounded-xl"
+              >
+                <Card className="relative h-full border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-black/20">
                 {/* Info button with Dialog */}
-                <div className="absolute top-2 right-2 z-20">
+                  <div className="absolute top-3 right-3 z-20">
                   <InfoTooltip 
                     title="AI Food Detection"
-                    description="Take a picture of your food and our AI will detect what you're eating and calculate the nutritional information"
-                    color="from-purple-800/95 to-fuchsia-700/95"
+                      description="Take a picture of your food or upload an image and our AI will detect what you're eating and calculate the nutritional information"
+                      color="from-[#FF3B30]/95 to-[#FF3B30]/95"
                   />
                 </div>
                 
-                {/* Elegant gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-fuchsia-200/90 via-purple-200/90 to-pink-200/90 dark:from-fuchsia-800/50 dark:via-purple-800/50 dark:to-pink-800/50"></div>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/3 blur-xl"></div>
-                
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
-                     style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-                
-                <Link href="/log-food/photo" passHref>
-                  <CardContent className="relative flex flex-col items-center text-center gap-2 p-4 z-10">
-                    <div className="p-3 rounded-full bg-white/30 flex items-center justify-center shadow-sm">
-                      <Image src="/images/camera.png" alt="Camera" width={30} height={30} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm text-purple-800 dark:text-purple-100">Snap</h3>
-                      {/* <p className="text-purple-700/80 dark:text-purple-200/80 text-xs">Take a photo</p> */}
-                    </div>
-                  </CardContent>
-                </Link>
-              </Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="h-14 w-14 rounded-full bg-[#FF3B30]/10 flex items-center justify-center mb-4">
+                      <Camera className="h-7 w-7 text-[#FF3B30]" />
             </div>
             
-            {/* Upload Image Card */}
-            <div className="flex-1">
-              <Card className="relative overflow-hidden shadow-lg cursor-pointer h-full border-none">
-                {/* Info button with Dialog */}
-                <div className="absolute top-2 right-2 z-20">
-                  <InfoTooltip 
-                    title="Image Analysis"
-                    description="Upload photos of your meals and our system will analyze them to extract nutritional information automatically"
-                    color="from-blue-800/95 to-sky-700/95"
-                  />
-                </div>
-                
-                {/* Elegant gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-200/90 via-sky-200/90 to-cyan-200/90 dark:from-blue-800/50 dark:via-sky-800/50 dark:to-cyan-800/50"></div>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/3 blur-xl"></div>
-                
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
-                     style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-                
-                <Link href="/log-food/photo" passHref>
-                  <CardContent className="relative flex flex-col items-center text-center gap-2 p-4 z-10">
-                    <div className="p-3 rounded-full bg-white/30 flex items-center justify-center shadow-sm">
-                      <Image src="/images/upload.png" alt="Upload" width={30} height={30} />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-sm text-blue-800 dark:text-blue-100">Upload</h3>
-                      {/* <p className="text-blue-700/80 dark:text-blue-200/80 text-xs">Upload picture</p> */}
+                    <div className="text-center">
+                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Take Photo</h3>
+                      <p className="text-[#8E8E93] text-sm">Snap or upload food image</p>
                     </div>
                   </CardContent>
-                </Link>
               </Card>
-            </div>
+              </motion.div>
+            </Link>
              
             {/* Manual Entry Card */}
-            <div className="flex-1">
-              <Card className="relative overflow-hidden shadow-lg cursor-pointer h-full border-none">
+            <Link href="/log-food/manual" className="flex-1" passHref>
+              <motion.div
+                whileHover={{ 
+                  y: -2,
+                  boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.05)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="h-full rounded-xl"
+              >
+                <Card className="relative h-full border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm overflow-hidden rounded-xl bg-white dark:bg-black/20">
                 {/* Info button with Dialog */}
-                <div className="absolute top-2 right-2 z-20">
+                  <div className="absolute top-3 right-3 z-20">
                   <InfoTooltip 
                     title="Custom Food Entry"
                     description="Manually log food items with precise measurements and access our extensive database of nutritional information"
-                    color="from-emerald-800/95 to-green-700/95"
+                      color="from-[#007AFF]/95 to-[#007AFF]/95"
                   />
                 </div>
                 
-                {/* Elegant gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-200/90 via-green-200/90 to-teal-200/90 dark:from-emerald-800/50 dark:via-green-800/50 dark:to-teal-800/50"></div>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full translate-y-1/2 -translate-x-1/3 blur-xl"></div>
-                
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-5 mix-blend-overlay" 
-                     style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.5\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-                
-                <Link href="/log-food/manual" passHref>
-                  <CardContent className="relative flex flex-col items-center text-center gap-2 p-4 z-10">
-                    <div className="p-3 rounded-full bg-white/30 flex items-center justify-center shadow-sm">
-                      <Image src="/images/manual.png" alt="Manual" width={30} height={30} />
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="h-14 w-14 rounded-full bg-[#007AFF]/10 flex items-center justify-center mb-4">
+                      <FilePenLine className="h-7 w-7 text-[#007AFF]" />
                     </div>
-                    <div>
-                      <h3 className="font-bold text-sm text-emerald-800 dark:text-emerald-100">Manual</h3>
-                      {/* <p className="text-emerald-700/80 dark:text-emerald-200/80 text-xs">Log details</p> */}
+                    
+                    <div className="text-center">
+                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Manual Entry</h3>
+                      <p className="text-[#8E8E93] text-sm">Log food details manually</p>
                     </div>
                   </CardContent>
-                </Link>
               </Card>
-            </div>
+              </motion.div>
+            </Link>
           </div>
         )}
       </motion.div>
 
       {/* Today's Summary - Completely redesigned */}
+    
+ {/* Nutrition Overview - Apple Health Style */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3, type: "spring" }}
-        className="mt-8"
+        className="mt-8 w-full"
       >
-        <div className="flex items-center gap-3 mb-5">
-          <motion.div
-            className="h-9 w-9 rounded-full bg-gradient-to-r from-blue-300 to-indigo-400 dark:from-blue-500 dark:to-indigo-600 flex items-center justify-center shadow-md"
-            animate={{ 
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <BarChart2 className="h-5 w-5 text-white" />
-          </motion.div>
-          <h2 className="text-xl font-bold">Nutrition Overview</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-7 w-7 rounded-full bg-[#AF52DE] flex items-center justify-center">
+            <BarChart2 className="h-4 w-4 text-white" />
+          </div>
+          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Nutrition Overview</h2>
         </div>
         
          {isDataLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map(i => (
-              <Skeleton key={`skel-summary-${i}`} className="h-32 rounded-xl bg-muted/30" />
+              <Skeleton key={`skel-summary-${i}`} className="h-32 rounded-xl bg-[#E5E5EA]/30" />
             ))}
           </div>
         ) : (
-          <Card className="p-6 shadow-lg border-none rounded-2xl overflow-hidden relative">
-            {/* Elegant gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/10"></div>
-            
-            {/* Subtle pattern overlay */}
-            <div className="absolute inset-0 opacity-10 mix-blend-overlay" 
-                 style={{backgroundImage: "url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"%23667eea\" fill-opacity=\"0.3\" fill-rule=\"evenodd\"%3E%3Ccircle cx=\"3\" cy=\"3\" r=\"1\"%2F%3E%3Ccircle cx=\"13\" cy=\"13\" r=\"1\"%2F%3E%3C%2Fg%3E%3C/svg%3E')"}}></div>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 relative z-10">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.45 }}
-                className="flex flex-col justify-between"
-              >
-                <div className="mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Calories</span>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent">
+          <Card className="p-5 shadow-sm border border-[#E5E5EA] dark:border-gray-800/20 rounded-xl overflow-hidden bg-white dark:bg-black/20">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {/* Calories */}
+              <div className="flex flex-col justify-between">
+                <div className="mb-2">
+                  <span className="text-sm text-[#8E8E93]">Calories</span>
+                  <h3 className="text-2xl font-semibold text-[#FF3B30]">
                     {Math.round(todayCalories)}
                   </h3>
-                  <span className="text-xs text-muted-foreground">kcal</span>
+                  <span className="text-xs text-[#8E8E93]">kcal</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20">
-                    <Flame className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+                  <div className="p-1.5 rounded-full bg-[#FF3B30]/10">
+                    <Flame className="h-4 w-4 text-[#FF3B30]" />
                   </div>
-                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-muted/60">
+                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: goalCalories > 0 ? `${Math.min((todayCalories / goalCalories) * 100, 100)}%` : '10%' }}
                       transition={{ duration: 1, delay: 0.5 }}
-                      className={`h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 dark:from-amber-400 dark:to-orange-400 ${todayCalories === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-[#FF3B30] ${todayCalories === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
               
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-                className="flex flex-col justify-between"
-              >
-                <div className="mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Carbs</span>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-sky-400 dark:from-blue-300 dark:to-sky-300 bg-clip-text text-transparent">
+              {/* Carbs */}
+              <div className="flex flex-col justify-between">
+                <div className="mb-2">
+                  <span className="text-sm text-[#8E8E93]">Carbs</span>
+                  <h3 className="text-2xl font-semibold text-[#007AFF]">
                     {Math.round(todayCarbs)}
                   </h3>
-                  <span className="text-xs text-muted-foreground">grams</span>
+                  <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-blue-100 to-sky-100 dark:from-blue-900/20 dark:to-sky-900/20">
-                    <Wheat className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                  <div className="p-1.5 rounded-full bg-[#007AFF]/10">
+                    <Wheat className="h-4 w-4 text-[#007AFF]" />
                   </div>
-                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-muted/60">
+                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: todayCarbs > 0 ? '60%' : '10%' }}
                       transition={{ duration: 1, delay: 0.6 }}
-                      className={`h-full rounded-full bg-gradient-to-r from-blue-400 to-sky-400 dark:from-blue-400 dark:to-sky-400 ${todayCarbs === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-[#007AFF] ${todayCarbs === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
               
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.55 }}
-                className="flex flex-col justify-between"
-              >
-                <div className="mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Protein</span>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 dark:from-violet-300 dark:to-purple-300 bg-clip-text text-transparent">
+              {/* Protein */}
+              <div className="flex flex-col justify-between">
+                <div className="mb-2">
+                  <span className="text-sm text-[#8E8E93]">Protein</span>
+                  <h3 className="text-2xl font-semibold text-[#34C759]">
                     {Math.round(todayProtein)}
                   </h3>
-                  <span className="text-xs text-muted-foreground">grams</span>
+                  <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/20 dark:to-purple-900/20">
-                    <Drumstick className="h-5 w-5 text-violet-500 dark:text-violet-400" />
+                  <div className="p-1.5 rounded-full bg-[#34C759]/10">
+                    <Drumstick className="h-4 w-4 text-[#34C759]" />
                   </div>
-                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-muted/60">
+                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: todayProtein > 0 ? '75%' : '10%' }}
                       transition={{ duration: 1, delay: 0.7 }}
-                      className={`h-full rounded-full bg-gradient-to-r from-violet-400 to-purple-400 dark:from-violet-400 dark:to-purple-400 ${todayProtein === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-[#34C759] ${todayProtein === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
               
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.6 }}
-                className="flex flex-col justify-between"
-              >
-                <div className="mb-3">
-                  <span className="text-sm font-medium text-muted-foreground">Fat</span>
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 dark:from-pink-300 dark:to-rose-300 bg-clip-text text-transparent">
+              {/* Fat */}
+              <div className="flex flex-col justify-between">
+                <div className="mb-2">
+                  <span className="text-sm text-[#8E8E93]">Fat</span>
+                  <h3 className="text-2xl font-semibold text-[#FF9500]">
                     {Math.round(todayFat)}
                   </h3>
-                  <span className="text-xs text-muted-foreground">grams</span>
+                  <span className="text-xs text-[#8E8E93]">grams</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-pink-100 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/20">
-                    <Droplets className="h-5 w-5 text-pink-500 dark:text-pink-400" />
+                  <div className="p-1.5 rounded-full bg-[#FF9500]/10">
+                    <Droplets className="h-4 w-4 text-[#FF9500]" />
                   </div>
-                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-muted/60">
+                  <div className="h-1.5 flex-1 rounded-full overflow-hidden bg-[#E5E5EA] dark:bg-gray-800/50">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: todayFat > 0 ? '40%' : '10%' }}
                       transition={{ duration: 1, delay: 0.8 }}
-                      className={`h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-400 dark:from-pink-400 dark:to-rose-400 ${todayFat === 0 ? 'opacity-30' : ''}`}
+                      className={`h-full rounded-full bg-[#FF9500] ${todayFat === 0 ? 'opacity-30' : ''}`}
                     />
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </Card>
         )}
       </motion.div>
-
-      {/* Meal Log - Completely redesigned */}
+      {/* Meal Log - Apple Health Style */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4, type: "spring" }}
-        className="mt-8"
+        className="mt-8 w-full"
       >
-        <div className="flex justify-between items-center mb-5">
-          <motion.div 
-            className="flex items-center gap-3"
-            whileHover={{ x: 5 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <motion.div
-              className="h-9 w-9 rounded-full bg-gradient-to-r from-rose-300 to-pink-300 dark:from-rose-500 dark:to-pink-500 flex items-center justify-center shadow-md"
-              animate={{ 
-                rotate: [0, 5, 0, -5, 0],
-                scale: [1, 1.05, 1, 1.05, 1]
-              }}
-              transition={{ 
-                duration: 5, 
-                repeat: Infinity,
-                ease: "easeInOut" 
-              }}
-            >
-              <Utensils className="h-5 w-5 text-white" />
-            </motion.div>
-            <motion.h2 
-              className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-400 dark:to-pink-400 relative overflow-hidden"
-              initial={{ opacity: 1 }}
-            >
-              Food Journal
-              <motion.span 
-                className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                animate={{ 
-                  x: ['-100%', '200%']
-                }}
-                transition={{ 
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 5,
-                  ease: "easeInOut"
-                }}
-                style={{ mixBlendMode: 'overlay' }}
-              />
-            </motion.h2>
-          </motion.div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="h-7 w-7 rounded-full bg-[#FF9500] flex items-center justify-center">
+            <Utensils className="h-4 w-4 text-white" />
+          </div>
+          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Food Journal</h2>
           
+          <div className="ml-auto">
           <Link href="/log-food/photo" passHref>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: 1, 
-                scale: [0.8, 1.05, 1],
-                y: [10, -5, 0]
-              }}
-              transition={{ 
-                duration: 0.5,
-                delay: 0.8,
-                type: "spring"
-              }}
-            >
               <Button 
                 variant="default" 
                 size="sm" 
-                className="text-sm bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 dark:from-rose-500 dark:to-pink-500 text-rose-950 dark:text-white border-none shadow-md hover:shadow-lg hover:opacity-90 px-4 rounded-full"
+                className="text-sm bg-[#FF9500] hover:bg-[#FF9500]/90 text-white border-none shadow-sm hover:shadow-md px-4 rounded-full h-8"
               >
-                <motion.span 
-                  className="flex items-center gap-1.5"
-                  initial={{ opacity: 1 }}
-                  whileHover={{ 
-                    x: [0, 2, 0],
-                    transition: { repeat: Infinity, duration: 1 }
-                  }}
-                >
-                  <motion.div
-                    animate={{
-                      rotate: [0, 0, 180, 180, 0],
-                      scale: [1, 1, 1.2, 1, 1]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      repeatDelay: 5
-                    }}
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                  </motion.div>
+                <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
                   Add Meal
-                </motion.span>
               </Button>
-            </motion.div>
           </Link>
+          </div>
         </div>
         
         {isLoadingLog ? (
           <div className="space-y-4">
             {[1, 2].map(i => (
-              <motion.div 
-                key={`skel-meal-${i}`}
-                initial={{ opacity: 0.5, y: 10 }}
-                animate={{ 
-                  opacity: [0.5, 0.8, 0.5],
-                  y: 0
-                }}
-                transition={{ 
-                  opacity: { repeat: Infinity, duration: 1.5 },
-                  y: { duration: 0.3 }
-                }}
-              >
-                <Skeleton className="h-24 w-full rounded-xl bg-muted/30" />
-              </motion.div>
+              <Skeleton key={`skel-meal-${i}`} className="h-24 w-full rounded-xl bg-[#E5E5EA]/30" />
             ))}
           </div>
         ) : foodEntries.length > 0 ? (
@@ -1122,144 +1042,86 @@ export default function DashboardPage() {
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
                   transition={{ 
                     duration: 0.4, 
-                    delay: 0.5 + (index * 0.1),
+                    delay: 0.1 + (index * 0.05),
                     type: "spring",
                     stiffness: 100
                   }}
                   layout
                   whileHover={{ 
-                    scale: 1.02, 
                     y: -2,
                     transition: { duration: 0.2 }
                   }}
                 >
-                  <Card className="border-none shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden rounded-xl relative">
-                    {/* Gradient border on the left */}
-                    <motion.div 
-                      className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-rose-300 to-pink-300 dark:from-rose-500 dark:to-pink-500"
-                      initial={{ height: 0 }}
-                      animate={{ height: '100%' }}
-                      transition={{ duration: 0.5, delay: 0.6 + (index * 0.1) }}
-                    />
-                    
-                    {/* Light background gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-rose-50/80 to-pink-50/80 dark:from-rose-950/5 dark:to-pink-950/5 opacity-60"></div>
-                    
-                    <CardContent className="relative p-4 sm:p-5">
+                  <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden rounded-xl relative bg-white dark:bg-black/20">
+                    <CardContent className="relative p-4">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <motion.h3 
-                            className="text-lg font-bold line-clamp-1 title-poppins pr-8 sm:pr-0" 
-                            title={entry.name}
-                            initial={{ opacity: 0, x: -5 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3, delay: 0.7 + (index * 0.1) }}
-                          >
+                          <h3 className="text-base font-semibold line-clamp-1 pr-8 sm:pr-0 text-[#1C1C1E] dark:text-white" title={entry.name}>
                             {entry.name}
-                          </motion.h3>
+                          </h3>
                           
                           <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
-                            <motion.div 
-                              className="flex items-center gap-1.5"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.8 + (index * 0.1) }}
-                              whileHover={{ scale: 1.05, y: -2 }}
-                            >
-                              <motion.div 
-                                className="p-1.5 rounded-full bg-rose-100/80 dark:bg-rose-900/20"
-                                whileHover={{ rotate: [-5, 5, 0], transition: { duration: 0.5 } }}
-                              >
-                                <Flame className="h-4 w-4 text-rose-500 dark:text-rose-400" />
-                              </motion.div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="p-1.5 rounded-full bg-[#FF3B30]/10">
+                                <Flame className="h-4 w-4 text-[#FF3B30]" />
+                              </div>
                               <div>
-                                <div className="text-sm font-medium text-rose-600 dark:text-rose-400">
+                                <div className="text-sm font-medium text-[#FF3B30]">
                                   {Math.round(entry.calories)}
                                 </div>
-                                <div className="text-xs text-muted-foreground">kcal</div>
+                                <div className="text-xs text-[#8E8E93]">kcal</div>
                               </div>
-                            </motion.div>
+                            </div>
                             
-                            <motion.div 
-                              className="flex items-center gap-1.5"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.85 + (index * 0.1) }}
-                              whileHover={{ scale: 1.05, y: -2 }}
-                            >
-                              <motion.div 
-                                className="p-1.5 rounded-full bg-violet-100/80 dark:bg-violet-900/20"
-                                whileHover={{ rotate: [-5, 5, 0], transition: { duration: 0.5 } }}
-                              >
-                                <Drumstick className="h-4 w-4 text-violet-500 dark:text-violet-400" />
-                              </motion.div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="p-1.5 rounded-full bg-[#34C759]/10">
+                                <Drumstick className="h-4 w-4 text-[#34C759]" />
+                              </div>
                               <div>
-                                <div className="text-sm font-medium text-violet-600 dark:text-violet-400">
+                                <div className="text-sm font-medium text-[#34C759]">
                                   {Math.round(entry.protein)}g
                                 </div>
-                                <div className="text-xs text-muted-foreground">protein</div>
+                                <div className="text-xs text-[#8E8E93]">protein</div>
                               </div>
-                            </motion.div>
+                            </div>
                             
-                            <motion.div 
-                              className="flex items-center gap-1.5"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.9 + (index * 0.1) }}
-                              whileHover={{ scale: 1.05, y: -2 }}
-                            >
-                              <motion.div 
-                                className="p-1.5 rounded-full bg-pink-100/80 dark:bg-pink-900/20"
-                                whileHover={{ rotate: [-5, 5, 0], transition: { duration: 0.5 } }}
-                              >
-                                <Droplets className="h-4 w-4 text-pink-500 dark:text-pink-400" />
-                              </motion.div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="p-1.5 rounded-full bg-[#FF9500]/10">
+                                <Droplets className="h-4 w-4 text-[#FF9500]" />
+                              </div>
                               <div>
-                                <div className="text-sm font-medium text-pink-600 dark:text-pink-400">
+                                <div className="text-sm font-medium text-[#FF9500]">
                                   {Math.round(entry.fat)}g
                                 </div>
-                                <div className="text-xs text-muted-foreground">fat</div>
+                                <div className="text-xs text-[#8E8E93]">fat</div>
                               </div>
-                            </motion.div>
+                            </div>
                             
-                            <motion.div 
-                              className="flex items-center gap-1.5"
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.3, delay: 0.95 + (index * 0.1) }}
-                              whileHover={{ scale: 1.05, y: -2 }}
-                            >
-                              <motion.div 
-                                className="p-1.5 rounded-full bg-blue-100/80 dark:bg-blue-900/20"
-                                whileHover={{ rotate: [-5, 5, 0], transition: { duration: 0.5 } }}
-                              >
-                                <Wheat className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-                              </motion.div>
+                            <div className="flex items-center gap-1.5">
+                              <div className="p-1.5 rounded-full bg-[#007AFF]/10">
+                                <Wheat className="h-4 w-4 text-[#007AFF]" />
+                              </div>
                               <div>
-                                <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                <div className="text-sm font-medium text-[#007AFF]">
                                   {Math.round(entry.carbs)}g
                                 </div>
-                                <div className="text-xs text-muted-foreground">carbs</div>
+                                <div className="text-xs text-[#8E8E93]">carbs</div>
                               </div>
-                            </motion.div>
+                            </div>
                           </div>
                         </div>
                         
-                        <motion.div
-                          className="absolute top-3 right-3 sm:static"
-                          whileHover={{ rotate: 15, scale: 1.1 }}
-                          transition={{ type: "spring", stiffness: 500 }}
-                        >
+                        <div className="absolute top-3 right-3 sm:static sm:flex sm:items-center">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-full"
+                            className="h-8 w-8 text-[#8E8E93] hover:text-[#FF3B30] hover:bg-[#FF3B30]/10 rounded-full"
                             onClick={() => deleteFoodEntry(entry.id)}
                             aria-label="Delete meal"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </motion.div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -1268,117 +1130,55 @@ export default function DashboardPage() {
             </AnimatePresence>
             
             {foodEntries.length > 3 && (
-              <motion.div 
-                className="text-center mt-6"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 1 }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+              <div className="text-center mt-4">
                 <Button 
                   variant="outline" 
                   onClick={() => setShowAllMeals(!showAllMeals)}
-                  className="px-6 rounded-full border-rose-200 dark:border-rose-800/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 shadow-sm"
-                >
-                  <motion.span
-                    animate={{
-                      x: showAllMeals ? [-2, 0, -2] : [2, 0, 2]
-                    }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="px-4 rounded-full border-[#E5E5EA] dark:border-gray-800 text-[#8E8E93] hover:bg-[#F2F2F7] dark:hover:bg-gray-900/20 shadow-sm text-sm h-8"
                   >
                     {showAllMeals ? "View Less" : "View More"}
-                  </motion.span>
                 </Button>
-                </motion.div>
-              </motion.div>
+              </div>
             )}
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5, type: "spring" }}
-          >
-            <Card className="border-none shadow-lg rounded-xl overflow-hidden text-center py-10 px-6 relative">
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-r from-rose-50/80 to-pink-50/80 dark:from-rose-950/5 dark:to-pink-950/5"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0.6, 0.8, 0.6] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              
-              <motion.div
-                className="relative z-10"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-              >
-                <motion.div
-                  className="w-20 h-20 mx-auto mb-5 bg-gradient-to-br from-rose-300 to-pink-300 dark:from-rose-500 dark:to-pink-500 rounded-full flex items-center justify-center shadow-lg"
-                  animate={{ 
-                    scale: [1, 1.05, 1],
-                    y: [0, -5, 0]
-                  }}
-                  transition={{ 
-                    duration: 4, 
-                    repeat: Infinity, 
-                    ease: "easeInOut" 
-                  }}
-                >
-                  <Camera className="h-10 w-10 text-white" />
-                </motion.div>
-                <h3 className="text-xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-rose-500 to-pink-500 dark:from-rose-400 dark:to-pink-400">No meals logged yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+          <Card className="border border-[#E5E5EA] dark:border-gray-800/20 shadow-sm rounded-xl overflow-hidden text-center py-8 px-6 relative bg-white dark:bg-black/20">
+            <div className="relative z-10">
+              <div className="w-16 h-16 mx-auto mb-4 bg-[#FF9500]/10 rounded-full flex items-center justify-center">
+                <Camera className="h-8 w-8 text-[#FF9500]" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2 text-[#1C1C1E] dark:text-white">No meals logged yet</h3>
+              <p className="text-[#8E8E93] mb-5 text-sm max-w-md mx-auto">
                   Track what you eat to get insights about your nutrition for{" "}
-                  <motion.span
-                    className="font-medium"
-                    animate={{ 
-                      color: ['hsl(var(--foreground))', 'hsl(var(--primary))', 'hsl(var(--foreground))'] 
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
+                <span className="font-medium text-[#1C1C1E] dark:text-white">
                     {currentSelectedDate
                       ? isToday(currentSelectedDate)
                         ? "today"
                         : format(currentSelectedDate, "MMM d, yyyy")
                       : "the selected date"}
-                  </motion.span>
+                </span>
                 </p>
-                <motion.div
-                  whileHover={{ scale: 1.05, y: -3 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="bg-[#FF9500] hover:bg-[#FF9500]/90 text-white border-none hover:opacity-90 rounded-full px-4 shadow-sm"
+                  asChild
                 >
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="bg-gradient-to-r from-rose-300 to-pink-300 hover:from-rose-400 hover:to-pink-400 dark:from-rose-500 dark:to-pink-500 text-rose-950 dark:text-white border-none hover:opacity-90 rounded-full px-6 shadow-md"
-                    asChild
-                  >
-                    <Link href="/log-food/photo">
-                      <motion.span
-                        className="flex items-center gap-2"
-                        animate={{ x: [0, 3, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.5 }}
-                      >
-                        Add Your First Meal
-                        <ArrowRight className="h-4 w-4" />
-                      </motion.span>
-                    </Link>
-                  </Button>
-                </motion.div>
-              </motion.div>
+                  <Link href="/log-food/photo">
+                    <span className="flex items-center gap-1.5">
+                      Add Your First Meal
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </Link>
+                </Button>
+            </div>
           </Card>
-          </motion.div>
         )}
       </motion.div>
 
-      {/* Health Blogs Section - Completely redesigned */}
+      {/* Health Blogs Section - Apple Health Style */}
       <motion.div 
-        className="mt-10"
+        className="mt-10 w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5, type: "spring" }}
@@ -1386,14 +1186,14 @@ export default function DashboardPage() {
         <div className="flex justify-between items-center mb-5">
           <div className="flex items-center gap-3">
             <motion.div
-              className="h-9 w-9 rounded-full bg-gradient-to-r from-cyan-300 to-sky-300 dark:from-cyan-500 dark:to-sky-500 flex items-center justify-center shadow-md"
+              className="h-9 w-9 rounded-full bg-[#5AC8FA] flex items-center justify-center shadow-md"
               initial={{ rotate: -5 }}
               animate={{ rotate: 5 }}
               transition={{ duration: 1.5, repeat: Infinity, repeatType: "reverse" }}
             >
               <BookOpen className="h-5 w-5 text-white" />
             </motion.div>
-            <h2 className="text-xl font-bold">Health & Wellness</h2>
+            <h2 className="text-xl font-bold text-[#1C1C1E] dark:text-white">Health & Wellness</h2>
       </div>
 
           <Link href="/blog" passHref>
@@ -1404,7 +1204,7 @@ export default function DashboardPage() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-sm font-medium text-sky-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/20"
+                className="text-sm font-medium text-[#007AFF] hover:text-[#007AFF]/90 hover:bg-[#007AFF]/5"
               >
                 View All
                 <ArrowRight className="ml-1 h-4 w-4" />
@@ -1428,7 +1228,7 @@ export default function DashboardPage() {
                 whileHover={{ y: -5 }}
               >
                 <Link href={blog.readMoreLink} passHref>
-                  <Card className="overflow-hidden shadow-lg border-none h-full group">
+                  <Card className="overflow-hidden shadow-lg border-[#E5E5EA] dark:border-none h-full group">
                     <div className="relative h-44 w-full overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent z-10" />
                       <Image
@@ -1442,36 +1242,59 @@ export default function DashboardPage() {
                       
                       {/* Category label */}
                       <div className="absolute top-4 left-4 z-20">
-                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-white/90 text-sky-600">
+                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-white/90 text-[#007AFF]">
                           {index % 2 === 0 ? "Nutrition" : "Fitness"}
                         </span>
         </div>
       </div>
 
-                    <CardContent className="relative p-5 bg-gradient-to-br from-sky-50/90 to-cyan-50/90 dark:from-sky-950/10 dark:to-cyan-950/5">
+                    <CardContent className="relative p-5 bg-white dark:bg-gray-900/50">
                       {/* Visual indicator */}
                       <motion.div 
-                        className="h-1 w-16 bg-gradient-to-r from-cyan-300 to-sky-300 dark:from-cyan-500 dark:to-sky-500 rounded-full mb-3"
+                        className="h-1 w-16 bg-[#007AFF] rounded-full mb-3"
                         initial={{ width: 0 }}
                         animate={{ width: "4rem" }}
                         transition={{ duration: 0.5, delay: 0.8 + (index * 0.1) }}
                       />
                       
-                      <h3 className="text-lg font-bold line-clamp-2 group-hover:text-sky-600 transition-colors duration-200">
+                      <h3 className="text-lg font-bold line-clamp-2 text-[#1C1C1E] dark:text-white group-hover:text-[#007AFF] transition-colors duration-200">
                         {blog.title}
                       </h3>
-                      <p className="text-muted-foreground text-sm mt-2 line-clamp-2">
+                      <p className="text-[#8E8E93] text-sm mt-2 line-clamp-2">
                         {blog.excerpt}
                       </p>
                       
                       <div className="flex justify-between items-center mt-4">
-        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8 border-2 border-white">
-                            <AvatarImage src={`https://placehold.co/200x200.png`} alt="Author" />
-                            <AvatarFallback className="bg-sky-100 text-sky-600">{index % 2 === 0 ? "EW" : "MC"}</AvatarFallback>
+                            <AvatarImage 
+                              src={
+                                typeof blog.author === 'object' && blog.author?.imageUrl 
+                                  ? blog.author.imageUrl 
+                                  : blog.authorImage || `https://placehold.co/200x200.png`
+                              } 
+                              alt={
+                                typeof blog.author === 'object' && blog.author?.name
+                                  ? blog.author.name
+                                  : typeof blog.author === 'string' 
+                                    ? blog.author 
+                                    : "Author"
+                              } 
+                            />
+                            <AvatarFallback className="bg-[#007AFF]/10 text-[#007AFF]">
+                              {typeof blog.author === 'object' && blog.author?.name
+                                ? blog.author.name.charAt(0)
+                                : typeof blog.author === 'string'
+                                  ? blog.author.charAt(0)
+                                  : (index % 2 === 0 ? "EW" : "MC")}
+                            </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs text-muted-foreground">
-                            {index % 2 === 0 ? "Dr. Emma Wilson" : "Coach Mike Chen"}
+                          <span className="text-xs text-[#8E8E93]">
+                            {typeof blog.author === 'object' && blog.author?.name
+                              ? blog.author.name
+                              : typeof blog.author === 'string'
+                                ? blog.author
+                                : (index % 2 === 0 ? "Dr. Emma Wilson" : "Coach Mike Chen")}
                           </span>
         </div>
                         
@@ -1530,9 +1353,9 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* Smart Insights - Completely redesigned */}
+      {/* Smart Insights - Apple Health Style */}
       <motion.div 
-        className="mt-10"
+        className="mt-10 w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6, type: "spring" }}
@@ -1543,24 +1366,24 @@ export default function DashboardPage() {
               className="absolute inset-0 rounded-full"
               animate={{ 
                 boxShadow: [
-                  "0 0 0 0 rgba(250, 204, 21, 0)",
-                  "0 0 0 8px rgba(250, 204, 21, 0.12)",
-                  "0 0 0 0 rgba(250, 204, 21, 0)"
+                  "0 0 0 0 rgba(175, 82, 222, 0)",
+                  "0 0 0 8px rgba(175, 82, 222, 0.12)",
+                  "0 0 0 0 rgba(175, 82, 222, 0)"
                 ]
               }}
               transition={{ duration: 2, repeat: Infinity }}
             />
             <motion.div
-              className="h-9 w-9 rounded-full bg-gradient-to-r from-amber-200 to-yellow-300 dark:from-amber-400 dark:to-yellow-500 flex items-center justify-center shadow-md relative z-10"
+              className="h-9 w-9 rounded-full bg-[#AF52DE] flex items-center justify-center shadow-md relative z-10"
               animate={{ 
                 rotate: [0, 5, 0, -5, 0]
               }}
               transition={{ duration: 5, repeat: Infinity }}
             >
-              <Lightbulb className="h-5 w-5 text-amber-800 dark:text-white" />
+              <Lightbulb className="h-5 w-5 text-white" />
             </motion.div>
           </div>
-          <h2 className="text-xl font-bold">AI Nutrition Insights</h2>
+          <h2 className="text-xl font-bold text-[#1C1C1E] dark:text-white">AI Nutrition Insights</h2>
         </div>
         
         <motion.div
@@ -1571,7 +1394,7 @@ export default function DashboardPage() {
           className="pb-1 px-0.5"
         >
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-amber-100/60 via-yellow-200/60 to-amber-100/60 dark:from-amber-400/20 dark:via-yellow-400/20 dark:to-amber-400/20 rounded-xl blur-md opacity-60" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#AF52DE]/20 via-[#AF52DE]/30 to-[#AF52DE]/20 rounded-xl blur-md opacity-60" />
             <div className="relative z-10">
         <SmartInsights 
           goals={goals}
@@ -1585,7 +1408,7 @@ export default function DashboardPage() {
         </motion.div>
       </motion.div>
 
-      {/* Floating Action Button for quick add */}
+      {/* Floating Action Button for quick add - Apple Health Style */}
       <AnimatePresence>
         {showFAB && (
           <motion.div 
@@ -1597,9 +1420,9 @@ export default function DashboardPage() {
           >
             <Link href="/log-food/photo">
               <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-300/80 to-pink-300/80 dark:from-purple-600/80 dark:to-pink-600/80 rounded-full opacity-75 group-hover:opacity-100 blur group-hover:blur-md transition-all duration-300"></div>
+                <div className="absolute -inset-0.5 bg-[#FF3B30]/80 rounded-full opacity-75 group-hover:opacity-100 blur group-hover:blur-md transition-all duration-300"></div>
                 <Button 
-                  className="h-14 w-14 rounded-full bg-gradient-to-br from-indigo-300 via-purple-300 to-pink-300 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 shadow-lg hover:shadow-xl hover:shadow-purple-300/20 dark:hover:shadow-purple-500/20 border-none text-indigo-950 dark:text-white relative"
+                  className="h-14 w-14 rounded-full bg-[#FF3B30] shadow-lg hover:shadow-xl hover:shadow-[#FF3B30]/20 border-none text-white relative"
                   size="icon"
                 >
                   <PlusCircle className="h-6 w-6" />
@@ -1610,6 +1433,16 @@ export default function DashboardPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Update the background to match Apple Health style */}
+      <style jsx global>{`
+        body {
+          background-color: #F2F2F7;
+        }
+        .dark body {
+          background-color: #000;
+        }
+      `}</style>
     </div>
   );
 }
