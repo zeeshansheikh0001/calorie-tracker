@@ -27,7 +27,7 @@ class NotificationService {
     }
 
     try {
-      // Register service worker
+      // Register service workerupdate
       this.registration = await navigator.serviceWorker.register('/sw.js');
       console.log('Service Worker registered:', this.registration);
 
