@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { blogData } from '@/data/blog-content';
 
 // Main pages of the application
 const routes = [
@@ -15,6 +16,7 @@ const routes = [
   '/about',
   '/privacy',
   '/terms',
+  '/blog',
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -28,8 +30,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: route === '' ? 1.0 : 0.8,
   }));
 
+  // Generate entries for all blog posts
+  const blogEntries = blogData.map(post => ({
+    url: `${baseUrl}${post.readMoreLink}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
   return [
     ...routeEntries,
-    // Add any additional dynamic routes if needed
+    ...blogEntries,
   ];
 } 

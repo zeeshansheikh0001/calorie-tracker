@@ -9,21 +9,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ArrowRight, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { mockBlogData } from "@/app/page";
+import { blogData } from "@/data/blog-content";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function BlogPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState(mockBlogData);
+  const [filteredPosts, setFilteredPosts] = useState(blogData);
   const [activeCategory, setActiveCategory] = useState("all");
 
   // Get unique categories
-  const categories = ["all", ...Array.from(new Set(mockBlogData.map(post => post.category || "Uncategorized")))];
+  const categories = ["all", ...Array.from(new Set(blogData.map(post => post.category || "Uncategorized")))];
 
   // Filter posts based on search term and category
   useEffect(() => {
-    const filtered = mockBlogData.filter(post => {
+    const filtered = blogData.filter(post => {
       const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -206,27 +206,18 @@ export default function BlogPage() {
                     </div>
                   )}
                 </CardContent>
-                
-                <CardFooter className="px-5 pb-5 pt-0">
-                  <Button variant="ghost" className="p-0 h-auto text-primary hover:text-primary/80 hover:bg-transparent">
-                    Read More
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardFooter>
               </Card>
             </Link>
           </motion.div>
         ))}
       </div>
       
+      {/* No results message */}
       {filteredPosts.length === 0 && (
-        <div className="text-center py-20">
-          <h3 className="text-xl font-medium mb-2">No articles found</h3>
-          <p className="text-muted-foreground mb-6">
-            Try adjusting your search or filter to find what you're looking for.
-          </p>
-          <Button onClick={() => {setSearchTerm(""); setActiveCategory("all");}}>
-            Reset Filters
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground mb-4">No articles found matching your search criteria.</p>
+          <Button variant="outline" onClick={() => {setSearchTerm(""); setActiveCategory("all");}}>
+            Clear Filters
           </Button>
         </div>
       )}

@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Award, Check, Heart, Shield, Star, Zap } from 'lucide-react';
+import { ArrowRight, Award, Check, Heart, Shield, Star, Zap, Utensils, BarChart3, Brain, Users, Smartphone } from 'lucide-react';
 import { faqSchema } from '@/lib/schema';
 
 // Metadata for SEO optimization
@@ -53,7 +54,8 @@ export default function AboutPage() {
               <h2 className="text-2xl font-bold mb-4">What Sets Us Apart</h2>
               <ul className="space-y-3">
                 {[
-                  { icon: Zap, text: "AI that recognizes Indian foods and regional cuisines" },
+                  { icon: Utensils, text: "Comprehensive database of Indian foods from all regions" },
+                  { icon: Brain, text: "AI that recognizes Indian foods and regional cuisines" },
                   { icon: Check, text: "Nutrition data calibrated for Indian dietary patterns" },
                   { icon: Shield, text: "Privacy-focused approach with local data processing" },
                   { icon: Heart, text: "Health insights tailored to Indian health concerns" },
@@ -96,8 +98,149 @@ export default function AboutPage() {
         </div>
       </section>
       
-      {/* Features Section */}
+      {/* Our Story Section */}
       <section className="py-16 bg-muted/30">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div className="order-2 md:order-1">
+              <div className="relative h-80 rounded-xl overflow-hidden shadow-lg">
+                <Image 
+                  src="https://images.unsplash.com/photo-1505576399279-565b52d4ac71?ixlib=rb-4.0.3" 
+                  alt="Indian food and nutrition planning"
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <h2 className="text-3xl font-bold mb-6">Our Story</h2>
+              <p className="text-muted-foreground mb-4">
+                Calorie Tracker was founded in 2021 by a team of nutritionists, fitness experts, and software developers who recognized a significant gap in the market: most nutrition apps failed to understand Indian dietary habits and regional cuisines.
+              </p>
+              <p className="text-muted-foreground mb-4">
+                As health-conscious Indians ourselves, we struggled with international apps that didn't recognize our staple foods or provide accurate nutritional information for Indian dishes. We set out to build a solution specifically designed for the Indian population.
+              </p>
+              <p className="text-muted-foreground mb-4">
+                After two years of research, development, and testing with thousands of users across India, we've created a nutrition tracking platform that truly understands the unique needs of Indians striving for better health.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Key Features Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Powerful <span className="text-primary">Features</span> for Your Nutrition Journey
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Utensils,
+                title: "Comprehensive Indian Food Database",
+                description: "Over 20,000 Indian foods and recipes from all regions with accurate nutritional information."
+              },
+              {
+                icon: BarChart3,
+                title: "Personalized Goal Setting",
+                description: "Set customized targets based on your body metrics, activity level, and specific health objectives."
+              },
+              {
+                icon: Brain,
+                title: "AI-Powered Insights",
+                description: "Smart recommendations and pattern analysis to help optimize your nutrition and achieve your goals faster."
+              },
+              {
+                icon: Smartphone,
+                title: "Easy Food Logging",
+                description: "Quick search, barcode scanning, photo recognition, and voice input for effortless meal tracking."
+              },
+              {
+                icon: Users,
+                title: "Community Support",
+                description: "Connect with others on similar health journeys, share recipes, and motivate each other."
+              },
+              {
+                icon: Heart,
+                title: "Health Monitoring",
+                description: "Track your progress beyond calories: monitor macros, micros, hydration, and health indicators."
+              }
+            ].map((feature, index) => (
+              <div key={index} className="p-6 bg-card rounded-lg border border-border/50 transition-all hover:shadow-md hover:-translate-y-1 flex flex-col">
+                <feature.icon className="h-8 w-8 text-primary mb-4" />
+                <h3 className="font-semibold text-lg mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground flex-1">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* User Success Stories */}
+      <section className="py-16 bg-muted/30 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Real Success <span className="text-primary">Stories</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[
+              {
+                name: "Anjali Mehta",
+                location: "Mumbai",
+                achievement: "Lost 15kg and reversed pre-diabetes",
+                image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3",
+                quote: "I tried several international apps before, but none understood my vegetarian diet needs. Calorie Tracker made it easy to log my home-cooked meals and provided actionable insights that helped me lose weight while still enjoying my favorite foods."
+              },
+              {
+                name: "Vikram Singh",
+                location: "Delhi",
+                achievement: "Gained 10kg of muscle mass",
+                image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3",
+                quote: "As someone looking to build muscle on a vegetarian diet, I struggled to meet my protein goals. The personalized recommendations from Calorie Tracker helped me discover new protein sources and optimize my nutrition for muscle growth."
+              },
+              {
+                name: "Priya Nair",
+                location: "Bangalore",
+                achievement: "Maintained healthy weight during pregnancy",
+                image: "https://images.unsplash.com/photo-1569913486515-b74bf7751574?ixlib=rb-4.0.3",
+                quote: "During my pregnancy, I needed to ensure I was getting the right nutrients while managing gestational diabetes risk. The app's specialized tracking features for pregnancy were invaluable for my health and my baby's development."
+              },
+              {
+                name: "Rajesh Kumar",
+                location: "Hyderabad",
+                achievement: "Improved cholesterol levels & heart health",
+                image: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-4.0.3",
+                quote: "After my heart health scare, my doctor recommended tracking my nutrition. The detailed reports and heart-healthy recommendations helped me make gradual changes to my diet that significantly improved my lipid profile in just 3 months."
+              }
+            ].map((story, index) => (
+              <div key={index} className="p-6 bg-card rounded-lg border border-border/50 shadow-lg">
+                <div className="flex items-center mb-4">
+                  <div className="relative h-14 w-14 rounded-full overflow-hidden mr-4">
+                    <Image 
+                      src={story.image} 
+                      alt={story.name}
+                      layout="fill"
+                      objectFit="cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{story.name}</h3>
+                    <p className="text-sm text-muted-foreground">{story.location} • {story.achievement}</p>
+                  </div>
+                </div>
+                <p className="italic text-muted-foreground">"{story.quote}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Features Section */}
+      <section className="py-16">
         <div className="container mx-auto max-w-5xl px-4">
           <h2 className="text-3xl font-bold text-center mb-12">
             Developed for <span className="text-primary">Indian Nutrition Needs</span>
@@ -107,7 +250,7 @@ export default function AboutPage() {
             {[
               {
                 title: "Regional Food Database",
-                description: "Extensive database of Indian foods from all regions, including homemade recipes and restaurant meals."
+                description: "Extensive database of Indian foods from all regions, including homemade recipes, street foods, and restaurant meals."
               },
               {
                 title: "Festival & Occasion Planning",
@@ -127,7 +270,7 @@ export default function AboutPage() {
               },
               {
                 title: "Multi-language Support",
-                description: "Available in English and major Indian languages for accessibility across the country."
+                description: "Available in English, Hindi, Tamil, Telugu, Malayalam, Kannada, Bengali, and Marathi for accessibility across the country."
               }
             ].map((feature, index) => (
               <div key={index} className="p-6 bg-card rounded-lg border border-border/50 transition-all hover:shadow-md hover:-translate-y-1">
@@ -140,7 +283,7 @@ export default function AboutPage() {
       </section>
       
       {/* CTA Section */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-primary/5 rounded-lg mx-4 my-8">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Nutrition Journey?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">

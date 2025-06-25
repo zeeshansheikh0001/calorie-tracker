@@ -50,6 +50,7 @@ import dynamic from "next/dynamic"; // Added dynamic import
 import { resetOnboarding } from "@/lib/onboarding";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { blogData } from "@/data/blog-content";
 
 // Dynamically import CalorieDonutChart
 const CalorieDonutChart = dynamic(
@@ -170,141 +171,9 @@ const SummaryCard: React.FC<SummaryCardProps> = React.memo(({ icon: Icon, value,
 SummaryCard.displayName = 'SummaryCard';
 
 
-export const mockBlogData: BlogPost[] = [
-  {
-    id: "1",
-    title: "The Science Behind Morning Workouts: Boost Your Metabolism",
-    excerpt: "Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.",
-    imageUrl: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
-    imageHint: "morning workout routine",
-    readMoreLink: "/blog/1",
-    author: {
-      name: "John Doe",
-      role: "Fitness Expert",
-      imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-15",
-    category: "Fitness",
-    content: `
-      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
-      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
-      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
-      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
-      <p>Morning exercise can increase your metabolic rate for hours and improve cognitive function throughout the day. Learn the science-backed benefits and how to build a sustainable routine.</p>
-    `,
-  },
-  {
-    id: "2",
-    title: "Macronutrients Demystified: Building Your Optimal Diet Plan",
-    excerpt: "Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.",
-    imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    imageHint: "balanced nutrition macronutrients",
-    readMoreLink: "/blog/2",
-    author: {
-      name: "Jane Smith",
-      role: "Nutritionist",
-      imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-14",
-    category: "Nutrition",
-    content: `
-      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
-      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
-      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
-      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
-      <p>Understanding the roles of proteins, carbohydrates, and fats is essential for creating a balanced nutrition plan. Learn how to calculate your ideal macronutrient ratios based on your specific goals.</p>
-    `,
-  },
-  {
-    id: "3",
-    title: "Mindful Eating: Transform Your Relationship with Food",
-    excerpt: "Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.",
-    imageUrl: "https://images.unsplash.com/photo-1515023115689-589c33041d3c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1374&q=80",
-    imageHint: "mindful eating meditation",
-    readMoreLink: "/blog/3",
-    author: {
-      name: "Emily Johnson",
-      role: "Wellness Coach",
-      imageUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-13",
-    category: "Wellness",
-    content: `
-      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
-      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
-      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
-      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
-      <p>Mindful eating practices can help reduce overeating, improve digestion, and create a healthier relationship with food. Discover practical techniques to bring awareness to your meals.</p>
-    `,
-  },
-  {
-    id: "4",
-    title: "Hydration Science: Optimizing Water Intake for Health and Performance",
-    excerpt: "Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.",
-    imageUrl: "https://images.unsplash.com/photo-1502208327471-d5dde4d78995?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    imageHint: "hydration water health",
-    readMoreLink: "/blog/4",
-    author: {
-      name: "Michael Brown",
-      role: "Sports Nutritionist",
-      imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-12",
-    category: "Nutrition",
-    content: `
-      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
-      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
-      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
-      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
-      <p>Water is essential for every bodily function, yet many people remain chronically dehydrated. Learn how proper hydration can boost energy, improve skin health, and enhance athletic performance.</p>
-    `,
-  },
-  {
-    id: "5",
-    title: "Strength Training for Longevity: Why Everyone Should Lift Weights",
-    excerpt: "Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.",
-    imageUrl: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    imageHint: "senior strength training",
-    readMoreLink: "/blog/5",
-    author: {
-      name: "Sarah Wilson",
-      role: "Personal Trainer",
-      imageUrl: "https://images.unsplash.com/photo-1552058544-f2b08422138a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-11",
-    category: "Fitness",
-    content: `
-      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
-      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
-      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
-      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
-      <p>Resistance training is about more than building muscle—it's essential for maintaining independence and health as we age. Discover how to start safely at any age and experience level.</p>
-    `,
-  },
-  {
-    id: "6",
-    title: "The Gut-Brain Connection: How Diet Affects Mental Health",
-    excerpt: "Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.",
-    imageUrl: "https://images.unsplash.com/photo-1511909525232-61113c912358?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1472&q=80",
-    imageHint: "gut brain connection",
-    readMoreLink: "/blog/6",
-    author: {
-      name: "David Johnson",
-      role: "Psychiatrist",
-      imageUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
-    },
-    publishDate: "2023-07-10",
-    category: "Wellness",
-    content: `
-      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
-      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
-      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
-      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
-      <p>Emerging research reveals the powerful link between gut health and mental wellbeing. Learn which foods can help reduce anxiety, improve mood, and support cognitive function.</p>
-    `,
-  }
-];
-
+// Replace mockBlogData references with blogData
+// For example, in the Blog section of the dashboard:
+const recentBlogPosts = blogData.slice(0, 3);
 
 interface CaloriesCenterLabelProps {
   viewBox?: { cx?: number; cy?: number };
@@ -1363,7 +1232,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <AnimatePresence>
-            {mockBlogData.slice(0, 2).map((blog, index) => (
+            {recentBlogPosts.map((blog, index) => (
               <motion.div
               key={blog.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -1472,7 +1341,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="p-0 bg-gradient-to-br from-sky-50/60 to-cyan-50/60 dark:from-sky-950/5 dark:to-cyan-950/5">
               <div className="divide-y divide-sky-100/80 dark:divide-sky-900/10">
-                {mockBlogData.slice(2).map((blog, index) => (
+                {blogData.slice(3).map((blog, index) => (
                   <Link href={blog.readMoreLink} key={blog.id}>
                     <motion.div 
                       className="flex items-center gap-4 p-4 hover:bg-sky-50/80 dark:hover:bg-sky-950/10 transition-colors duration-200"
