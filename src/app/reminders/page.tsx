@@ -290,17 +290,18 @@ export default function RemindersPage() {
                       ) : (
                         <Bell className="h-4 w-4 mr-2" />
                       )}
-                      Enable Push
+                      Enable Notifications
                     </Button>
                   )}
-                  
-                  {isSupported && (
+                  {isSupported && subscription && (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={handleTestNotification}
+                      onClick={handleDisableNotifications}
+                      disabled={notificationStatus === 'requesting'}
                     >
-                      Test
+                      <BellOff className="h-4 w-4 mr-2" />
+                      Disable Notifications
                     </Button>
                   )}
                 </div>
