@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { mockBlogData } from "@/app/page"; // Assuming mockBlogData is exported from page.tsx
+import { blogData } from "@/data/blog-content"; // Using blogData instead of mockBlogData
 import type { BlogPost } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,8 @@ export default function BlogPostPage() {
   const params = useParams();
   const postId = params.id as string;
 
-  // In a real app, you'd fetch this data from a CMS or database
-  const post: BlogPost | undefined = mockBlogData.find(p => p.id === postId);
+  // Use blogData instead of mockBlogData
+  const post: BlogPost | undefined = blogData.find(p => p.id === postId);
 
   if (!post) {
     return (
@@ -24,10 +24,10 @@ export default function BlogPostPage() {
         <Card className="max-w-md mx-auto p-8 shadow-lg">
           <CardTitle className="text-2xl font-bold text-destructive mb-4">Blog Post Not Found</CardTitle>
           <CardDescription className="mb-6">Sorry, we couldn't find the blog post you were looking for.</CardDescription>
-          <Link href="/" passHref>
+          <Link href="/blog" passHref>
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
+              Back to Blog
             </Button>
           </Link>
         </Card>
@@ -37,10 +37,10 @@ export default function BlogPostPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-3xl">
-      <Link href="/" passHref className="mb-6 inline-block">
+      <Link href="/blog" passHref className="mb-6 inline-block">
         <Button variant="ghost" className="text-primary hover:text-primary/80">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Home
+          Back to Blog
         </Button>
       </Link>
       
@@ -138,19 +138,7 @@ export default function BlogPostPage() {
             {post.content ? (
               <div dangerouslySetInnerHTML={{ __html: post.content }} />
             ) : (
-              <>
-                <p>
-                  This is where more detailed content for the blog post titled "{post.title}" would go.
-                  For now, we are only displaying the excerpt. Building out a full blog system would involve
-                  storing and retrieving complete articles.
-                </p>
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-              </>
+              <p>Loading content...</p>
             )}
           </div>
           
@@ -158,7 +146,7 @@ export default function BlogPostPage() {
           <div className="mt-10 pt-6 border-t">
             <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {mockBlogData
+              {blogData
                 .filter(b => b.id !== post.id && b.category === post.category)
                 .slice(0, 2)
                 .map(relatedPost => (
