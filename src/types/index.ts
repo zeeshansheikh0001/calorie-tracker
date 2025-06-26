@@ -72,3 +72,13 @@ export interface BlogPost {
   category?: string;
   content?: string;
 }
+
+export interface ReminderSettings {
+  logMeals: boolean;
+  logMealsTime: string;
+  drinkWater: boolean;
+  drinkWaterFrequency: string; 
+  weighIn: boolean;
+  weighInDay: string; 
+  weighInTime: string;
+}

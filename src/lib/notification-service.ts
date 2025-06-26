@@ -17,7 +17,7 @@ class NotificationService {
   private isSupported: boolean = false;
 
   constructor() {
-    this.isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    this.isSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
   }
 
   async initialize(): Promise<boolean> {

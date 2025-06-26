@@ -12,7 +12,8 @@
     "cap:open:android": "npx cap open android",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate-vapid-keys": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",
