@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
@@ -135,17 +136,36 @@ export default function RemindersPage() {
       await unsubscribe();
       setIsSubscribed(false);
       toast({ title: "Notifications Disabled" });
-    } else {
-      const sub = await subscribe();
-      if (sub) {
-        setIsSubscribed(true);
-        toast({ title: "Notifications Enabled!", description: "You're all set to receive reminders." });
-      } else {
-        toast({ title: "Permission Denied", description: "Please enable notifications in your browser settings.", variant: "destructive" });
+      if ('Notification' in window) {
+        setNotificationPermission(Notification.permission);
       }
+      return;
     }
-    // Re-check permission status
-    setNotificationPermission(Notification.permission);
+
+    if (notificationPermission === 'denied') {
+      toast({
+        title: "Permission Previously Denied",
+        description: "You have blocked notifications. Please go to your browser settings to enable them for this site.",
+        variant: "destructive",
+        duration: 7000
+      });
+      return;
+    }
+
+    const sub = await subscribe();
+    if (sub) {
+      setIsSubscribed(true);
+      toast({ title: "Notifications Enabled!", description: "You're all set to receive reminders." });
+    } else {
+      toast({
+        title: "Permission Required",
+        description: "You need to grant permission to enable notifications.",
+        variant: "destructive",
+      });
+    }
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
   };
 
   const handleTestNotification = async () => {
@@ -221,7 +241,7 @@ export default function RemindersPage() {
                     <p className="text-sm text-muted-foreground">
                       {
                         !isSupported ? "Not supported by your browser" :
-                        permission === 'denied' ? "Permission denied" :
+                        notificationPermission === 'denied' ? "Permission denied" :
                         isSubscribed ? "Enabled and active" : "Disabled"
                       }
                     </p>
