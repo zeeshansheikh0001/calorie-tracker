@@ -123,8 +123,12 @@ export default function RemindersPage() {
 
   // OneSignal subscribe button handler
   const handleOneSignalSubscribe = () => {
-    if (typeof window !== "undefined" && window.OneSignal) {
-      window.OneSignal.showSlidedownPrompt();
+    if (typeof window !== "undefined" && window.OneSignalDeferred) {
+      window.OneSignalDeferred.push(function(OneSignal: any) {
+        if (OneSignal && typeof OneSignal.showSlidedownPrompt === 'function') {
+          OneSignal.showSlidedownPrompt();
+        }
+      });
     } else {
       toast({
         title: "OneSignal Not Loaded",

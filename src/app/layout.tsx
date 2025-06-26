@@ -135,6 +135,7 @@ export default function RootLayout({
             __html: JSON.stringify(applicationSchema)
           }}
         />
+        {/* OneSignal SDK and initialization */}
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script
           dangerouslySetInnerHTML={{
