@@ -112,16 +112,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  params, // Explicitly destructure params
 }: Readonly<{
   children: React.ReactNode;
-  params: { [key: string]: string | string[] | undefined }; // Add type for params
 }>) {
-  // The "params enumerated" warning can sometimes be an internal Next.js development mode issue.
-  // By explicitly acknowledging `params` here, we might influence how Next.js's tooling perceives it,
-  // even though `params` are not directly used in this root layout's rendering logic.
-  // If params were to be used, it would be with: const unwrapped = React.use(params);
-
   const bodyClassNames = [
     geistSans.variable.trim(),
     geistMono.variable.trim(),
@@ -149,7 +142,6 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="dark"
           enableSystem
-          // disableTransitionOnChange // Removed previously, keeping it removed for now
         >
           <AppLayout>{children}</AppLayout>
           <Toaster />
