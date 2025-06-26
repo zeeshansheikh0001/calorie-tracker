@@ -4,14 +4,14 @@ import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationService } from "@/lib/notification-service";
 import { 
   BellRing, Save, CheckCircle, Clock, Droplets, Scale, 
   CalendarCheck, RefreshCw, BellDot, Bell, BellOff, 
-  Sparkles, AlarmCheck, Calendar, Smartphone, Globe
+  Sparkles, AlarmCheck, Calendar, Smartphone, Globe, TestTube
 } from "lucide-react";
 import {
   Select,
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select"
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ReminderSettings {
   logMeals: boolean;
@@ -58,52 +57,41 @@ const formatDay = (day: string) => {
   return day.charAt(0).toUpperCase() + day.slice(1);
 };
 
-// For rendering frequency in a more human-readable format
-const formatFrequency = (frequency: string) => {
-  switch (frequency) {
-    case 'every_hour':
-      return 'Every hour';
-    case 'every_2_hours':
-      return 'Every 2 hours';
-    case 'every_3_hours':
-      return 'Every 3 hours';
-    default:
-      return frequency;
-  }
-};
-
 export default function RemindersPage() {
   const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
   const [isLoading, setIsLoading] = useState(false);
-  const [savedSettings, setSavedSettings] = useState<ReminderSettings | null>(null);
-  const [activeReminder, setActiveReminder] = useState<keyof ReminderSettings | null>(null);
-  const [notificationStatus, setNotificationStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+
   const { toast } = useToast();
   const { 
-    initializeNotifications, 
-    subscribeToNotifications, 
-    unsubscribeFromNotifications, 
-    showTestNotification,
-    isSupported,
-    subscription 
+    initialize,
+    subscribe,
+    unsubscribe,
+    sendTestNotification,
+    isSupported: browserSupportsPush,
+    permission
   } = useNotificationService();
 
-  // Load settings from localStorage
   useEffect(() => {
+    setIsSupported(browserSupportsPush);
+    setNotificationPermission(permission);
+
+    // Load settings from localStorage
     const storedSettings = localStorage.getItem("reminderSettings");
     if (storedSettings) {
       const parsedSettings = JSON.parse(storedSettings);
       setSettings(parsedSettings);
-      setSavedSettings(parsedSettings);
     }
-  }, []);
 
-  // Initialize notifications on component mount
-  useEffect(() => {
-    if (isSupported) {
-      initializeNotifications();
-    }
-  }, [isSupported, initializeNotifications]);
+    // Check current subscription status
+    const checkSubscription = async () => {
+        const currentSub = await initialize();
+        setIsSubscribed(!!currentSub);
+    };
+    checkSubscription();
+  }, [browserSupportsPush, permission, initialize]);
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
     setSettings((prev) => ({ ...prev, [name]: checked }));
@@ -122,18 +110,11 @@ export default function RemindersPage() {
     setIsLoading(true);
     
     try {
-      // Save settings to localStorage
       localStorage.setItem("reminderSettings", JSON.stringify(settings));
-      setSavedSettings(settings);
-      
-      // Initialize notifications if supported
-      if (isSupported) {
-        await initializeNotifications();
-      }
       
       toast({
         title: "Reminders Updated!",
-        description: "Your reminder preferences have been saved and notifications are now active.",
+        description: "Your reminder preferences have been saved.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
@@ -149,66 +130,36 @@ export default function RemindersPage() {
     }
   };
 
-  const handleEnableNotifications = async () => {
-    setNotificationStatus('requesting');
-    
-    try {
-      const subscription = await subscribeToNotifications();
-      if (subscription) {
-        setNotificationStatus('granted');
-        toast({
-          title: "Notifications Enabled!",
-          description: "You'll now receive push notifications for your reminders.",
-          variant: "default",
-        });
+  const handleToggleNotifications = async () => {
+    if (isSubscribed) {
+      await unsubscribe();
+      setIsSubscribed(false);
+      toast({ title: "Notifications Disabled" });
+    } else {
+      const sub = await subscribe();
+      if (sub) {
+        setIsSubscribed(true);
+        toast({ title: "Notifications Enabled!", description: "You're all set to receive reminders." });
       } else {
-        setNotificationStatus('denied');
-        toast({
-          title: "Permission Denied",
-          description: "Please enable notifications in your browser settings to receive reminders.",
-          variant: "destructive",
-        });
+        toast({ title: "Permission Denied", description: "Please enable notifications in your browser settings.", variant: "destructive" });
       }
-    } catch (error) {
-      setNotificationStatus('denied');
-      toast({
-        title: "Error",
-        description: "Failed to enable notifications. Please try again.",
-        variant: "destructive",
-      });
     }
-  };
-
-  const handleDisableNotifications = async () => {
-    try {
-      await unsubscribeFromNotifications();
-      setNotificationStatus('idle');
-      toast({
-        title: "Notifications Disabled",
-        description: "Push notifications have been disabled.",
-        variant: "default",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to disable notifications. Please try again.",
-        variant: "destructive",
-      });
-    }
+    // Re-check permission status
+    setNotificationPermission(Notification.permission);
   };
 
   const handleTestNotification = async () => {
     try {
-      await showTestNotification();
+      await sendTestNotification();
       toast({
         title: "Test Notification Sent!",
         description: "Check if you received the notification.",
         variant: "default",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send test notification. Please try again.",
+        description: error.message || "Failed to send test notification.",
         variant: "destructive",
       });
     }
@@ -266,45 +217,35 @@ export default function RemindersPage() {
                     {isSupported ? <Smartphone className="h-5 w-5 text-primary" /> : <Globe className="h-5 w-5 text-primary" />}
                   </div>
                   <div>
-                    <h3 className="font-medium">Notification Status</h3>
+                    <h3 className="font-medium">Push Notifications</h3>
                     <p className="text-sm text-muted-foreground">
-                      {isSupported 
-                        ? subscription 
-                          ? "Push notifications enabled" 
-                          : "Local notifications only"
-                        : "Notifications not supported in this browser"
+                      {
+                        !isSupported ? "Not supported by your browser" :
+                        permission === 'denied' ? "Permission denied" :
+                        isSubscribed ? "Enabled and active" : "Disabled"
                       }
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  {isSupported && !subscription && (
-                    <Button
-                      size="sm"
-                      onClick={handleEnableNotifications}
-                      disabled={notificationStatus === 'requesting'}
-                    >
-                      {notificationStatus === 'requesting' ? (
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Bell className="h-4 w-4 mr-2" />
-                      )}
-                      Enable Notifications
-                    </Button>
-                  )}
-                  {isSupported && subscription && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleDisableNotifications}
-                      disabled={notificationStatus === 'requesting'}
-                    >
-                      <BellOff className="h-4 w-4 mr-2" />
-                      Disable Notifications
-                    </Button>
-                  )}
-                </div>
+                {isSupported && (
+                    <div className="flex items-center space-x-2">
+                        <Button
+                            size="sm"
+                            onClick={handleToggleNotifications}
+                            variant={isSubscribed ? "destructive" : "default"}
+                        >
+                            {isSubscribed ? <BellOff className="h-4 w-4 mr-2" /> : <Bell className="h-4 w-4 mr-2" />}
+                            {isSubscribed ? "Disable" : "Enable"}
+                        </Button>
+                        {isSubscribed && (
+                            <Button size="sm" variant="outline" onClick={handleTestNotification}>
+                                <TestTube className="h-4 w-4 mr-2" />
+                                Test
+                            </Button>
+                        )}
+                    </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -321,7 +262,7 @@ export default function RemindersPage() {
               >
                 <Sparkles className="h-8 w-8" />
               </motion.div>
-              Smart Notification Center
+              Reminder Settings
           </CardTitle>
             <CardDescription className="text-center">
               Customize your reminders to support your healthy habits
@@ -337,26 +278,7 @@ export default function RemindersPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 whileHover={{ y: -2 }}
-                onFocus={() => setActiveReminder('logMeals')}
-                onBlur={() => setActiveReminder(null)}
               >
-                {/* Animated background pattern */}
-                {settings.logMeals && (
-                  <motion.div 
-                    className="absolute inset-0 opacity-10 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.1 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <svg width="100%" height="100%" className="absolute inset-0">
-                      <pattern id="pattern-circles" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
-                        <circle id="pattern-circle" cx="10" cy="10" r="1.6257413380501518" fill="none" stroke="currentColor" strokeWidth="1"></circle>
-                      </pattern>
-                      <rect id="rect" x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)"></rect>
-                    </svg>
-                  </motion.div>
-                )}
-                
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2.5 rounded-lg ${settings.logMeals ? 'bg-primary/20 text-primary' : 'bg-muted/80'}`}>
@@ -395,7 +317,7 @@ export default function RemindersPage() {
                     type="time"
                     value={settings.logMealsTime}
                     onChange={handleInputChange}
-                            className={`pr-16 ${activeReminder === 'logMeals' ? 'border-primary/50 ring-1 ring-primary/20' : ''}`}
+                    className="pr-16"
                           />
                           
                           <Badge className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
@@ -415,36 +337,12 @@ export default function RemindersPage() {
               
               {/* Drink Water Reminder */}
               <motion.div 
-                className={`p-5 rounded-xl border ${settings.drinkWater ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
+                className={`p-5 rounded-xl border ${settings.drinkWater ? 'border-blue-500/30 bg-blue-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 whileHover={{ y: -2 }}
-                onFocus={() => setActiveReminder('drinkWater')}
-                onBlur={() => setActiveReminder(null)}
               >
-                {settings.drinkWater && (
-                  <motion.div 
-                    className="absolute inset-0 opacity-10 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ 
-                      opacity: [0.05, 0.1, 0.05],
-                      y: [0, 5, 0]
-                    }}
-                    transition={{ 
-                      repeat: Infinity,
-                      duration: 3
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" className="absolute inset-0">
-                      <pattern id="water-pattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M0 10 Q5 5, 10 10 T20 10" fill="none" stroke="currentColor" strokeWidth="1" />
-                      </pattern>
-                      <rect width="100%" height="100%" fill="url(#water-pattern)" />
-                    </svg>
-                  </motion.div>
-                )}
-                
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2.5 rounded-lg ${settings.drinkWater ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500' : 'bg-muted/80'}`}>
@@ -482,7 +380,7 @@ export default function RemindersPage() {
                             value={settings.drinkWaterFrequency} 
                             onValueChange={(value) => handleSelectChange(value, "drinkWaterFrequency")}
                           >
-                            <SelectTrigger className={`${activeReminder === 'drinkWater' ? 'border-blue-500/50 ring-1 ring-blue-500/20' : ''}`}>
+                            <SelectTrigger>
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -505,29 +403,12 @@ export default function RemindersPage() {
               
               {/* Weekly Weigh-In Reminder */}
               <motion.div 
-                className={`p-5 rounded-xl border ${settings.weighIn ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
+                className={`p-5 rounded-xl border ${settings.weighIn ? 'border-green-500/30 bg-green-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 whileHover={{ y: -2 }}
-                onFocus={() => setActiveReminder('weighIn')}
-                onBlur={() => setActiveReminder(null)}
               >
-                {settings.weighIn && (
-                  <motion.div 
-                    className="absolute inset-0 opacity-10 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.1 }}
-                  >
-                    <svg width="100%" height="100%" className="absolute inset-0">
-                      <pattern id="grid-pattern" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                      </pattern>
-                      <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-                    </svg>
-                  </motion.div>
-                )}
-                
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2.5 rounded-lg ${settings.weighIn ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-muted/80'}`}>
@@ -567,7 +448,7 @@ export default function RemindersPage() {
                                 value={settings.weighInDay} 
                                 onValueChange={(value) => handleSelectChange(value, "weighInDay")}
                               >
-                                <SelectTrigger className={`${activeReminder === 'weighIn' ? 'border-green-500/50 ring-1 ring-green-500/20' : ''}`}>
+                                <SelectTrigger>
                         <SelectValue placeholder="Select day" />
                       </SelectTrigger>
                       <SelectContent>
@@ -593,7 +474,7 @@ export default function RemindersPage() {
                       type="time"
                       value={settings.weighInTime}
                       onChange={handleInputChange}
-                                className={`pr-16 ${activeReminder === 'weighIn' ? 'border-green-500/50 ring-1 ring-green-500/20' : ''}`}
+                      className="pr-16"
                               />
                               
                               <Badge className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none bg-green-100 dark:bg-green-900/30 text-green-500 border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/40">

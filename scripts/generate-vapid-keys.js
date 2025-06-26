@@ -1,12 +1,91 @@
-const webpush = require('web-push');
-
-// Generate VAPID keys
-const vapidKeys = webpush.generateVAPIDKeys();
-
-console.log('VAPID Keys Generated:');
-console.log('=====================');
-console.log('Public Key:', vapidKeys.publicKey);
-console.log('Private Key:', vapidKeys.privateKey);
-console.log('\nAdd these to your .env.local file:');
-console.log('NEXT_PUBLIC_VAPID_PUBLIC_KEY=' + vapidKeys.publicKey);
-console.log('VAPID_PRIVATE_KEY=' + vapidKeys.privateKey); 
+{
+  "name": "nextn",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack -p 9002",
+    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "build": "next build",
+    "build:mobile": "next build && npx cap sync",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.3.0",
+    "@capacitor/cli": "^7.3.0",
+    "@capacitor/core": "^7.3.0",
+    "@genkit-ai/googleai": "^1.8.0",
+    "@genkit-ai/next": "^1.8.0",
+    "@hookform/resolvers": "^4.1.3",
+    "@opentelemetry/exporter-jaeger": "^2.0.1",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-avatar": "^1.1.3",
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-collapsible": "^1.1.11",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-menubar": "^1.1.6",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-radio-group": "^1.2.3",
+    "@radix-ui/react-scroll-area": "^1.2.3",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slider": "^1.2.3",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-switch": "^1.1.3",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toast": "^1.2.6",
+    "@radix-ui/react-toggle": "^1.1.9",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "@tanstack-query-firebase/react": "^1.0.5",
+    "@tanstack/react-query": "^5.66.0",
+    "chart.js": "^4.4.9",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.5.0",
+    "firebase": "^10.12.2",
+    "firebase-admin": "^12.1.1",
+    "framer-motion": "^11.18.2",
+    "genkit": "^1.8.0",
+    "html2pdf.js": "^0.10.3",
+    "lucide-react": "^0.475.0",
+    "next": "15.2.3",
+    "next-themes": "^0.3.0",
+    "openai": "^5.0.1",
+    "patch-package": "^8.0.0",
+    "react": "^18.3.1",
+    "react-chartjs-2": "^5.3.0",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.25.42"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "genkit-cli": "^1.8.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "description": "A modern, AI-powered calorie and nutrition tracking application built with Next.js and React.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

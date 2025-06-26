@@ -1,60 +1,48 @@
 // public/sw.js
+// This service worker is intentionally kept simple for compatibility.
+// It handles displaying notifications sent via FCM.
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
+  console.log('Service Worker installing.');
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
+  console.log('Service Worker activating.');
   event.waitUntil(self.clients.claim());
 });
 
+// Firebase Cloud Messaging will trigger this 'push' event
 self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push Received.');
-  
-  let notificationData = {};
-  try {
-    notificationData = event.data.json();
-  } catch (e) {
-    notificationData = {
-      title: 'Calorie Tracker',
-      body: event.data.text(),
-      icon: '/favicon/android-chrome-192x192.png',
-      badge: '/favicon/favicon-32x32.png',
-      data: { url: '/' }
-    };
+  if (!event.data) {
+    console.log("Push event but no data");
+    return;
   }
 
-  const { title, body, icon, badge, tag, data } = notificationData;
+  const data = event.data.json();
+  console.log('Push received:', data);
 
+  const title = data.notification.title || 'Calorie Tracker';
   const options = {
-    body: body,
-    icon: icon || '/favicon/android-chrome-192x192.png',
-    badge: badge || '/favicon/favicon-32x32.png',
-    tag: tag || 'default-tag',
-    data: data || { url: '/' },
-    actions: [
-      { action: 'log_meal', title: 'Log Meal' },
-      { action: 'dismiss', title: 'Dismiss' }
-    ]
+    body: data.notification.body,
+    icon: data.notification.icon || '/favicon/android-chrome-192x192.png',
+    badge: '/favicon/favicon-32x32.png',
+    data: {
+      url: data.fcmOptions && data.fcmOptions.link ? data.fcmOptions.link : '/'
+    }
   };
 
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked.');
   event.notification.close();
-
   const urlToOpen = event.notification.data.url || '/';
-
+  
   event.waitUntil(
     clients.matchAll({
       type: 'window',
-      includeUncontrolled: true
+      includeUncontrolled: true,
     }).then((clientList) => {
       if (clientList.length > 0) {
         let client = clientList[0];
