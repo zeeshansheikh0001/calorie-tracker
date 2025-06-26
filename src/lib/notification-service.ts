@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,7 +13,7 @@ export function useNotificationService() {
 
   // Check for browser support and current permission status on mount
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
+    if (typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator) {
       setIsSupported(true);
       setPermission(Notification.permission);
     }
@@ -46,7 +47,13 @@ export function useNotificationService() {
           throw new Error("VAPID key is not configured in environment variables.");
         }
         
-        const token = await getToken(messaging, { vapidKey });
+        // Explicitly register the service worker
+        const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        
+        const token = await getToken(messaging, { 
+            vapidKey,
+            serviceWorkerRegistration: swRegistration
+        });
         
         if (token) {
           setFcmToken(token);
