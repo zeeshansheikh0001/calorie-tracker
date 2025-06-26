@@ -1,5 +1,12 @@
-
 "use client";
+
+declare global {
+  interface Window {
+    OneSignal: any;
+    OneSignalDeferred?: any[];
+  }
+}
+
 
 import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useNotificationService } from "@/lib/notification-service";
 import { 
   BellRing, Save, CheckCircle, Clock, Droplets, Scale, 
   CalendarCheck, RefreshCw, BellDot, Bell, BellOff, 
@@ -61,38 +67,24 @@ const formatDay = (day: string) => {
 export default function RemindersPage() {
   const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-
   const { toast } = useToast();
-  const { 
-    initialize,
-    subscribe,
-    unsubscribe,
-    sendTestNotification,
-    isSupported: browserSupportsPush,
-    permission
-  } = useNotificationService();
 
   useEffect(() => {
-    setIsSupported(browserSupportsPush);
-    setNotificationPermission(permission);
+    // Optionally, set the external user ID if you have user auth
+    // window.OneSignalDeferred = window.OneSignalDeferred || [];
+    // OneSignalDeferred.push(function(OneSignal) {
+    //   OneSignal.setExternalUserId("YOUR_APP_USER_ID");
+    // });
+  }, []);
 
+  useEffect(() => {
     // Load settings from localStorage
     const storedSettings = localStorage.getItem("reminderSettings");
     if (storedSettings) {
       const parsedSettings = JSON.parse(storedSettings);
       setSettings(parsedSettings);
     }
-
-    // Check current subscription status
-    const checkSubscription = async () => {
-        const currentSub = await initialize();
-        setIsSubscribed(!!currentSub);
-    };
-    checkSubscription();
-  }, [browserSupportsPush, permission, initialize]);
+  }, []);
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
     setSettings((prev) => ({ ...prev, [name]: checked }));
@@ -109,10 +101,8 @@ export default function RemindersPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
       localStorage.setItem("reminderSettings", JSON.stringify(settings));
-      
       toast({
         title: "Reminders Updated!",
         description: "Your reminder preferences have been saved.",
@@ -131,55 +121,14 @@ export default function RemindersPage() {
     }
   };
 
-  const handleToggleNotifications = async () => {
-    if (isSubscribed) {
-      await unsubscribe();
-      setIsSubscribed(false);
-      toast({ title: "Notifications Disabled" });
-      if ('Notification' in window) {
-        setNotificationPermission(Notification.permission);
-      }
-      return;
-    }
-
-    if (notificationPermission === 'denied') {
-      toast({
-        title: "Permission Previously Denied",
-        description: "You have blocked notifications. Please go to your browser settings to enable them for this site.",
-        variant: "destructive",
-        duration: 7000
-      });
-      return;
-    }
-
-    const sub = await subscribe();
-    if (sub) {
-      setIsSubscribed(true);
-      toast({ title: "Notifications Enabled!", description: "You're all set to receive reminders." });
+  // OneSignal subscribe button handler
+  const handleOneSignalSubscribe = () => {
+    if (typeof window !== "undefined" && window.OneSignal) {
+      window.OneSignal.showSlidedownPrompt();
     } else {
       toast({
-        title: "Permission Required",
-        description: "You need to grant permission to enable notifications.",
-        variant: "destructive",
-      });
-    }
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-  };
-
-  const handleTestNotification = async () => {
-    try {
-      await sendTestNotification();
-      toast({
-        title: "Test Notification Sent!",
-        description: "Check if you received the notification.",
-        variant: "default",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send test notification.",
+        title: "OneSignal Not Loaded",
+        description: "Please try again after the page has fully loaded.",
         variant: "destructive",
       });
     }
@@ -220,55 +169,13 @@ export default function RemindersPage() {
           <p className="text-muted-foreground max-w-lg mx-auto">
             Set up personalized notifications to help you stay on track with your health and nutrition goals.
           </p>
-        </motion.div>
-
-        {/* Notification Status Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-6"
-        >
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-lg bg-primary/20">
-                    {isSupported ? <Smartphone className="h-5 w-5 text-primary" /> : <Globe className="h-5 w-5 text-primary" />}
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Push Notifications</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {
-                        !isSupported ? "Not supported by your browser" :
-                        notificationPermission === 'denied' ? "Permission denied" :
-                        isSubscribed ? "Enabled and active" : "Disabled"
-                      }
-                    </p>
-                  </div>
-                </div>
-                
-                {isSupported && (
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            size="sm"
-                            onClick={handleToggleNotifications}
-                            variant={isSubscribed ? "destructive" : "default"}
-                        >
-                            {isSubscribed ? <BellOff className="h-4 w-4 mr-2" /> : <Bell className="h-4 w-4 mr-2" />}
-                            {isSubscribed ? "Disable" : "Enable"}
-                        </Button>
-                        {isSubscribed && (
-                            <Button size="sm" variant="outline" onClick={handleTestNotification}>
-                                <TestTube className="h-4 w-4 mr-2" />
-                                Test
-                            </Button>
-                        )}
-                    </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <Button
+            className="mt-6"
+            onClick={handleOneSignalSubscribe}
+            variant="default"
+          >
+            Enable Push Notifications
+          </Button>
         </motion.div>
 
         <Card className="overflow-hidden border border-border/40 shadow-lg bg-gradient-to-b from-background to-muted/10">
