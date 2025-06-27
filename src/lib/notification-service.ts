@@ -1,130 +1,69 @@
+"use client";
 
-// "use client";
+import { useState, useEffect, useCallback } from 'react';
 
-// import { useState, useEffect, useCallback } from 'react';
-// import { firebaseApp, messaging } from './firebase-client';
-// import { getToken } from 'firebase/messaging';
+// Simple notification service using browser Notifications API
+export function useNotificationService() {
+  const [isSupported, setIsSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
 
-// // This custom hook manages the entire notification lifecycle with FCM
-// export function useNotificationService() {
-//   const [isSupported, setIsSupported] = useState(false);
-//   const [permission, setPermission] = useState<NotificationPermission>('default');
-//   const [fcmToken, setFcmToken] = useState<string | null>(null);
-
-//   // Check for browser support and current permission status on mount
-//   useEffect(() => {
-//     if (typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator) {
-//       setIsSupported(true);
-//       setPermission(Notification.permission);
-//     }
-//   }, []);
-
-//   const initialize = useCallback(async () => {
-//     if (!isSupported || !messaging) return null;
-    
-//     // Check for existing token
-//     const currentToken = localStorage.getItem('fcmToken');
-//     if (currentToken) {
-//         setFcmToken(currentToken);
-//     }
-//     return currentToken;
-//   }, [isSupported]);
+  // Check for browser support and current permission status on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setIsSupported(true);
+      setPermission(Notification.permission);
+    }
+  }, []);
   
-//   // Function to request permission and subscribe
-//   const subscribe = useCallback(async () => {
-//     if (!isSupported || !messaging) {
-//       console.error("Firebase Messaging is not supported or initialized.");
-//       return null;
-//     }
+  // Function to request permission
+  const requestPermission = useCallback(async () => {
+    if (!isSupported) {
+      console.error("Notifications are not supported in this browser.");
+      return false;
+    }
 
-//     try {
-//       const currentPermission = await Notification.requestPermission();
-//       setPermission(currentPermission);
+    try {
+      const newPermission = await Notification.requestPermission();
+      setPermission(newPermission);
+      return newPermission === 'granted';
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  }, [isSupported]);
 
-//       if (currentPermission === 'granted') {
-//         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-//         if (!vapidKey) {
-//           throw new Error("VAPID key is not configured in environment variables.");
-//         }
-        
-//         // Explicitly register the service worker
-//         const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        
-//         const token = await getToken(messaging, { 
-//             vapidKey,
-//             serviceWorkerRegistration: swRegistration
-//         });
-        
-//         if (token) {
-//           setFcmToken(token);
-//           localStorage.setItem('fcmToken', token);
+  // Function to send a notification
+  const sendNotification = useCallback((title: string, options?: NotificationOptions) => {
+    if (!isSupported || permission !== 'granted') {
+      console.warn("Cannot send notification: either notifications are not supported or permission is not granted");
+      return;
+    }
 
-//           // Send the token to your server to save it
-//           await fetch('/api/notifications/subscribe', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ token }),
-//           });
-//           return token;
-//         } else {
-//           console.warn("No registration token available. Request permission to generate one.");
-//           return null;
-//         }
-//       } else {
-//         console.warn("Notification permission was not granted.");
-//         return null;
-//       }
-//     } catch (error) {
-//       console.error('An error occurred while subscribing to notifications.', error);
-//       return null;
-//     }
-//   }, [isSupported]);
+    try {
+      return new Notification(title, options);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+  }, [isSupported, permission]);
 
-//   // Function to unsubscribe
-//   const unsubscribe = useCallback(async () => {
-//     const tokenToUnsubscribe = fcmToken;
-//     if (!tokenToUnsubscribe) return;
+  // Send a test notification
+  const sendTestNotification = useCallback(async () => {
+    if (permission !== 'granted') {
+      const granted = await requestPermission();
+      if (!granted) return;
+    }
     
-//     try {
-//       // You don't "delete" a token from FCM, you just stop using it.
-//       // The key part is removing it from your server's database.
-//       await fetch('/api/notifications/unsubscribe', {
-//           method: 'DELETE',
-//           headers: { 'Content-Type': 'application/json' },
-//           body: JSON.stringify({ token: tokenToUnsubscribe }),
-//       });
+    return sendNotification("Test Notification", {
+      body: "If you see this, notifications are working!",
+      icon: "/favicon/favicon-32x32.png"
+    });
+  }, [permission, requestPermission, sendNotification]);
 
-//       localStorage.removeItem('fcmToken');
-//       setFcmToken(null);
-      
-//     } catch (error) {
-//       console.error('Failed to unsubscribe:', error);
-//     }
-//   }, [fcmToken]);
-
-//   const sendTestNotification = useCallback(async () => {
-//     const token = fcmToken || localStorage.getItem('fcmToken');
-//     if (!token) {
-//         throw new Error("Not subscribed to notifications. Cannot send a test.");
-//     }
-//     await fetch('/api/notifications/send', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//             token: token,
-//             title: "Test Notification",
-//             message: "If you see this, notifications are working!"
-//         }),
-//     });
-//   }, [fcmToken]);
-
-//   return { 
-//     initialize, 
-//     subscribe, 
-//     unsubscribe, 
-//     sendTestNotification, 
-//     isSupported, 
-//     permission,
-//     subscription: fcmToken // For UI logic, a token means subscribed
-//   };
-// }
+  return { 
+    isSupported, 
+    permission,
+    requestPermission,
+    sendNotification,
+    sendTestNotification
+  };
+}

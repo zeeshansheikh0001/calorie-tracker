@@ -1,13 +1,5 @@
 "use client";
 
-declare global {
-  interface Window {
-    OneSignal: any;
-    OneSignalDeferred?: any[];
-  }
-}
-
-
 import { useState, useEffect, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationService } from "@/lib/notification-service";
 import { 
   BellRing, Save, CheckCircle, Clock, Droplets, Scale, 
   CalendarCheck, RefreshCw, BellDot, Bell, BellOff, 
@@ -68,14 +61,7 @@ export default function RemindersPage() {
   const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    // Optionally, set the external user ID if you have user auth
-    // window.OneSignalDeferred = window.OneSignalDeferred || [];
-    // OneSignalDeferred.push(function(OneSignal) {
-    //   OneSignal.setExternalUserId("YOUR_APP_USER_ID");
-    // });
-  }, []);
+  const { isSupported, permission, requestPermission, sendTestNotification } = useNotificationService();
 
   useEffect(() => {
     // Load settings from localStorage
@@ -121,21 +107,31 @@ export default function RemindersPage() {
     }
   };
 
-  // OneSignal subscribe button handler
-  const handleOneSignalSubscribe = () => {
-    if (typeof window !== "undefined" && window.OneSignalDeferred) {
-      window.OneSignalDeferred.push(function(OneSignal: any) {
-        if (OneSignal && typeof OneSignal.showSlidedownPrompt === 'function') {
-          OneSignal.showSlidedownPrompt();
-        }
+  const handleEnableNotifications = async () => {
+    const result = await requestPermission();
+    if (result) {
+      toast({
+        title: "Notifications Enabled",
+        description: "You will now receive notifications for your reminders.",
+        variant: "default",
+        action: <CheckCircle className="text-green-500" />,
       });
     } else {
       toast({
-        title: "OneSignal Not Loaded",
-        description: "Please try again after the page has fully loaded.",
+        title: "Notifications Blocked",
+        description: "Please enable notifications in your browser settings to receive reminders.",
         variant: "destructive",
       });
     }
+  };
+
+  const handleTestNotification = () => {
+    sendTestNotification();
+    toast({
+      title: "Test Notification Sent",
+      description: "If notifications are enabled, you should see a test notification.",
+      variant: "default",
+    });
   };
 
   const resetToDefaults = () => {
@@ -173,13 +169,23 @@ export default function RemindersPage() {
           <p className="text-muted-foreground max-w-lg mx-auto">
             Set up personalized notifications to help you stay on track with your health and nutrition goals.
           </p>
-          <Button
-            className="mt-6"
-            onClick={handleOneSignalSubscribe}
-            variant="default"
-          >
-            Enable Push Notifications
-          </Button>
+          <div className="flex justify-center mt-6 space-x-4">
+            <Button
+              onClick={handleEnableNotifications}
+              variant="default"
+              disabled={!isSupported || permission === 'granted'}
+            >
+              {permission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
+            </Button>
+            {permission === 'granted' && (
+              <Button
+                onClick={handleTestNotification}
+                variant="outline"
+              >
+                Send Test Notification
+              </Button>
+            )}
+          </div>
         </motion.div>
 
         <Card className="overflow-hidden border border-border/40 shadow-lg bg-gradient-to-b from-background to-muted/10">
@@ -248,22 +254,13 @@ export default function RemindersPage() {
                     type="time"
                     value={settings.logMealsTime}
                     onChange={handleInputChange}
-                    className="pr-16"
-                          />
-                          
-                          <Badge className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                            {formatTime(settings.logMealsTime)}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center mt-3 text-xs text-muted-foreground">
-                          <BellDot className="h-3 w-3 mr-1.5" />
-                          <span>We'll notify you every day at this time</span>
-                        </div>
+                    className="bg-background/50"
+                  />
                 </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              </div>
+            </motion.div>
+              )}
+            </AnimatePresence>
               </motion.div>
               
               {/* Drink Water Reminder */}
@@ -425,46 +422,36 @@ export default function RemindersPage() {
                 </AnimatePresence>
               </motion.div>
               
-              <div className="flex justify-between pt-4 border-t border-border/30">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+              <div className="flex justify-between items-center mt-8 pt-4 border-t border-border/30">
+                <Button 
+                  type="button" 
+                  variant="outline" 
                   onClick={resetToDefaults}
-                  className="group"
+                  className="flex items-center space-x-2"
                 >
-                  <RefreshCw className="h-3.5 w-3.5 mr-1.5 group-hover:rotate-180 transition-transform duration-500" />
-                  Reset
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  <span>Reset to Defaults</span>
                 </Button>
-                
                 <Button 
                   type="submit" 
+                  className="flex items-center"
                   disabled={isLoading}
-                  className="relative overflow-hidden group"
                 >
                   {isLoading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                      className="mr-2"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                    </motion.div>
+                    <>
+                      <span className="animate-spin mr-2">
+                        <RefreshCw className="h-4 w-4" />
+                      </span>
+                      <span>Saving...</span>
+                    </>
                   ) : (
-                    <Save className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      <span>Save Settings</span>
+                    </>
                   )}
-                  <span>{isLoading ? 'Saving...' : 'Save Reminders'}</span>
-                  
-                  <motion.div
-                    className="absolute inset-0 bg-primary/10"
-                    initial={{ x: '-100%' }}
-                    animate={{ 
-                      x: isLoading ? '0%' : '-100%' 
-                    }}
-                    transition={{ duration: 0.8 }}
-                  />
                 </Button>
-            </div>
+              </div>
             </form>
           </CardContent>
       </Card>
