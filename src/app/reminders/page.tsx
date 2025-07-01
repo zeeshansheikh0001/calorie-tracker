@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
+import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -8,6 +10,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationService } from "@/lib/notification-service";
+
+// Utility function to convert VAPID public key to Uint8Array
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
+
+// VAPID public key from environment variables
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 import { 
   BellRing, Save, CheckCircle, Clock, Droplets, Scale, 
   CalendarCheck, RefreshCw, BellDot, Bell, BellOff, 
@@ -62,15 +81,44 @@ export default function RemindersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { isSupported, permission, requestPermission, sendTestNotification } = useNotificationService();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // Load settings from localStorage
-    const storedSettings = localStorage.getItem("reminderSettings");
-    if (storedSettings) {
-      const parsedSettings = JSON.parse(storedSettings);
-      setSettings(parsedSettings);
-    }
-  }, []);
+    const fetchUserAndSettings = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data, error } = await supabase
+          .from('user_reminders')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+          console.error('Error fetching reminder settings:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load reminder settings.",
+            variant: "destructive",
+          });
+        } else if (data) {
+          setSettings({
+            logMeals: data.log_meals,
+            logMealsTime: data.log_meals_time,
+            drinkWater: data.drink_water,
+            drinkWaterFrequency: data.drink_water_frequency,
+            weighIn: data.weigh_in,
+            weighInDay: data.weigh_in_day,
+            weighInTime: data.weigh_in_time,
+          });
+        }
+      }
+    };
+
+    fetchUserAndSettings();
+  }, [supabase, toast]);
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
     setSettings((prev) => ({ ...prev, [name]: checked }));
@@ -87,14 +135,63 @@ export default function RemindersPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save reminders.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      localStorage.setItem("reminderSettings", JSON.stringify(settings));
+      const { error } = await supabase
+        .from('user_reminders')
+        .upsert({
+          user_id: user.id,
+          log_meals: settings.logMeals,
+          log_meals_time: settings.logMealsTime,
+          drink_water: settings.drinkWater,
+          drink_water_frequency: settings.drinkWaterFrequency,
+          weigh_in: settings.weighIn,
+          weigh_in_day: settings.weighInDay,
+          weigh_in_time: settings.weighInTime,
+        }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+
       toast({
         title: "Reminders Updated!",
         description: "Your reminder preferences have been saved.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
+      
+      // Send an immediate notification to confirm reminders are set
+      if (permission === 'granted') {
+        try {
+          const response = await fetch('/api/notifications/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: "Reminders Activated",
+              body: "Your reminder settings have been saved and are now active.",
+              type: "reminder_confirmation"
+            }),
+          });
+          
+          const result = await response.json();
+          if (!result.success) {
+            console.log('Notification might not have been sent:', result);
+          }
+        } catch (error) {
+          console.error('Error sending confirmation notification:', error);
+          // Don't show an error to the user as this is not critical
+        }
+      }
     } catch (error) {
       console.error('Error saving reminder settings:', error);
       toast({
@@ -108,18 +205,53 @@ export default function RemindersPage() {
   };
 
   const handleEnableNotifications = async () => {
-    const result = await requestPermission();
-    if (result) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      toast({
+        title: "Push Notifications Not Supported",
+        description: "Your browser does not support push notifications.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      toast({
+        title: "Notifications Blocked",
+        description: "Please enable notifications in your browser settings to receive reminders.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    if (!VAPID_PUBLIC_KEY) {
+      throw new Error("VAPID_PUBLIC_KEY is not defined. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY in your environment variables.");
+    }
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    try {
+      await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(subscription),
+      });
       toast({
         title: "Notifications Enabled",
         description: "You will now receive notifications for your reminders.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
-    } else {
+    } catch (error) {
+      console.error('Error saving push subscription:', error);
       toast({
-        title: "Notifications Blocked",
-        description: "Please enable notifications in your browser settings to receive reminders.",
+        title: "Error",
+        description: "Failed to enable notifications. Please try again.",
         variant: "destructive",
       });
     }

@@ -35,6 +35,9 @@ import {
   Trash,
 } from "lucide-react";
 import { useState, type FC, useEffect, ReactNode, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+import { useRouter } from "next/navigation";
 import type { FoodEntry as LoggedFoodEntry, BlogPost, DailyLogEntry } from "@/types";
 import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
@@ -322,6 +325,50 @@ const InfoTooltip = ({ title, description, color }: { title: string; description
 };
 
 export default function DashboardPage() {
+  const router = useRouter(); // Add this line to initialize router
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/auth");
+      } else {
+        setUser(user);
+      }
+    };
+    checkUser();
+
+    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        router.push("/auth");
+      }
+    });
+
+    return () => {
+      authListener.unsubscribe();
+    };
+  }, [supabase, router]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Logout Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+        variant: "default",
+      });
+    }
+  };
   const { dailyLog, foodEntries, isLoading: isLoadingLog, deleteFoodEntry, currentSelectedDate, selectDateForLog, getLogDataForDate } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
@@ -424,7 +471,14 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-5 p-6 max-w-2xl mx-auto bg-[#F2F2F7] dark:bg-background">
-      {/* Header - Apple Health Inspired */}
+      {user ? (
+        <>
+          {/* Header - Apple Health Inspired */}
+          {/* <div className="flex justify-end mb-4">
+            <Button onClick={handleLogout} variant="outline">
+              Logout
+            </Button>
+          </div> */}
       <motion.div 
         className="relative overflow-hidden rounded-2xl shadow-lg w-full"
         initial={{ opacity: 0, y: -20 }}
@@ -520,6 +574,11 @@ export default function DashboardPage() {
                 </Button>
               </motion.div>
           </Link>
+          {user && (
+            <Button onClick={handleLogout} variant="outline" className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm">
+              Logout
+            </Button>
+          )}
         </div>
       </div>
       </motion.div>
@@ -1498,6 +1557,8 @@ export default function DashboardPage() {
           background: linear-gradient(to bottom right, #000000, #0A0A0A);
         }
       `}</style>
+    </>
+  ) : null}
     </div>
   );
 }

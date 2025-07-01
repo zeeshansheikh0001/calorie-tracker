@@ -7,6 +7,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 import React from 'react';
 import { applicationSchema } from '@/lib/schema';
 import GoogleAnalytics from '@/lib/analytics';
+import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
+
+import SupabaseProvider from "@/components/supabase-provider";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -115,6 +118,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   const bodyClassNames = [
     geistSans.variable.trim(),
     geistMono.variable.trim(),
@@ -139,12 +143,15 @@ export default function RootLayout({
       </head>
       <body className={bodyClassNames}>
         <GoogleAnalytics />
+        <ServiceWorkerRegistrar />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
         >
-          <AppLayout>{children}</AppLayout>
+          <SupabaseProvider>
+            <AppLayout>{children}</AppLayout>
+          </SupabaseProvider>
           <Toaster />
         </ThemeProvider>
       </body>
