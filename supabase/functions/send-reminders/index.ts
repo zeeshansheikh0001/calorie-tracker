@@ -5,11 +5,12 @@ const supabaseUrl = Deno.env.get('NEXT_PUBLIC_SUPABASE_URL')!
 const supabaseKey = Deno.env.get('SUPABASE_SECRET_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')!
+const vapidPublicKey = Deno.env.get('NEXT_PUBLIC_VAPID_PUBLIC_KEY')!
 const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')!
+const vapidEmail = Deno.env.get('VAPID_EMAIL') || 'noreply@calorietracker.in'
 
 webpush.setVapidDetails(
-  'mailto:your-email@example.com',
+  `mailto:${vapidEmail}`,
   vapidPublicKey,
   vapidPrivateKey
 )
@@ -54,23 +55,26 @@ async function sendReminders() {
       const [mealHour, mealMinute] = log_meals_time.split(':').map(Number);
       if (currentHour === mealHour && currentMinute === mealMinute) {
         payload = JSON.stringify({
-          title: 'Time to log your meal!',
-          body: 'Don\'t forget to log your meal for today.',
+          title: '🍽️ Time to log your meal!',
+          body: 'Don\'t forget to log your meal for today to stay on track.',
+          type: 'meal_reminder'
         });
       }
     }
 
-    // Drink Water Reminder (simplified for demonstration, needs more robust scheduling)
+    // Drink Water Reminder - Enhanced with better scheduling
     if (drink_water && drink_water_frequency) {
-      // This is a simplified check. A real implementation would need to track last sent time
-      // or use a more sophisticated scheduling mechanism.
-      // For example, if frequency is "every_2_hours", send if current time is 00:00, 02:00, 04:00 etc.
       const frequencyHours = parseInt(drink_water_frequency.replace('every_', '').replace('_hours', ''));
-      if (currentMinute === 0 && currentHour % frequencyHours === 0) {
-        payload = JSON.stringify({
-          title: 'Stay Hydrated!',
-          body: 'Time to drink some water.',
-        });
+      
+      // Only send during waking hours (7 AM to 10 PM)
+      if (currentHour >= 7 && currentHour <= 22) {
+        if (currentMinute === 0 && currentHour % frequencyHours === 0) {
+          payload = JSON.stringify({
+            title: '💧 Stay Hydrated!',
+            body: 'Time to drink some water and keep your body refreshed.',
+            type: 'water_reminder'
+          });
+        }
       }
     }
 
@@ -79,8 +83,9 @@ async function sendReminders() {
       const [weighInHour, weighInMinute] = weigh_in_time.split(':').map(Number);
       if (currentDay === weigh_in_day && currentHour === weighInHour && currentMinute === weighInMinute) {
         payload = JSON.stringify({
-          title: 'Weekly Weigh-In Reminder!',
-          body: 'Time to track your progress.',
+          title: '⚖️ Weekly Weigh-In Reminder!',
+          body: 'Time to track your progress and see how far you\'ve come.',
+          type: 'weigh_in_reminder'
         });
       }
     }
@@ -98,5 +103,25 @@ async function sendReminders() {
   }
 }
 
-// You can call this function based on a schedule (e.g., using a cron job)
-sendReminders()
+// HTTP handler for the edge function
+Deno.serve(async (req) => {
+  try {
+    await sendReminders();
+    return new Response(
+      JSON.stringify({ success: true, message: 'Reminders processed successfully' }),
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    );
+  } catch (error) {
+    console.error('Error in send-reminders function:', error);
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 500 
+      }
+    );
+  }
+});

@@ -12,7 +12,9 @@
     "cap:open:android": "npx cap open android",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate-vapid": "node scripts/generate-vapid-keys.js",
+    "setup-notifications": "npm run generate-vapid && echo 'Add the generated keys to your .env.local file'"
   },
   "dependencies": {
     "@capacitor/android": "^7.3.0",

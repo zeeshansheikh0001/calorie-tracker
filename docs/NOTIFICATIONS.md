@@ -18,19 +18,26 @@ The notification system has several components:
 
 VAPID (Voluntary Application Server Identification) keys are required for sending web push notifications.
 
-Run the following command to generate new VAPID keys:
+First, make sure you have the required dependencies:
+```bash
+npm install web-push
+```
+
+Then run the following command to generate new VAPID keys:
 
 ```bash
 node scripts/generate-vapid-keys.js
 ```
 
-This will output public and private keys. Add them to your environment variables:
+This will output public and private keys. Add them to your `.env.local` file:
 
 ```
 NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_generated_public_key
 VAPID_PRIVATE_KEY=your_generated_private_key
 VAPID_EMAIL=your-email@example.com
 ```
+
+**Important**: Replace `your-email@example.com` with your actual email address.
 
 ### 2. Set Up the Service Worker
 
@@ -40,7 +47,54 @@ The service worker is already set up in `public/service-worker.js`. It handles i
 
 Users need to grant permission for notifications. The app handles this process through:
 - The `useNotificationService` hook in `src/lib/notification-service.ts`
-- The permission request in the Reminders page
+- The permission request in the Reminders page (`src/app/reminders/page.tsx`)
+
+#### How it works:
+1. User visits the Reminders page
+2. Clicks "Enable Notifications" button
+3. Browser prompts for notification permission
+4. If granted, the app subscribes to push notifications
+5. Subscription details are saved to the `push_subscriptions` table
+
+### 4. Scheduled Notifications
+
+The app uses Supabase Edge Functions to send scheduled notifications:
+
+#### Setting up the Edge Function:
+1. Deploy the edge function:
+```bash
+supabase functions deploy send-reminders
+```
+
+2. Set up environment variables in Supabase:
+```bash
+supabase secrets set NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key
+supabase secrets set VAPID_PRIVATE_KEY=your_private_key
+supabase secrets set VAPID_EMAIL=your-email@example.com
+```
+
+3. Create a cron job to trigger the function every minute:
+```sql
+SELECT cron.schedule('send-reminders', '* * * * *', 'https://your-project-id.supabase.co/functions/v1/send-reminders');
+```
+
+### 5. Testing Notifications
+
+#### Manual Testing:
+1. Go to `/reminders` page
+2. Enable notifications
+3. Click "Send Test Notification"
+4. You should see a test notification
+
+#### API Testing:
+Send a POST request to `/api/notifications/send`:
+```json
+{
+  "title": "Test Notification",
+  "body": "This is a test message",
+  "type": "test"
+}
+```
 
 ### 4. Testing Notifications
 

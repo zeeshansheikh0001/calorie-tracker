@@ -80,7 +80,7 @@ export default function RemindersPage() {
   const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { isSupported, permission, requestPermission, sendTestNotification } = useNotificationService();
+  const { isSupported, permission, requestPermission, sendTestNotification, subscribeToPush } = useNotificationService();
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
 
@@ -205,65 +205,39 @@ export default function RemindersPage() {
   };
 
   const handleEnableNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast({
-        title: "Push Notifications Not Supported",
-        description: "Your browser does not support push notifications.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      toast({
-        title: "Notifications Blocked",
-        description: "Please enable notifications in your browser settings to receive reminders.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const registration = await navigator.serviceWorker.ready;
-    if (!VAPID_PUBLIC_KEY) {
-      throw new Error("VAPID_PUBLIC_KEY is not defined. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY in your environment variables.");
-    }
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-
     try {
-      await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription),
-      });
+      await subscribeToPush();
       toast({
-        title: "Notifications Enabled",
-        description: "You will now receive notifications for your reminders.",
+        title: "🔔 Notifications Enabled",
+        description: "You will now receive smart reminders for your health goals.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
     } catch (error) {
-      console.error('Error saving push subscription:', error);
+      console.error('Error enabling notifications:', error);
       toast({
-        title: "Error",
-        description: "Failed to enable notifications. Please try again.",
+        title: "Notification Setup Failed",
+        description: error instanceof Error ? error.message : "Please try again or check your browser settings.",
         variant: "destructive",
       });
     }
   };
 
-  const handleTestNotification = () => {
-    sendTestNotification();
-    toast({
-      title: "Test Notification Sent",
-      description: "If notifications are enabled, you should see a test notification.",
-      variant: "default",
-    });
+  const handleTestNotification = async () => {
+    try {
+      await sendTestNotification();
+      toast({
+        title: "🧪 Test Notification Sent",
+        description: "Check your device - you should see a test notification!",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Test Failed",
+        description: "Unable to send test notification. Please check your settings.",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetToDefaults = () => {
