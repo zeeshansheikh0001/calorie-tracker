@@ -1,3 +1,5 @@
+// TODO: Uncomment when Supabase auth is fully implemented
+/*
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push';
 
@@ -124,4 +126,20 @@ Deno.serve(async (req) => {
       }
     );
   }
+});
+*/
+
+// Temporary placeholder for development
+// @ts-ignore - Deno types not available in this environment
+Deno.serve(async (req: any) => {
+  return new Response(
+    JSON.stringify({ 
+      success: false, 
+      message: 'Supabase Edge Function is disabled - auth not fully implemented' 
+    }),
+    { 
+      headers: { 'Content-Type': 'application/json' },
+      status: 503 
+    }
+  );
 });

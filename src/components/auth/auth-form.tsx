@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
+// TODO: Uncomment when Supabase auth is fully implemented
+// import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,8 +22,11 @@ export function AuthForm() {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
+  // TODO: Uncomment when Supabase auth is fully implemented
+  // const supabase = createClient();
 
+  // TODO: Uncomment when Supabase auth is fully implemented
+  /*
   const handleAuth = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -56,10 +60,28 @@ export function AuthForm() {
         title: "Authentication Error",
         description: error.message,
         variant: "destructive",
-      });
+        });
     } finally {
       setIsLoading(false);
     }
+  };
+  */
+
+  // Temporary mock authentication for development
+  const handleAuth = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Simulate loading
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    toast({
+      title: "Authentication Disabled",
+      description: "Supabase auth is not fully implemented. This is a mock form.",
+      variant: "default",
+    });
+
+    setIsLoading(false);
   };
 
   return (

@@ -2,17 +2,21 @@
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import { createClient } from "@/lib/supabase/client";
+// TODO: Uncomment when Supabase auth is fully implemented
+// import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
 export default function AuthPage() {
-  const supabase = createClient();
+  // TODO: Uncomment when Supabase auth is fully implemented
+  // const supabase = createClient();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false for mock
 
+  // TODO: Uncomment when Supabase auth is fully implemented
+  /*
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -34,6 +38,7 @@ export default function AuthPage() {
       subscription?.unsubscribe();
     };
   }, [router, supabase]);
+  */
 
   if (loading) {
     return (

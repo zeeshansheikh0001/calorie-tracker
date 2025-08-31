@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: Uncomment when Supabase auth is fully implemented
+/*
 import { useState, useEffect } from 'react';
 import type { UserProfile, SavedDietChart } from '@/types';
 import { generateId } from '@/lib/utils';
@@ -111,6 +113,45 @@ export function useUserProfile() {
     });
   };
 
+
+  return { userProfile, isLoading, updateUserProfile, saveDietChart };
+}
+*/
+
+// Temporary mock implementation for development
+import { useState, useEffect } from 'react';
+import type { UserProfile, SavedDietChart } from '@/types';
+
+const DEFAULT_USER_PROFILE: UserProfile = {
+  name: "Guest User",
+  email: "guest@example.com", 
+  avatarUrl: "https://placehold.co/100x100.png",
+  savedDietCharts: [],
+};
+
+export function useUserProfile() {
+  const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
+  const [isLoading, setIsLoading] = useState(false); // Set to false for mock
+
+  // Mock update function
+  const updateUserProfile = (newProfile: Partial<UserProfile>) => {
+    setUserProfile(prevProfile => ({ ...prevProfile, ...newProfile }));
+  };
+
+  // Mock save diet chart function
+  const saveDietChart = (name: string, dietChart: any) => {
+    const newDietChart: SavedDietChart = {
+      id: Date.now().toString(),
+      name,
+      createdAt: new Date().toISOString(),
+      dietChart,
+    };
+    
+    setUserProfile(prevProfile => ({
+      ...prevProfile,
+      savedDietCharts: [...(prevProfile.savedDietCharts || []), newDietChart]
+    }));
+  };
 
   return { userProfile, isLoading, updateUserProfile, saveDietChart };
 }

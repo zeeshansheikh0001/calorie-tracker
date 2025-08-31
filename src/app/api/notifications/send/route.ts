@@ -1,3 +1,5 @@
+// TODO: Uncomment when Supabase auth is fully implemented
+/*
 import { createClient } from '@/utils/supabase/route-handler';
 import { type NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse(JSON.stringify({ error: 'No subscriptions found', success: false }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
-      });
+    });
     }
 
     // Send notification to all of the user's registered devices
@@ -97,4 +99,17 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+}
+*/
+
+// Temporary placeholder for development
+import { type NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  return new NextResponse(JSON.stringify({ 
+    error: 'Notification API is disabled - Supabase auth not fully implemented' 
+  }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json' },
+  });
 } 

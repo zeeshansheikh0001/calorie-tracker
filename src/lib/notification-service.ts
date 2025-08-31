@@ -174,6 +174,8 @@ export function useNotificationService() {
       applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
     });
 
+    // TODO: Uncomment when Supabase auth is fully implemented
+    /*
     // Send subscription to server
     const response = await fetch('/api/notifications/subscribe', {
       method: 'POST',
@@ -186,6 +188,10 @@ export function useNotificationService() {
     if (!response.ok) {
       throw new Error('Failed to save push subscription');
     }
+    */
+    
+    // Temporary mock implementation
+    console.log('Push subscription would be saved to server (disabled)');
 
     return subscription;
   }, [requestPermission]);

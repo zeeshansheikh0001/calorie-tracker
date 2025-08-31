@@ -1,3 +1,5 @@
+// TODO: Uncomment when Supabase auth is fully implemented
+/*
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -29,4 +31,10 @@ export async function createClient() {
       },
     }
   )
+}
+*/
+
+// Temporary mock server client for development
+export async function createClient() {
+  return null as any;
 }

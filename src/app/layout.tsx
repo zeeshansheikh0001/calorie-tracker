@@ -9,7 +9,8 @@ import { applicationSchema } from '@/lib/schema';
 import GoogleAnalytics from '@/lib/analytics';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
 
-import SupabaseProvider from "@/components/supabase-provider";
+// TODO: Uncomment when Supabase auth is fully implemented
+// import SupabaseProvider from "@/components/supabase-provider";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -149,9 +150,10 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem
         >
-          <SupabaseProvider>
+          {/* TODO: Uncomment when Supabase auth is fully implemented */}
+          {/* <SupabaseProvider> */}
             <AppLayout>{children}</AppLayout>
-          </SupabaseProvider>
+          {/* </SupabaseProvider> */}
           <Toaster />
         </ThemeProvider>
       </body>

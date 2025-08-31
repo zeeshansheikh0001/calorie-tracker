@@ -23,7 +23,8 @@ import {
   Eye,
   Scale,
   Ruler,
-  Mail
+  Mail,
+  MessageSquare
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -42,6 +43,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { FeedbackForm } from "@/components/FeedbackForm";
+import { FeedbackStats } from "@/components/FeedbackStats";
 
 interface ListItemProps {
   href?: string;
@@ -490,8 +493,41 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
-         {/* App Version */}
-         <div className="mt-8 text-center text-xs text-muted-foreground">
+
+        {/* Feedback Section */}
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <CardTitle className="text-xl">Help Us Improve</CardTitle>
+            </div>
+            <CardDescription>
+              Share your feedback, report bugs, or suggest new features
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FeedbackForm />
+          </CardContent>
+        </Card>
+
+        {/* Feedback Statistics */}
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <CardTitle className="text-xl">Feedback Statistics</CardTitle>
+            </div>
+            <CardDescription>
+              View community feedback insights and metrics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FeedbackStats />
+          </CardContent>
+        </Card>
+
+        {/* App Version */}
+        <div className="mt-8 text-center text-xs text-muted-foreground">
           <p>Calorie Tracker v1.0.0</p>
           <p className="mt-1">© 2025 All Rights Reserved</p>
         </div>

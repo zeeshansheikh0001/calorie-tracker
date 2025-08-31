@@ -1,5 +1,7 @@
 "use client";
 
+// TODO: Uncomment when Supabase auth is fully implemented
+/*
 import { createClient } from "@/lib/supabase/client";
 import { createBrowserClient } from "@supabase/ssr";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
@@ -53,3 +55,17 @@ export default function SupabaseProvider({ children }: SupabaseProviderProps) {
     </SupabaseContext.Provider>
   );
 }
+*/
+
+// Temporary placeholder component
+export default function SupabaseProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
+
+// Temporary placeholder hook
+export const useSupabase = () => {
+  return {
+    supabaseClient: null as any,
+    session: null,
+  };
+};
