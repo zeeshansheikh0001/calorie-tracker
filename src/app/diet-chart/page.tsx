@@ -1660,11 +1660,11 @@ export default function DietChartPage() {
             transition={{ delay: 0.1 }}
           >
             <ChefHat className="h-4 w-4 mr-1.5" />
-            AI Indian Diet Planner
+            AI Diet Planner
           </motion.div>
           <h1 className="text-4xl font-bold tracking-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500">
-              Indian Diet Chart
+              AI Diet Chart
             </span>
           </h1>
           <motion.p
