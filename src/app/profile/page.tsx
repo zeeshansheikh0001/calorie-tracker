@@ -24,7 +24,9 @@ import {
   Scale,
   Ruler,
   Mail,
-  MessageSquare
+  MessageSquare,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,6 +39,7 @@ import {
   CardTitle, 
   CardFooter 
 } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -130,6 +133,8 @@ export default function ProfilePage() {
   const { userProfile, isLoading, updateUserProfile } = useUserProfile();
   const { toast } = useToast();
   const [avatarHover, setAvatarHover] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isFeedbackStatsOpen, setIsFeedbackStatsOpen] = useState(false);
   
   const handleLogout = () => {
     toast({
@@ -496,34 +501,66 @@ export default function ProfilePage() {
 
         {/* Feedback Section */}
         <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Help Us Improve</CardTitle>
-            </div>
-            <CardDescription>
-              Share your feedback, report bugs, or suggest new features
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FeedbackForm />
-          </CardContent>
+          <Collapsible open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle className="text-xl">Help Us Improve</CardTitle>
+                      <CardDescription>
+                        Share your feedback, report bugs, or suggest new features
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: isFeedbackOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  </motion.div>
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <FeedbackForm />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         {/* Feedback Statistics */}
         <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Feedback Statistics</CardTitle>
-            </div>
-            <CardDescription>
-              View community feedback insights and metrics
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FeedbackStats />
-          </CardContent>
+          <Collapsible open={isFeedbackStatsOpen} onOpenChange={setIsFeedbackStatsOpen}>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle className="text-xl">Feedback Statistics</CardTitle>
+                      <CardDescription>
+                        View community feedback insights and metrics
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: isFeedbackStatsOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  </motion.div>
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent>
+                <FeedbackStats />
+              </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
         </Card>
 
         {/* App Version */}
