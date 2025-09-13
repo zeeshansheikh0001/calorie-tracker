@@ -55,6 +55,7 @@ import { resetOnboarding } from "@/lib/onboarding";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { blogData } from "@/data/blog-content";
+import { GooglePlayBanner } from "@/components/ui/google-play-banner";
 
 // Dynamically import CalorieDonutChart
 const CalorieDonutChart = dynamic(
@@ -582,6 +583,30 @@ export default function DashboardPage() {
                   <Bell className="h-5 w-5" />
                 </Button>
               </motion.div>
+          </Link>
+          
+          {/* Google Play Store Icon - Small and compact */}
+          <Link href="https://play.google.com/store/apps/details?id=com.calorietracker.app" target="_blank" rel="noopener noreferrer">
+            <motion.div 
+              whileHover={{ scale: 1.1 }} 
+              whileTap={{ scale: 0.9 }}
+              className="group"
+            >
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm group-hover:bg-green-500/20 group-hover:border-green-400/30 transition-all duration-300"
+                title="Download on Google Play"
+              >
+                <svg 
+                  className="h-5 w-5" 
+                  viewBox="0 0 24 24" 
+                  fill="currentColor"
+                >
+                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
+                </svg>
+              </Button>
+            </motion.div>
           </Link>
           {/* TODO: Uncomment when Supabase auth is fully implemented */}
           {/* {user && (

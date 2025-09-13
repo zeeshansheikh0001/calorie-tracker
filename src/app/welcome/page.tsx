@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAdaptivePerformance } from "@/hooks/use-performance";
+import { GooglePlayBanner } from "@/components/ui/google-play-banner";
 
 // Add this style tag to extract RGB values from the CSS variables
 // which will be used for background gradients
@@ -269,6 +270,16 @@ export default function WelcomePage() {
               <p className="text-xs text-slate-500 dark:text-slate-500 mt-3 text-center">
                 You can always update your goals and preferences in your profile settings
               </p>
+            </motion.div>
+
+            {/* Google Play Store Banner - Perfect for first-time users */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6, type: "spring" }}
+              className="mt-8"
+            >
+              <GooglePlayBanner variant="compact" />
             </motion.div>
           </motion.div>
           

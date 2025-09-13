@@ -48,6 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { FeedbackStats } from "@/components/FeedbackStats";
+import { GooglePlayBanner } from "@/components/ui/google-play-banner";
 
 interface ListItemProps {
   href?: string;
@@ -562,6 +563,16 @@ export default function ProfilePage() {
             </CollapsibleContent>
           </Collapsible>
         </Card>
+
+        {/* Google Play Store Banner - Perfect for engaged users */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
+          className="mt-6"
+        >
+          <GooglePlayBanner variant="minimal" />
+        </motion.div>
 
         {/* App Version */}
         <div className="mt-8 text-center text-xs text-muted-foreground">
