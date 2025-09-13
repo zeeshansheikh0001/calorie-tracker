@@ -194,6 +194,9 @@ export default function EditProfilePage() {
     };
     localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
 
+    // Dispatch custom event to notify other components about the profile update
+    window.dispatchEvent(new CustomEvent('profileUpdated'));
+
     setTimeout(() => {
       toast({
         title: "Profile Updated!",

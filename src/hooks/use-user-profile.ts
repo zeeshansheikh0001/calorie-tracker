@@ -1,7 +1,5 @@
 "use client";
 
-// TODO: Uncomment when Supabase auth is fully implemented
-/*
 import { useState, useEffect } from 'react';
 import type { UserProfile, SavedDietChart } from '@/types';
 import { generateId } from '@/lib/utils';
@@ -19,14 +17,10 @@ export function useUserProfile() {
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    setIsLoading(true);
+  // Function to load profile from localStorage
+  const loadProfile = () => {
     try {
-      // First check for userProfile from profile edit
       const storedProfile = localStorage.getItem(LOCAL_STORAGE_KEY);
-      
-      // Then check for onboarding profile data
-      const onboardingProfile = localStorage.getItem('userProfile');
       
       if (storedProfile) {
         const parsedProfile: UserProfile = JSON.parse(storedProfile);
@@ -36,48 +30,54 @@ export function useUserProfile() {
           avatarUrl: parsedProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl,
           age: parsedProfile.age,
           gender: parsedProfile.gender,
+          height: parsedProfile.height,
+          weight: parsedProfile.weight,
+          heightUnit: parsedProfile.heightUnit,
+          weightUnit: parsedProfile.weightUnit,
           savedDietCharts: parsedProfile.savedDietCharts || [],
         });
-      } else if (onboardingProfile) {
-        // If no regular profile exists but onboarding data does, use that
-        const parsedOnboardingData = JSON.parse(onboardingProfile);
-        setUserProfile({
-          name: parsedOnboardingData.name || DEFAULT_USER_PROFILE.name,
-          email: DEFAULT_USER_PROFILE.email, // Onboarding doesn't collect email
-          avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
-          age: parsedOnboardingData.age,
-          gender: parsedOnboardingData.gender,
-          savedDietCharts: [],
-        });
-        
-        // Save this data to the regular profile storage to consolidate
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
-          name: parsedOnboardingData.name,
-          email: DEFAULT_USER_PROFILE.email,
-          avatarUrl: DEFAULT_USER_PROFILE.avatarUrl,
-          age: parsedOnboardingData.age,
-          gender: parsedOnboardingData.gender,
-          savedDietCharts: [],
-        }));
       } else {
         setUserProfile(DEFAULT_USER_PROFILE);
       }
     } catch (error) {
       console.error("Failed to load user profile from localStorage", error);
       setUserProfile(DEFAULT_USER_PROFILE);
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    setIsLoading(true);
+    loadProfile();
+    setIsLoading(false);
+
+    // Listen for localStorage changes from other tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === LOCAL_STORAGE_KEY) {
+        loadProfile();
+      }
+    };
+
+    // Listen for custom events from the same tab
+    const handleProfileUpdate = () => {
+      loadProfile();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
   }, []);
 
-  // This function is not directly used by the profile page to update,
-  // as saving happens in profile/edit/page.tsx.
-  // However, it's good practice to have an update function if this hook were to be used elsewhere for updates.
   const updateUserProfile = (newProfile: Partial<UserProfile>) => {
     setUserProfile(prevProfile => {
       const updatedProfile = { ...prevProfile, ...newProfile };
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProfile));
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
       } catch (error) {
         console.error("Failed to save user profile to localStorage", error);
       }
@@ -105,52 +105,14 @@ export function useUserProfile() {
       
       try {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedProfile));
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('profileUpdated'));
       } catch (error) {
         console.error("Failed to save diet chart to localStorage", error);
       }
       
       return updatedProfile;
     });
-  };
-
-
-  return { userProfile, isLoading, updateUserProfile, saveDietChart };
-}
-*/
-
-// Temporary mock implementation for development
-import { useState, useEffect } from 'react';
-import type { UserProfile, SavedDietChart } from '@/types';
-
-const DEFAULT_USER_PROFILE: UserProfile = {
-  name: "Guest User",
-  email: "guest@example.com", 
-  avatarUrl: "https://placehold.co/100x100.png",
-  savedDietCharts: [],
-};
-
-export function useUserProfile() {
-  const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER_PROFILE);
-  const [isLoading, setIsLoading] = useState(false); // Set to false for mock
-
-  // Mock update function
-  const updateUserProfile = (newProfile: Partial<UserProfile>) => {
-    setUserProfile(prevProfile => ({ ...prevProfile, ...newProfile }));
-  };
-
-  // Mock save diet chart function
-  const saveDietChart = (name: string, dietChart: any) => {
-    const newDietChart: SavedDietChart = {
-      id: Date.now().toString(),
-      name,
-      createdAt: new Date().toISOString(),
-      dietChart,
-    };
-    
-    setUserProfile(prevProfile => ({
-      ...prevProfile,
-      savedDietCharts: [...(prevProfile.savedDietCharts || []), newDietChart]
-    }));
   };
 
   return { userProfile, isLoading, updateUserProfile, saveDietChart };
