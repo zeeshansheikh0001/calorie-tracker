@@ -533,7 +533,7 @@ export default function ProfilePage() {
         </Card>
 
         {/* Feedback Statistics */}
-        <Card className="mt-6">
+        {/* <Card className="mt-6">
           <Collapsible open={isFeedbackStatsOpen} onOpenChange={setIsFeedbackStatsOpen}>
             <CollapsibleTrigger asChild>
               <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
@@ -562,7 +562,7 @@ export default function ProfilePage() {
               </CardContent>
             </CollapsibleContent>
           </Collapsible>
-        </Card>
+        </Card> */}
 
         {/* Google Play Store Banner - Perfect for engaged users */}
         <motion.div

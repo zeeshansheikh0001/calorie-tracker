@@ -244,7 +244,7 @@ export function FeedbackForm() {
         </Button>
 
         {/* Additional Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-2">
             <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-800">
@@ -258,7 +258,7 @@ export function FeedbackForm() {
               </ul>
             </div>
           </div>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );
