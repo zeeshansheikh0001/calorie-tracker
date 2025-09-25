@@ -1,29 +1,24 @@
 
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles, Apple } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const bottomNavItems = [
-  { href: "/", label: "Home", icon: Home, useWindowLocation: true },
-  { href: "/progress", label: "Stats", icon: BarChart2, useWindowLocation: false },
-  { href: "/ai-features", label: "AI", icon: Sparkles, useWindowLocation: false },
-  { href: "/diet-chart", label: "Diet", icon: Apple, useWindowLocation: false },
-  { href: "/goals", label: "Health", icon: HeartPulse, useWindowLocation: false },
-  { href: "/profile", label: "Profile", icon: UserCircle2, useWindowLocation: false },
+  { href: "/", label: "Home", icon: Home },
+  { href: "/progress", label: "Stats", icon: BarChart2 },
+  { href: "/ai-features", label: "AI", icon: Sparkles },
+  { href: "/diet-chart", label: "Diet", icon: Apple },
+  { href: "/goals", label: "Health", icon: HeartPulse },
+  { href: "/profile", label: "Profile", icon: UserCircle2 },
 ];
 
 export default function BottomNavigationBar() {
   const pathname = usePathname();
 
-  const handleNavigation = (href: string, useWindowLocation: boolean) => {
-    if (useWindowLocation) {
-      console.log('Using window.location for navigation to:', href);
-      window.location.href = href;
-    }
-    // For other items, let the Link component handle navigation
+  const handleNavigation = (href: string) => {
+    window.location.href = href;
   };
 
   return (
@@ -32,35 +27,10 @@ export default function BottomNavigationBar() {
         {bottomNavItems.map((item) => {
           const isActive = pathname === item.href;
           
-          if (item.useWindowLocation) {
-            return (
-              <button
-                key={item.label}
-                onClick={() => handleNavigation(item.href, true)}
-                className="flex flex-1 flex-col items-center justify-center p-2 text-center hover:bg-muted/50 transition-colors"
-              >
-                <item.icon
-                  className={cn(
-                    "h-5 w-5",
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  )}
-                />
-                <span
-                  className={cn(
-                    "mt-0.5 text-[10px] font-poppins",
-                    isActive ? "text-primary font-medium" : "text-muted-foreground"
-                  )}
-                >
-                  {item.label}
-                </span>
-              </button>
-            );
-          }
-          
           return (
-            <Link
+            <button
               key={item.label}
-              href={item.href}
+              onClick={() => handleNavigation(item.href)}
               className="flex flex-1 flex-col items-center justify-center p-2 text-center hover:bg-muted/50 transition-colors"
             >
               <item.icon
@@ -77,7 +47,7 @@ export default function BottomNavigationBar() {
               >
                 {item.label}
               </span>
-            </Link>
+            </button>
           );
         })}
       </div>
