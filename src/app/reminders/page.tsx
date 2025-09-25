@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
-// TODO: Uncomment when Supabase auth is fully implemented
-// import { createClient } from "@/lib/supabase/client";
-
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationService } from "@/lib/notification-service";
+import { useLocalReminders, type ReminderSettings } from "@/hooks/use-local-reminders";
 
 // Utility function to convert VAPID public key to Uint8Array
 const urlBase64ToUint8Array = (base64String: string) => {
@@ -43,25 +41,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
-interface ReminderSettings {
-  logMeals: boolean;
-  logMealsTime: string;
-  drinkWater: boolean;
-  drinkWaterFrequency: string; // e.g., "every_2_hours"
-  weighIn: boolean;
-  weighInDay: string; // e.g., "monday"
-  weighInTime: string;
-}
-
-const initialSettings: ReminderSettings = {
-  logMeals: true,
-  logMealsTime: "19:00",
-  drinkWater: false,
-  drinkWaterFrequency: "every_2_hours",
-  weighIn: false,
-  weighInDay: "monday",
-  weighInTime: "08:00",
-};
+// ReminderSettings interface is now imported from the hook
 
 // For rendering time in a more human-readable format
 const formatTime = (time: string) => {
@@ -78,139 +58,51 @@ const formatDay = (day: string) => {
 };
 
 export default function RemindersPage() {
-  const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
-  const [isLoading, setIsLoading] = useState(false);
+  const { reminders, saveReminders, isLoading } = useLocalReminders();
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const { isSupported, permission, requestPermission, sendTestNotification, subscribeToPush } = useNotificationService();
-  // TODO: Uncomment when Supabase auth is fully implemented
-  // const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const { isSupported, permission, requestPermission, sendTestNotification } = useNotificationService();
 
-  // TODO: Uncomment when Supabase auth is fully implemented
-  /*
-  useEffect(() => {
-    const fetchUserAndSettings = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data, error } = await supabase
-          .from('user_reminders')
-          .select('user_id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-          console.error('Error fetching reminder settings:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load reminder settings.",
-            variant: "destructive",
-          });
-        } else if (data) {
-          setSettings({
-            logMeals: data.log_meals,
-            logMealsTime: data.log_meals_time,
-            drinkWater: data.drink_water,
-            drinkWaterFrequency: data.drink_water_frequency,
-            weighIn: data.weigh_in,
-            weighInDay: data.weigh_in_day,
-            weighInTime: data.weigh_in_time,
-          });
-        }
-      }
-    };
-
-    fetchUserAndSettings();
-  }, [supabase, toast]);
-  */
+  // Reminder settings are now managed by the useLocalReminders hook
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
-    setSettings((prev) => ({ ...prev, [name]: checked }));
+    const updatedReminders = { ...reminders, [name]: checked };
+    saveReminders(updatedReminders);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSettings((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const updatedReminders = { ...reminders, [e.target.name]: e.target.value };
+    saveReminders(updatedReminders);
   };
   
   const handleSelectChange = (value: string, name: keyof ReminderSettings) => {
-    setSettings((prev) => ({ ...prev, [name]: value }));
+    const updatedReminders = { ...reminders, [name]: value };
+    saveReminders(updatedReminders);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save reminders.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    // TODO: Uncomment when Supabase auth is fully implemented
-    /*
-    try {
-      const { error } = await supabase
-        .from('user_reminders')
-        .upsert({
-          user_id: user.id,
-          log_meals: settings.logMeals,
-          log_meals_time: settings.logMealsTime,
-          drink_water: settings.drinkWater,
-          drink_water_frequency: settings.drinkWaterFrequency,
-          weigh_in: settings.weighIn,
-          weigh_in_day: settings.weighInDay,
-          weigh_in_time: settings.weighInTime,
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-    */
+    setIsSaving(true);
     
-    // Temporary mock implementation
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // Simulate API call delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast({
         title: "Reminders Updated!",
-        description: "Your reminder preferences have been saved.",
+        description: "Your reminder preferences have been saved locally.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
       
-      // TODO: Uncomment when Supabase auth is fully implemented
-      /*
-      // Send an immediate notification to confirm reminders are set
+      // Send confirmation notification if permissions are granted
       if (permission === 'granted') {
         try {
-          const response = await fetch('/api/notifications/send', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              title: "Reminders Activated",
-              body: "Your reminder settings have been saved and are are now active.",
-              type: "reminder_confirmation"
-            }),
-          });
-          
-          const result = await response.json();
-          if (!result.success) {
-            console.log('Notification might not have been sent:', result);
-          }
+          await sendTestNotification();
         } catch (error) {
           console.error('Error sending confirmation notification:', error);
-          // Don't show an error to the user as this is not critical
         }
       }
-      */
-      
-      // Temporary mock implementation
-      console.log('Confirmation notification would be sent (disabled)');
     } catch (error) {
       console.error('Error saving reminder settings:', error);
       toast({
@@ -219,19 +111,27 @@ export default function RemindersPage() {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
 
   const handleEnableNotifications = async () => {
     try {
-      await subscribeToPush();
-      toast({
-        title: "🔔 Notifications Enabled",
-        description: "You will now receive smart reminders for your health goals.",
-        variant: "default",
-        action: <CheckCircle className="text-green-500" />,
-      });
+      const granted = await requestPermission();
+      if (granted) {
+        toast({
+          title: "🔔 Notifications Enabled",
+          description: "You will now receive smart reminders for your health goals.",
+          variant: "default",
+          action: <CheckCircle className="text-green-500" />,
+        });
+      } else {
+        toast({
+          title: "Permission Denied",
+          description: "Please enable notifications in your browser settings to receive reminders.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error enabling notifications:', error);
       toast({
@@ -260,8 +160,33 @@ export default function RemindersPage() {
   };
 
   const resetToDefaults = () => {
-    setSettings(initialSettings);
+    const defaultReminders: ReminderSettings = {
+      logMeals: true,
+      logMealsTime: "19:00",
+      drinkWater: false,
+      drinkWaterFrequency: "every_2_hours",
+      weighIn: false,
+      weighInDay: "monday",
+      weighInTime: "08:00",
+    };
+    saveReminders(defaultReminders);
+    toast({
+      title: "Settings Reset",
+      description: "Reminder settings have been reset to defaults.",
+      variant: "default",
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading reminder settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -302,14 +227,6 @@ export default function RemindersPage() {
             >
               {permission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
             </Button>
-            {permission === 'granted' && (
-              <Button
-                onClick={handleTestNotification}
-                variant="outline"
-              >
-                Send Test Notification
-              </Button>
-            )}
           </div>
         </motion.div>
 
@@ -335,7 +252,7 @@ export default function RemindersPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Evening Meal Reminder */}
               <motion.div 
-                className={`p-5 rounded-xl border ${settings.logMeals ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
+                className={`p-5 rounded-xl border ${reminders.logMeals ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -343,7 +260,7 @@ export default function RemindersPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2.5 rounded-lg ${settings.logMeals ? 'bg-primary/20 text-primary' : 'bg-muted/80'}`}>
+                    <div className={`p-2.5 rounded-lg ${reminders.logMeals ? 'bg-primary/20 text-primary' : 'bg-muted/80'}`}>
                       <Clock className="h-5 w-5" />
                     </div>
                     <div>
@@ -353,14 +270,14 @@ export default function RemindersPage() {
                   </div>
                   
                 <Switch
-                  checked={settings.logMeals}
+                  checked={reminders.logMeals}
                   onCheckedChange={(checked) => handleSwitchChange(checked, "logMeals")}
                     className="data-[state=checked]:bg-primary"
                 />
               </div>
                 
                 <AnimatePresence>
-              {settings.logMeals && (
+              {reminders.logMeals && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
@@ -377,7 +294,7 @@ export default function RemindersPage() {
                     id="logMealsTime"
                     name="logMealsTime"
                     type="time"
-                    value={settings.logMealsTime}
+                    value={reminders.logMealsTime}
                     onChange={handleInputChange}
                     className="bg-background/50"
                   />
@@ -390,7 +307,7 @@ export default function RemindersPage() {
               
               {/* Drink Water Reminder */}
               <motion.div 
-                className={`p-5 rounded-xl border ${settings.drinkWater ? 'border-blue-500/30 bg-blue-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
+                className={`p-5 rounded-xl border ${reminders.drinkWater ? 'border-blue-500/30 bg-blue-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -398,7 +315,7 @@ export default function RemindersPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2.5 rounded-lg ${settings.drinkWater ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500' : 'bg-muted/80'}`}>
+                    <div className={`p-2.5 rounded-lg ${reminders.drinkWater ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500' : 'bg-muted/80'}`}>
                       <Droplets className="h-5 w-5" />
                     </div>
                     <div>
@@ -408,14 +325,14 @@ export default function RemindersPage() {
             </div>
 
                 <Switch
-                  checked={settings.drinkWater}
+                  checked={reminders.drinkWater}
                   onCheckedChange={(checked) => handleSwitchChange(checked, "drinkWater")}
                     className="data-[state=checked]:bg-blue-500"
                 />
               </div>
                 
                 <AnimatePresence>
-              {settings.drinkWater && (
+              {reminders.drinkWater && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
@@ -430,7 +347,7 @@ export default function RemindersPage() {
                         <div className="mt-1 relative">
                           <Select 
                             name="drinkWaterFrequency" 
-                            value={settings.drinkWaterFrequency} 
+                            value={reminders.drinkWaterFrequency} 
                             onValueChange={(value) => handleSelectChange(value, "drinkWaterFrequency")}
                           >
                             <SelectTrigger>
@@ -456,7 +373,7 @@ export default function RemindersPage() {
               
               {/* Weekly Weigh-In Reminder */}
               <motion.div 
-                className={`p-5 rounded-xl border ${settings.weighIn ? 'border-green-500/30 bg-green-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
+                className={`p-5 rounded-xl border ${reminders.weighIn ? 'border-green-500/30 bg-green-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -464,7 +381,7 @@ export default function RemindersPage() {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className={`p-2.5 rounded-lg ${settings.weighIn ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-muted/80'}`}>
+                    <div className={`p-2.5 rounded-lg ${reminders.weighIn ? 'bg-green-100 dark:bg-green-900/30 text-green-500' : 'bg-muted/80'}`}>
                       <Scale className="h-5 w-5" />
                     </div>
                     <div>
@@ -474,14 +391,14 @@ export default function RemindersPage() {
             </div>
 
                 <Switch
-                  checked={settings.weighIn}
+                  checked={reminders.weighIn}
                   onCheckedChange={(checked) => handleSwitchChange(checked, "weighIn")}
                     className="data-[state=checked]:bg-green-500"
                 />
               </div>
                 
                 <AnimatePresence>
-              {settings.weighIn && (
+              {reminders.weighIn && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
@@ -498,7 +415,7 @@ export default function RemindersPage() {
                             <div className="mt-1 relative">
                               <Select 
                                 name="weighInDay" 
-                                value={settings.weighInDay} 
+                                value={reminders.weighInDay} 
                                 onValueChange={(value) => handleSelectChange(value, "weighInDay")}
                               >
                                 <SelectTrigger>
@@ -525,13 +442,13 @@ export default function RemindersPage() {
                       id="weighInTime"
                       name="weighInTime"
                       type="time"
-                      value={settings.weighInTime}
+                      value={reminders.weighInTime}
                       onChange={handleInputChange}
                       className="pr-16"
                               />
                               
                               <Badge className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none bg-green-100 dark:bg-green-900/30 text-green-500 border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/40">
-                                {formatTime(settings.weighInTime)}
+                                {formatTime(reminders.weighInTime)}
                               </Badge>
                             </div>
                           </div>
@@ -539,7 +456,7 @@ export default function RemindersPage() {
                         
                         <div className="flex items-center mt-3 text-xs text-muted-foreground">
                           <AlarmCheck className="h-3 w-3 mr-1.5" />
-                          <span>You'll be reminded every {formatDay(settings.weighInDay)} at {formatTime(settings.weighInTime)}</span>
+                          <span>You'll be reminded every {formatDay(reminders.weighInDay)} at {formatTime(reminders.weighInTime)}</span>
                   </div>
                 </div>
                     </motion.div>
@@ -560,9 +477,9 @@ export default function RemindersPage() {
                 <Button 
                   type="submit" 
                   className="flex items-center"
-                  disabled={isLoading}
+                  disabled={isSaving}
                 >
-                  {isLoading ? (
+                  {isSaving ? (
                     <>
                       <span className="animate-spin mr-2">
                         <RefreshCw className="h-4 w-4" />
