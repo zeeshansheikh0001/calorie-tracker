@@ -92,7 +92,39 @@ import {
 } from "@/components/ui/dialog";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import Link from "next/link";
-import html2pdf from 'html2pdf.js';
+
+
+// Type definitions for html2pdf.js
+interface Html2PdfOptions {
+  margin?: number | number[];
+  filename?: string;
+  image?: {
+    type?: string;
+    quality?: number;
+  };
+  html2canvas?: {
+    scale?: number;
+    useCORS?: boolean;
+    logging?: boolean;
+    letterRendering?: boolean;
+  };
+  jsPDF?: {
+    unit?: string;
+    format?: string;
+    orientation?: string;
+  };
+  pagebreak?: {
+    mode?: string[];
+  };
+}
+
+interface Html2Pdf {
+  from(element: HTMLElement): {
+    set(options: Html2PdfOptions): {
+      save(): Promise<void>;
+    };
+  };
+}
 
 
 // CSS for grid patterns
@@ -691,7 +723,7 @@ export default function DietChartPage() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!dietChart) return;
 
     const element = document.getElementById('dietChartPdfArea');
@@ -704,28 +736,34 @@ export default function DietChartPage() {
       return;
     }
 
-    const opt = {
-      margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right in inches
-      filename:     'indian-diet-chart.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true, logging: true, letterRendering: true },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-    };
+    try {
+      // Dynamically import html2pdf only on the client side
+      // @ts-ignore - html2pdf.js doesn't have type definitions
+      const html2pdf = await import('html2pdf.js') as any;
+      
+      const opt: Html2PdfOptions = {
+        margin:       [0.5, 0.5, 0.5, 0.5], // top, left, bottom, right in inches
+        filename:     'indian-diet-chart.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: true, letterRendering: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
 
-    html2pdf().from(element).set(opt).save().then(() => {
+      await html2pdf.default().from(element).set(opt).save();
+      
       toast({
         title: "Downloaded",
         description: "Indian diet chart has been downloaded as PDF.",
       });
-    }).catch(err => {
+    } catch (err) {
       console.error("PDF generation error:", err);
       toast({
         title: "PDF Error",
         description: "Failed to generate PDF. Please try again.",
         variant: "destructive"
       });
-    });
+    }
   };
 
   const handleSave = () => {
