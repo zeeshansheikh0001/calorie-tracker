@@ -58,24 +58,17 @@ export function AppLayout({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
-    console.log('AppLayout useEffect triggered');
-    console.log('Current pathname:', pathname);
-    console.log('Current isLoading state:', isLoading);
-    
     // Check if we need to redirect to onboarding
     const shouldRedirect = needsOnboarding();
-    console.log('Should redirect to onboarding:', shouldRedirect);
     
     // Only show loading screen on initial app load when onboarding is needed
     // Don't show loading screen on navigation between pages
     if (pathname === "/" && shouldRedirect) {
-      console.log('Setting loading screen for onboarding redirect');
       // Only set loading if we're not already loading to prevent multiple triggers
       if (!isLoading) {
         setIsLoading(true);
         // Set a timeout to ensure loading animation shows for exactly 3 seconds
         const loadingTimer = setTimeout(() => {
-          console.log('Redirecting to onboarding after 3 seconds');
           router.push("/onboarding");
         }, 3000); // 3 seconds
         
@@ -83,7 +76,6 @@ export function AppLayout({ children }: PropsWithChildren) {
         return () => clearTimeout(loadingTimer);
       }
     } else {
-      console.log('Not showing loading screen');
       // For all other cases, don't show loading screen
       setIsLoading(false);
     }
@@ -110,10 +102,7 @@ export function AppLayout({ children }: PropsWithChildren) {
     duration: 0.3,
   };
 
-  console.log('AppLayout render - isLoading:', isLoading, 'pathname:', pathname);
-  
   if (isLoading) {
-    console.log('Rendering loading screen');
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background to-background/95">
         <div className="relative w-56 h-56 flex items-center justify-center">

@@ -144,7 +144,6 @@ export default function ManualLogPage() {
     });
 
     // Use window.location for more reliable navigation
-    console.log('Navigating to homepage after food log submission');
     window.location.href = '/';
   };
 
