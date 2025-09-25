@@ -143,8 +143,9 @@ export default function ManualLogPage() {
       action: <PlusCircle className="text-green-500" />,
     });
 
-    // Navigate directly to homepage without showing spinner
-    router.push('/');
+    // Use window.location for more reliable navigation
+    console.log('Navigating to homepage after food log submission');
+    window.location.href = '/';
   };
 
   const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType, delay = 0) => {
