@@ -61,18 +61,19 @@ export function AppLayout({ children }: PropsWithChildren) {
     // Check if we need to redirect to onboarding
     const shouldRedirect = needsOnboarding();
     
-    // Set a timeout to ensure loading animation shows for exactly 10 seconds
-    const loadingTimer = setTimeout(() => {
-      // Don't redirect if we're already on the onboarding page
-      if (shouldRedirect && pathname !== "/onboarding") {
+    // Only show loading screen on initial load, not on navigation
+    if (pathname === "/" && shouldRedirect) {
+      // Set a timeout to ensure loading animation shows for exactly 3 seconds
+      const loadingTimer = setTimeout(() => {
         router.push("/onboarding");
-      } else {
-        setIsLoading(false);
-      }
-    }, 3000); // 3 seconds
-    
-    // Clean up the timer if component unmounts
-    return () => clearTimeout(loadingTimer);
+      }, 3000); // 3 seconds
+      
+      // Clean up the timer if component unmounts
+      return () => clearTimeout(loadingTimer);
+    } else {
+      // For all other cases, don't show loading screen
+      setIsLoading(false);
+    }
   }, [pathname, router]);
 
   // Don't show the bottom nav if on onboarding

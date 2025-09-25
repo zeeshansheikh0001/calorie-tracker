@@ -64,7 +64,6 @@ export default function ManualLogPage() {
   const [foodName, setFoodName] = useState("");
   const [estimatedNutrition, setEstimatedNutrition] = useState<AnalyzeFoodTextOutput | null>(null);
   
-  const [isSubmittingLog, setIsSubmittingLog] = useState(false);
   const [isAiEstimating, setIsAiEstimating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
@@ -127,7 +126,6 @@ export default function ManualLogPage() {
       });
       return;
     }
-    setIsSubmittingLog(true);
 
     const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
       name: foodName || "Unnamed Food", // Use the foodName from input as the primary name
@@ -145,12 +143,8 @@ export default function ManualLogPage() {
       action: <PlusCircle className="text-green-500" />,
     });
 
-    setEstimatedNutrition(null); 
-    setFoodName(""); 
-    setIsSubmittingLog(false);
-    
-      // Force a hard navigation to the home page with a full page reload
-      window.location.href = '/';
+    // Navigate directly to homepage without showing spinner
+    router.push('/');
   };
 
   const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType, delay = 0) => {
@@ -576,7 +570,7 @@ export default function ManualLogPage() {
                     >
                       <Button 
                         type="submit" 
-                        disabled={isSubmittingLog || isAiEstimating || !foodName.trim() || !estimatedNutrition} 
+                        disabled={isAiEstimating || !foodName.trim() || !estimatedNutrition} 
                         className="w-full h-11 bg-primary group relative overflow-hidden"
                       >
                         <motion.span 
@@ -591,21 +585,17 @@ export default function ManualLogPage() {
                           }}
                         />
                         <motion.div className="flex items-center justify-center">
-                          {isSubmittingLog ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <motion.div
-                              animate={{ scale: [1, 1.2, 1] }}
-                              transition={{ 
-                                repeat: Infinity, 
-                                repeatType: "loop", 
-                                duration: 2,
-                                repeatDelay: 2
-                              }}
-                            >
-                              <PlusCircle className="mr-2 h-4 w-4" />
-                            </motion.div>
-                          )}
+                          <motion.div
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ 
+                              repeat: Infinity, 
+                              repeatType: "loop", 
+                              duration: 2,
+                              repeatDelay: 2
+                            }}
+                          >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                          </motion.div>
                           <span>Add to Food Log</span>
                         </motion.div>
                       </Button>
