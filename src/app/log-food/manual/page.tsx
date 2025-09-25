@@ -190,14 +190,17 @@ export default function ManualLogPage() {
           whileHover={{ x: -3 }}
           whileTap={{ scale: 0.97 }}
         >
-          <Button 
-            variant="ghost" 
-            onClick={() => router.push('/')} 
-            className="mb-4 group text-sm hover:bg-transparent"
-          >
+           <Button 
+             variant="ghost" 
+             onClick={() => {
+               // Use window.location for more reliable navigation
+               window.location.href = '/';
+             }} 
+             className="mb-4 group text-sm hover:bg-transparent"
+           >
             <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back
-          </Button>
+           </Button>
         </motion.div>
       </motion.div>
       

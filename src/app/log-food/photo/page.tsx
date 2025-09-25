@@ -575,7 +575,7 @@ export default function LogFoodByPhotoPage() {
         transition={{ type: "spring", stiffness: 400, damping: 10 }}
         className="mt-2"
       >
-        <Button variant="ghost" onClick={() => router.push('/')} className="mb-2 md:mb-4 group text-sm flex items-center">
+        <Button variant="ghost" onClick={() => router.back()} className="mb-2 md:mb-4 group text-sm flex items-center">
           <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
           <span className="group-hover:text-primary transition-colors">Back</span>
         </Button>

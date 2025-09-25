@@ -55,14 +55,16 @@ const HealthIcon = ({ icon: Icon, x, y, delay, size = 16 }: {
 export function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     // Check if we need to redirect to onboarding
     const shouldRedirect = needsOnboarding();
     
-    // Only show loading screen on initial load, not on navigation
-    if (pathname === "/" && shouldRedirect) {
+    // Only show loading screen on initial app load when onboarding is needed
+    // Don't show loading screen on navigation between pages
+    if (pathname === "/" && shouldRedirect && !isLoading) {
+      setIsLoading(true);
       // Set a timeout to ensure loading animation shows for exactly 3 seconds
       const loadingTimer = setTimeout(() => {
         router.push("/onboarding");
@@ -70,11 +72,11 @@ export function AppLayout({ children }: PropsWithChildren) {
       
       // Clean up the timer if component unmounts
       return () => clearTimeout(loadingTimer);
-    } else {
+    } else if (pathname !== "/" || !shouldRedirect) {
       // For all other cases, don't show loading screen
       setIsLoading(false);
     }
-  }, [pathname, router]);
+  }, [pathname, router, isLoading]);
 
   // Don't show the bottom nav if on onboarding
   const showBottomNav = pathname !== "/onboarding";
