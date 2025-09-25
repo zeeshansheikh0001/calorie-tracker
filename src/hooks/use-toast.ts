@@ -164,6 +164,9 @@ function toast({ ...props }: Toast) {
     },
   })
 
+  // Auto-dismiss after 3 seconds
+  addToRemoveQueue(id)
+
   return {
     id: id,
     dismiss,

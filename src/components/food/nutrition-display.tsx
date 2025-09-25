@@ -1143,7 +1143,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
             </motion.div>
           </CardContent>
 
-          <CardFooter className="border-t flex flex-col space-y-3 py-4 pb-8 relative z-10">
+          {/* <CardFooter className="border-t flex flex-col space-y-3 py-4 pb-8 relative z-10">
             <motion.button
               onClick={() => setShowDetails(!showDetails)}
               className="flex items-center justify-center w-full py-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary/90 text-sm font-medium transition-colors"
@@ -1218,7 +1218,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                 </motion.div>
               )}
             </AnimatePresence>
-          </CardFooter>
+          </CardFooter> */}
     </Card>
       </Card3D>
     </motion.div>

@@ -209,7 +209,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="container mx-auto max-w-xl py-8 px-4">
-       <Button variant="ghost" onClick={() => router.back()} className="mb-4 group">
+        <Button variant="ghost" onClick={() => router.push('/profile')} className="mb-4 group">
           <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Back to Profile
         </Button>

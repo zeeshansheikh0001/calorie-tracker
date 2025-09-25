@@ -198,7 +198,7 @@ export default function ManualLogPage() {
         >
           <Button 
             variant="ghost" 
-            onClick={() => router.back()} 
+            onClick={() => router.push('/')} 
             className="mb-4 group text-sm hover:bg-transparent"
           >
             <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
