@@ -66,6 +66,7 @@ export default function ManualLogPage() {
   
   const [isAiEstimating, setIsAiEstimating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const { addFoodEntry, currentSelectedDate } = useDailyLog();
   const { toast } = useToast();
@@ -116,7 +117,7 @@ export default function ManualLogPage() {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!estimatedNutrition) {
       toast({
@@ -127,24 +128,36 @@ export default function ManualLogPage() {
       return;
     }
 
-    const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
-      name: foodName || "Unnamed Food", // Use the foodName from input as the primary name
-      calories: estimatedNutrition.calorieEstimate,
-      protein: estimatedNutrition.proteinEstimate,
-      fat: estimatedNutrition.fatEstimate,
-      carbs: estimatedNutrition.carbEstimate,
-    };
+    setIsNavigating(true);
 
-    addFoodEntry(foodEntryData);
+    try {
+      const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
+        name: foodName || "Unnamed Food", // Use the foodName from input as the primary name
+        calories: estimatedNutrition.calorieEstimate,
+        protein: estimatedNutrition.proteinEstimate,
+        fat: estimatedNutrition.fatEstimate,
+        carbs: estimatedNutrition.carbEstimate,
+      };
 
-    toast({
-      title: "Meal Logged!",
-      description: `${foodEntryData.name} (${foodEntryData.calories.toFixed(0)} kcal) has been added to your log.`,
-      action: <PlusCircle className="text-green-500" />,
-    });
+      addFoodEntry(foodEntryData);
 
-    // Use window.location for more reliable navigation
-    window.location.href = '/';
+      toast({
+        title: "Meal Logged!",
+        description: `${foodEntryData.name} (${foodEntryData.calories.toFixed(0)} kcal) has been added to your log.`,
+        action: <PlusCircle className="text-green-500" />,
+      });
+
+      // Use Next.js router for proper navigation
+      await router.push('/');
+    } catch (error) {
+      console.error('Navigation error:', error);
+      setIsNavigating(false);
+      toast({
+        title: "Navigation Error",
+        description: "There was an issue navigating back. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderTextSection = (title: string, content: string | undefined, icon: React.ElementType, delay = 0) => {
@@ -180,7 +193,25 @@ export default function ManualLogPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 min-h-screen bg-background">
+    <div className="container mx-auto py-8 px-4 min-h-screen bg-background relative">
+      {/* Loading overlay for navigation */}
+      {isNavigating && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex flex-col items-center space-y-4"
+          >
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Navigating...</p>
+          </motion.div>
+        </motion.div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -192,11 +223,18 @@ export default function ManualLogPage() {
         >
            <Button 
              variant="ghost" 
-             onClick={() => {
-               // Use window.location for more reliable navigation
-               window.location.href = '/';
+             onClick={async () => {
+               setIsNavigating(true);
+               try {
+                 // Use Next.js router for proper navigation
+                 await router.push('/');
+               } catch (error) {
+                 console.error('Navigation error:', error);
+                 setIsNavigating(false);
+               }
              }} 
-             className="mb-4 group text-sm hover:bg-transparent"
+             disabled={isNavigating}
+             className="mb-4 group text-sm hover:bg-transparent disabled:opacity-50"
            >
             <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back
@@ -573,8 +611,8 @@ export default function ManualLogPage() {
                     >
                       <Button 
                         type="submit" 
-                        disabled={isAiEstimating || !foodName.trim() || !estimatedNutrition} 
-                        className="w-full h-11 bg-primary group relative overflow-hidden"
+                        disabled={isAiEstimating || !foodName.trim() || !estimatedNutrition || isNavigating} 
+                        className="w-full h-11 bg-primary group relative overflow-hidden disabled:opacity-50"
                       >
                         <motion.span 
                           className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
@@ -588,18 +626,27 @@ export default function ManualLogPage() {
                           }}
                         />
                         <motion.div className="flex items-center justify-center">
-                          <motion.div
-                            animate={{ scale: [1, 1.2, 1] }}
-                            transition={{ 
-                              repeat: Infinity, 
-                              repeatType: "loop", 
-                              duration: 2,
-                              repeatDelay: 2
-                            }}
-                          >
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                          </motion.div>
-                          <span>Add to Food Log</span>
+                          {isNavigating ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <motion.div
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ 
+                                  repeat: Infinity, 
+                                  repeatType: "loop", 
+                                  duration: 2,
+                                  repeatDelay: 2
+                                }}
+                              >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                              </motion.div>
+                              <span>Add to Food Log</span>
+                            </>
+                          )}
                         </motion.div>
                       </Button>
                     </motion.div>
