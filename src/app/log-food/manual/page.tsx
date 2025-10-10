@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useDailyLog } from "@/hooks/use-daily-log";
-import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCrossed, Leaf, Activity, ShieldCheck } from "lucide-react";
+import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
+import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronLeft, Sparkles, AlertCircle, Loader2, Heart, Info, Brain, UtensilsCrossed, Leaf, Activity, ShieldCheck, Mic, MicOff } from "lucide-react";
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
 import { motion, AnimatePresence } from "framer-motion";
@@ -72,6 +73,49 @@ export default function ManualLogPage() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // Voice input functionality
+  const {
+    isListening,
+    isRecording,
+    isSupported,
+    hasPermission,
+    isDisabled,
+    startListening,
+    stopListening,
+    requestPermission,
+    error: speechError,
+    resetRecording,
+  } = useSpeechRecognition({
+    onResult: (transcript) => {
+      setFoodName(transcript);
+      if (estimatedNutrition) setEstimatedNutrition(null);
+      setAiError(null);
+      toast({
+        title: "Voice Input Received",
+        description: "Food description captured from voice input.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Voice Input Error",
+        description: error,
+        variant: "destructive",
+      });
+    },
+    onRecordingStart: () => {
+      toast({
+        title: "Recording Started",
+        description: "Speak your food description now...",
+      });
+    },
+    onRecordingStop: () => {
+      toast({
+        title: "Recording Complete",
+        description: "Processing your voice input...",
+      });
+    },
+  });
+
   const handleAiEstimate = async () => {
     if (!foodName.trim()) {
       setAiError("Please enter a food description first.");
@@ -114,6 +158,41 @@ export default function ManualLogPage() {
       if (!isAiEstimating && foodName.trim()) {
         handleAiEstimate();
       }
+    }
+  };
+
+  const handleVoiceInput = async () => {
+    if (!isSupported) {
+      toast({
+        title: "Voice Input Not Supported",
+        description: "Speech recognition is not supported in this browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!hasPermission) {
+      const granted = await requestPermission();
+      if (!granted) {
+        toast({
+          title: "Microphone Permission Required",
+          description: "Please allow microphone access to use voice input.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (isDisabled) {
+      // Reset the button state to allow new recording
+      resetRecording();
+      return;
+    }
+
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
@@ -313,6 +392,7 @@ export default function ManualLogPage() {
                 <motion.div
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  className="flex gap-2 items-center"
                 >
                   <Input
                     id="foodName"
@@ -324,9 +404,64 @@ export default function ManualLogPage() {
                     }}
                     onKeyDown={handleFoodNameKeyDown}
                     placeholder="e.g., 200g grilled salmon with asparagus"
-                    className="w-full h-12 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    className="flex-1 h-12 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     required
                   />
+                  {/* Voice Input Button - Outside the input field */}
+                  <motion.button
+                    type="button"
+                    onClick={handleVoiceInput}
+                    disabled={!isSupported}
+                    className={`h-12 px-3 rounded-md transition-all duration-200 ${
+                      isDisabled 
+                        ? 'bg-muted/30 cursor-not-allowed opacity-50' 
+                        : isRecording 
+                        ? 'bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50' 
+                        : 'bg-muted/50 hover:bg-muted/70'
+                    }`}
+                    whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                    whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                  >
+                    {isRecording ? (
+                      <motion.div
+                        className="relative"
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: 0.8,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        <Mic className="h-4 w-4 text-red-500" />
+                        {/* Recording pulse effect */}
+                        <motion.div
+                          className="absolute inset-0 rounded-full bg-red-500/20"
+                          animate={{ 
+                            scale: [1, 2, 1],
+                            opacity: [0.5, 0, 0.5]
+                          }}
+                          transition={{ 
+                            repeat: Infinity, 
+                            duration: 1.2,
+                            ease: "easeInOut"
+                          }}
+                        />
+                      </motion.div>
+                    ) : isDisabled ? (
+                      <motion.div
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ 
+                          repeat: Infinity, 
+                          duration: 2,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        <MicOff className="h-4 w-4 text-muted-foreground" />
+                      </motion.div>
+                    ) : (
+                      <Mic className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                    )}
+                  </motion.button>
                 </motion.div>
                 
                 <motion.div 
@@ -406,6 +541,23 @@ export default function ManualLogPage() {
                       <AlertCircle className="h-4 w-4" />
                       <AlertTitle>Error</AlertTitle>
                       <AlertDescription>{aiError}</AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {speechError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <Alert variant="destructive">
+                      <MicOff className="h-4 w-4" />
+                      <AlertTitle>Voice Input Error</AlertTitle>
+                      <AlertDescription>{speechError}</AlertDescription>
                     </Alert>
                   </motion.div>
                 )}
