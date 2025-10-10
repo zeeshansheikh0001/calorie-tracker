@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type FC, type KeyboardEvent } from "react";
+import { useState, type FormEvent, type FC, type KeyboardEvent, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +72,7 @@ export default function ManualLogPage() {
   const { addFoodEntry, currentSelectedDate } = useDailyLog();
   const { toast } = useToast();
   const router = useRouter();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Voice input functionality
   const {
@@ -116,6 +117,23 @@ export default function ManualLogPage() {
     },
   });
 
+  // Auto-resize textarea when content changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current;
+      textarea.style.height = 'auto';
+      const newHeight = Math.min(textarea.scrollHeight, 128);
+      textarea.style.height = newHeight + 'px';
+      
+      // Show scrollbar if content exceeds max height
+      if (textarea.scrollHeight > 128) {
+        textarea.style.overflowY = 'auto';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    }
+  }, [foodName]);
+
   const handleAiEstimate = async () => {
     if (!foodName.trim()) {
       setAiError("Please enter a food description first.");
@@ -152,8 +170,8 @@ export default function ManualLogPage() {
     }
   };
 
-  const handleFoodNameKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+  const handleFoodNameKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault(); // Prevent default form submission if it's part of a form
       if (!isAiEstimating && foodName.trim()) {
         handleAiEstimate();
@@ -392,9 +410,10 @@ export default function ManualLogPage() {
                 <motion.div
                   whileHover={{ y: -2 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                  className="flex gap-2 items-center"
+                  className="flex gap-2 items-start"
                 >
-                  <Input
+                  <textarea
+                    ref={textareaRef}
                     id="foodName"
                     value={foodName}
                     onChange={(e) => {
@@ -404,7 +423,26 @@ export default function ManualLogPage() {
                     }}
                     onKeyDown={handleFoodNameKeyDown}
                     placeholder="e.g., 200g grilled salmon with asparagus"
-                    className="flex-1 h-12 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200"
+                    className="flex-1 min-h-12 max-h-32 px-3 py-3 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50"
+                    style={{
+                      height: 'auto',
+                      minHeight: '48px',
+                      maxHeight: '128px',
+                      overflowY: 'auto'
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      const newHeight = Math.min(target.scrollHeight, 128);
+                      target.style.height = newHeight + 'px';
+                      
+                      // Show scrollbar if content exceeds max height
+                      if (target.scrollHeight > 128) {
+                        target.style.overflowY = 'auto';
+                      } else {
+                        target.style.overflowY = 'hidden';
+                      }
+                    }}
                     required
                   />
                   {/* Voice Input Button - Outside the input field */}
@@ -412,7 +450,7 @@ export default function ManualLogPage() {
                     type="button"
                     onClick={handleVoiceInput}
                     disabled={!isSupported}
-                    className={`h-12 px-3 rounded-md transition-all duration-200 ${
+                    className={`h-12 px-3 rounded-md transition-all duration-200 flex-shrink-0 ${
                       isDisabled 
                         ? 'bg-muted/30 cursor-not-allowed opacity-50' 
                         : isRecording 
