@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import React from 'react';
 import { applicationSchema } from '@/lib/schema';
 import GoogleAnalytics from '@/lib/analytics';
+import { Analytics } from '@vercel/analytics/next';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
 
 // TODO: Uncomment when Supabase auth is fully implemented
@@ -150,6 +151,7 @@ export default function RootLayout({
       </head>
       <body className={bodyClassNames}>
         <GoogleAnalytics />
+        <Analytics />
         <ServiceWorkerRegistrar />
         <ThemeProvider
           attribute="class"
