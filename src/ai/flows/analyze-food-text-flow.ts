@@ -47,7 +47,22 @@ const AnalyzeFoodTextOutputSchema = z.object({
 });
 export type AnalyzeFoodTextOutput = z.infer<typeof AnalyzeFoodTextOutputSchema>;
 
+const GEMINI_API_KEY_ENV_NAMES = ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_API_KEY'] as const;
+
+function getGeminiApiKey(): string | undefined {
+  for (const name of GEMINI_API_KEY_ENV_NAMES) {
+    const value = process.env[name];
+    if (value && value.trim()) return value;
+  }
+  return undefined;
+}
+
 export async function analyzeFoodText(input: AnalyzeFoodTextInput): Promise<AnalyzeFoodTextOutput> {
+  if (!getGeminiApiKey()) {
+    throw new Error(
+      'AI (Gemini) is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY) in Vercel: Project Settings → Environment Variables, then redeploy.'
+    );
+  }
   return analyzeFoodTextFlow(input);
 }
 
