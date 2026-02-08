@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import React from 'react';
 import { applicationSchema } from '@/lib/schema';
 import GoogleAnalytics from '@/lib/analytics';
+// Vercel Web Analytics: enable in project Analytics tab, then redeploy and promote to production
 import { Analytics } from '@vercel/analytics/next';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
 
