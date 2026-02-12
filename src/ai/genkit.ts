@@ -1,7 +1,7 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-export const PRIMARY_GEMINI_MODEL = 'googleai/gemini-2.0-flash';
+export const PRIMARY_GEMINI_MODEL = 'googleai/gemini-3-flash-preview';
 export const FALLBACK_GEMINI_MODEL = 'googleai/gemini-2.0-flash-lite';
 export const GEMINI_MODEL_FALLBACKS = [PRIMARY_GEMINI_MODEL, FALLBACK_GEMINI_MODEL] as const;
 
