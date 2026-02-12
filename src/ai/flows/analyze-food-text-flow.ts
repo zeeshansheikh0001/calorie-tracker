@@ -8,7 +8,7 @@
  * - AnalyzeFoodTextOutput - The return type for the analyzeFoodText function.
  */
 
-import {ai} from '@/ai/genkit';
+import {ai, GEMINI_MODEL_FALLBACKS} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const AnalyzeFoodTextInputSchema = z.object({
@@ -55,6 +55,60 @@ function getGeminiApiKey(): string | undefined {
     if (value && value.trim()) return value;
   }
   return undefined;
+}
+
+function getStatusCode(err: unknown): number | undefined {
+  if (typeof err !== 'object' || err === null) return undefined;
+  const maybeStatus = (err as {status?: unknown}).status;
+  return typeof maybeStatus === 'number' ? maybeStatus : undefined;
+}
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+function isGeminiModelNotFoundError(err: unknown): boolean {
+  const status = getStatusCode(err);
+  const message = getErrorMessage(err).toLowerCase();
+  if (status !== 404) return false;
+  return (
+    message.includes('model') ||
+    message.includes('models/') ||
+    message.includes('generatecontent') ||
+    message.includes('not found')
+  );
+}
+
+function toUserFacingGeminiError(err: unknown): Error {
+  const status = getStatusCode(err);
+  const message = getErrorMessage(err).toLowerCase();
+
+  if (isGeminiModelNotFoundError(err)) {
+    return new Error('Configured Gemini model unavailable; server model config needs update.');
+  }
+
+  if (status === 401 || status === 403 || message.includes('permission denied') || message.includes('api key')) {
+    return new Error('Gemini key invalid/disabled.');
+  }
+
+  if (status === 429 || message.includes('quota') || message.includes('rate limit')) {
+    return new Error('Gemini quota/rate limit reached.');
+  }
+
+  if (err instanceof Error) return err;
+  return new Error('AI estimation failed due to an unexpected server error.');
+}
+
+async function runAnalyzePromptWithModel(
+  input: AnalyzeFoodTextInput,
+  model: string
+): Promise<AnalyzeFoodTextOutput> {
+  const {output} = await prompt(input, {model});
+  if (!output) {
+    throw new Error('AI model returned an empty response.');
+  }
+  return output;
 }
 
 export async function analyzeFoodText(input: AnalyzeFoodTextInput): Promise<AnalyzeFoodTextOutput> {
@@ -115,8 +169,20 @@ const analyzeFoodTextFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodTextOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    const [primaryModel, fallbackModel] = GEMINI_MODEL_FALLBACKS;
+
+    try {
+      return await runAnalyzePromptWithModel(input, primaryModel);
+    } catch (primaryError) {
+      if (fallbackModel && isGeminiModelNotFoundError(primaryError)) {
+        try {
+          return await runAnalyzePromptWithModel(input, fallbackModel);
+        } catch (fallbackError) {
+          throw toUserFacingGeminiError(fallbackError);
+        }
+      }
+      throw toUserFacingGeminiError(primaryError);
+    }
   }
 );
 

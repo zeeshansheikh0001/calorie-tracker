@@ -39,5 +39,5 @@ If you see **429 Too Many Requests** or “quota exceeded”:
 
 1. **Wait ~1 minute** and try again (per-minute limit resets quickly).
 2. **Check usage:** [Google AI Studio](https://aistudio.google.com/) or [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
-3. This app uses **gemini-1.5-flash** by default so you get a separate quota from gemini-2.0-flash. If one model is exhausted, the other may still work after redeploy.
+3. This app uses **gemini-2.0-flash** by default, with fallback to **gemini-2.0-flash-lite** for model-availability issues.
 4. If you need more quota: enable **billing** in Google Cloud (pay-as-you-go) for the project that owns the API key, or wait until the next day (Pacific) for the free daily quota to reset.
