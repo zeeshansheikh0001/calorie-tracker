@@ -10,24 +10,47 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import { ArrowLeft, CalendarDays, Tag, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/i18n/provider";
+import { useEffect, useMemo, useState } from "react";
+import { translateBlogPosts } from "@/lib/i18n/auto-translate";
 
 export default function BlogPostPage() {
+  const { t, locale } = useLanguage();
   const params = useParams();
   const postId = params.id as string;
+  const [localizedPosts, setLocalizedPosts] = useState<BlogPost[]>(blogData);
 
-  // Use blogData instead of mockBlogData
-  const post: BlogPost | undefined = blogData.find(p => p.id === postId);
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLocalizedPosts = async () => {
+      const translated = await translateBlogPosts(blogData, locale);
+      if (!cancelled) {
+        setLocalizedPosts(translated);
+      }
+    };
+
+    loadLocalizedPosts();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
+  const post: BlogPost | undefined = useMemo(
+    () => localizedPosts.find((p) => p.id === postId),
+    [localizedPosts, postId]
+  );
 
   if (!post) {
     return (
       <div className="container mx-auto py-8 px-4 text-center">
         <Card className="max-w-md mx-auto p-8 shadow-lg">
-          <CardTitle className="text-2xl font-bold text-destructive mb-4">Blog Post Not Found</CardTitle>
-          <CardDescription className="mb-6">Sorry, we couldn't find the blog post you were looking for.</CardDescription>
+          <CardTitle className="text-2xl font-bold text-destructive mb-4">{t("blog.postNotFoundTitle")}</CardTitle>
+          <CardDescription className="mb-6">{t("blog.postNotFoundDesc")}</CardDescription>
           <Link href="/blog" passHref>
             <Button variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blog
+              {t("blog.backToBlog")}
             </Button>
           </Link>
         </Card>
@@ -40,7 +63,7 @@ export default function BlogPostPage() {
       <Link href="/blog" passHref className="mb-6 inline-block">
         <Button variant="ghost" className="text-primary hover:text-primary/80">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Blog
+          {t("blog.backToBlog")}
         </Button>
       </Link>
       
@@ -80,7 +103,7 @@ export default function BlogPostPage() {
                       ? post.author.name
                       : typeof post.author === 'string' 
                         ? post.author 
-                        : "Author"
+                        : t("blog.authorFallback")
                   }
                 />
                 <AvatarFallback className="bg-primary/10 text-primary">
@@ -97,7 +120,7 @@ export default function BlogPostPage() {
                     ? post.author.name
                     : typeof post.author === 'string'
                       ? post.author
-                      : "Author"}
+                      : t("blog.authorFallback")}
                 </div>
                 {(typeof post.author === 'object' && post.author?.role) || post.authorRole ? (
                   <div className="text-xs text-muted-foreground">
@@ -125,7 +148,7 @@ export default function BlogPostPage() {
             )}
             <div className="flex items-center">
               <Clock className="mr-1.5 h-4 w-4" />
-              <span>5 min read</span>
+              <span>{t("blog.readTime")}</span>
             </div>
           </div>
         </CardHeader>
@@ -138,15 +161,15 @@ export default function BlogPostPage() {
             {post.content ? (
               <div dangerouslySetInnerHTML={{ __html: post.content }} />
             ) : (
-              <p>Loading content...</p>
+              <p>{t("common.loading")}</p>
             )}
           </div>
           
           {/* Share and related articles section */}
           <div className="mt-10 pt-6 border-t">
-            <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("blog.relatedArticles")}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {blogData
+              {localizedPosts
                 .filter(b => b.id !== post.id && b.category === post.category)
                 .slice(0, 2)
                 .map(relatedPost => (
@@ -168,7 +191,7 @@ export default function BlogPostPage() {
                               ? relatedPost.author.name
                               : typeof relatedPost.author === 'string'
                                 ? relatedPost.author
-                                : "Editorial Team"}
+                                : t("blog.editorialTeam")}
                           </p>
                         </div>
                       </CardContent>

@@ -4,18 +4,20 @@
 import { usePathname } from "next/navigation";
 import { Home, BarChart2, HeartPulse, UserCircle2, Sparkles, Apple } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/provider";
 
 const bottomNavItems = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/progress", label: "Stats", icon: BarChart2 },
-  { href: "/ai-features", label: "AI", icon: Sparkles },
-  { href: "/diet-chart", label: "Diet", icon: Apple },
-  { href: "/goals", label: "Health", icon: HeartPulse },
-  { href: "/profile", label: "Profile", icon: UserCircle2 },
+  { href: "/", labelKey: "nav.home", icon: Home },
+  { href: "/progress", labelKey: "nav.stats", icon: BarChart2 },
+  { href: "/ai-features", labelKey: "nav.ai", icon: Sparkles },
+  { href: "/diet-chart", labelKey: "nav.diet", icon: Apple },
+  { href: "/goals", labelKey: "nav.health", icon: HeartPulse },
+  { href: "/profile", labelKey: "nav.profile", icon: UserCircle2 },
 ];
 
 export default function BottomNavigationBar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const handleNavigation = (href: string) => {
     window.location.href = href;
@@ -29,7 +31,7 @@ export default function BottomNavigationBar() {
           
           return (
             <button
-              key={item.label}
+              key={item.labelKey}
               onClick={() => handleNavigation(item.href)}
               className="flex flex-1 flex-col items-center justify-center p-2 text-center hover:bg-muted/50 transition-colors"
             >
@@ -45,7 +47,7 @@ export default function BottomNavigationBar() {
                   isActive ? "text-primary font-medium" : "text-muted-foreground"
                 )}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
             </button>
           );

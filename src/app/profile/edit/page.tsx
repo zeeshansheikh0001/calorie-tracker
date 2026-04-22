@@ -2,7 +2,6 @@
 
 import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +12,7 @@ import { Save, User, Mail, ArrowLeft, UploadCloud, Scale, Ruler, Calendar } from
 import { Separator } from "@/components/ui/separator";
 import type { UserProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/provider";
 
 const DEFAULT_USER_PROFILE: UserProfile = {
   name: "Alex Johnson",
@@ -40,6 +40,7 @@ const AnimatedField: React.FC<{ children: React.ReactNode; className?: string }>
 };
 
 export default function EditProfilePage() {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState<number | undefined>(undefined);
@@ -56,7 +57,6 @@ export default function EditProfilePage() {
   
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(DEFAULT_USER_PROFILE.avatarUrl);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -159,7 +159,6 @@ export default function EditProfilePage() {
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -174,8 +173,8 @@ export default function EditProfilePage() {
 
     if (!name.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Name cannot be empty.",
+        title: t("profileEdit.validationErrorTitle"),
+        description: t("profileEdit.nameRequired"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -199,8 +198,8 @@ export default function EditProfilePage() {
 
     setTimeout(() => {
       toast({
-        title: "Profile Updated!",
-        description: "Your profile details have been saved.",
+        title: t("profileEdit.updatedTitle"),
+        description: t("profileEdit.updatedDesc"),
       });
       setIsLoading(false);
       router.push("/profile"); 
@@ -211,16 +210,16 @@ export default function EditProfilePage() {
     <div className="container mx-auto max-w-xl py-8 px-4">
         <Button variant="ghost" onClick={() => router.push('/profile')} className="mb-4 group">
           <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Profile
+          {t("profileEdit.back")}
         </Button>
       <Card className="shadow-xl rounded-xl overflow-hidden">
         <CardHeader>
           <CardTitle className="text-2xl font-bold flex items-center">
             <User className="mr-2 h-6 w-6 text-primary" />
-            Edit Your Profile
+            {t("profileEdit.title")}
           </CardTitle>
           <CardDescription>
-            Update your personal information and profile picture.
+            {t("profileEdit.subtitle")}
            
           </CardDescription>
         </CardHeader>
@@ -245,7 +244,7 @@ export default function EditProfilePage() {
                 >
                   <UploadCloud className="h-4 w-4" />
                 </motion.div>
-                Change Profile Picture
+                {t("profileEdit.changePicture")}
               </Label>
               <Input
                 id="avatarUpload"
@@ -260,7 +259,7 @@ export default function EditProfilePage() {
 
             <div>
               <Label htmlFor="name" className="text-sm font-medium flex items-center">
-                <User className="mr-2 h-4 w-4 text-muted-foreground" /> Full Name
+                <User className="mr-2 h-4 w-4 text-muted-foreground" /> {t("profileEdit.fullName")}
               </Label>
               <AnimatedField>
                 <Input
@@ -269,14 +268,14 @@ export default function EditProfilePage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-1"
-                  placeholder="e.g., Alex Johnson"
+                  placeholder={t("profileEdit.namePlaceholder")}
                   required
                 />
               </AnimatedField>
             </div>
             <div>
               <Label htmlFor="email" className="text-sm font-medium flex items-center">
-                <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Email Address
+                <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> {t("profileEdit.email")}
               </Label>
               <AnimatedField>
                 <Input
@@ -285,13 +284,13 @@ export default function EditProfilePage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1"
-                  placeholder="e.g., alex.johnson@example.com"
+                  placeholder={t("profileEdit.emailPlaceholder")}
                 />
               </AnimatedField>
             </div>
             <div>
               <Label htmlFor="age" className="text-sm font-medium flex items-center">
-                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" /> Age
+                <Calendar className="mr-2 h-4 w-4 text-muted-foreground" /> {t("profile.age")}
               </Label>
               <AnimatedField>
                 <Input
@@ -302,14 +301,14 @@ export default function EditProfilePage() {
                   value={age || ""}
                   onChange={(e) => setAge(e.target.value ? Number(e.target.value) : undefined)}
                   className="mt-1"
-                  placeholder="e.g., 25"
+                  placeholder={t("profileEdit.agePlaceholder")}
                 />
               </AnimatedField>
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="height" className="text-sm font-medium flex items-center">
-                  <Ruler className="mr-2 h-4 w-4 text-muted-foreground" /> Height
+                  <Ruler className="mr-2 h-4 w-4 text-muted-foreground" /> {t("profile.height")}
                 </Label>
                 <div className="flex items-center bg-background border rounded-md overflow-hidden relative shadow-sm">
                   <motion.div 
@@ -364,9 +363,9 @@ export default function EditProfilePage() {
                       value={height || ""}
                       onChange={(e) => setHeight(e.target.value ? Number(e.target.value) : undefined)}
                       className="mt-1"
-                      placeholder="e.g., 170"
+                      placeholder={t("profileEdit.heightCmPlaceholder")}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">Height in centimeters</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("profileEdit.heightCmHint")}</p>
                   </motion.div>
                 ) : (
                   <motion.div
@@ -378,7 +377,7 @@ export default function EditProfilePage() {
                   >
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <Label htmlFor="feet" className="text-xs">Feet</Label>
+                        <Label htmlFor="feet" className="text-xs">{t("profileEdit.feet")}</Label>
                         <Input
                           id="feet"
                           type="number"
@@ -387,11 +386,11 @@ export default function EditProfilePage() {
                           value={feet || ""}
                           onChange={handleFeetChange}
                           className="mt-1"
-                          placeholder="ft"
+                          placeholder={t("profileEdit.feetShort")}
                         />
                       </div>
                       <div>
-                        <Label htmlFor="inches" className="text-xs">Inches</Label>
+                        <Label htmlFor="inches" className="text-xs">{t("profileEdit.inches")}</Label>
                         <Input
                           id="inches"
                           type="number"
@@ -400,11 +399,11 @@ export default function EditProfilePage() {
                           value={inches || ""}
                           onChange={handleInchesChange}
                           className="mt-1"
-                          placeholder="in"
+                          placeholder={t("profileEdit.inchesShort")}
                         />
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Height in feet and inches</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("profileEdit.heightFtHint")}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -412,7 +411,7 @@ export default function EditProfilePage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="weight" className="text-sm font-medium flex items-center">
-                  <Scale className="mr-2 h-4 w-4 text-muted-foreground" /> Weight
+                  <Scale className="mr-2 h-4 w-4 text-muted-foreground" /> {t("profile.weight")}
                 </Label>
                 <div className="flex items-center bg-background border rounded-md overflow-hidden relative shadow-sm">
                   <motion.div 
@@ -467,10 +466,10 @@ export default function EditProfilePage() {
                     value={weight || ""}
                     onChange={(e) => setWeight(e.target.value ? Number(e.target.value) : undefined)}
                     className="mt-1"
-                    placeholder={weightUnit === "kg" ? "e.g., 65.5" : "e.g., 145"}
+                    placeholder={weightUnit === "kg" ? t("profileEdit.weightKgPlaceholder") : t("profileEdit.weightLbsPlaceholder")}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Weight in {weightUnit === "kg" ? "kilograms" : "pounds"} 
+                    {t("profileEdit.weightIn", { unit: weightUnit === "kg" ? t("profileEdit.kilograms") : t("profileEdit.pounds") })}
                   </p>
                 </motion.div>
               </AnimatePresence>
@@ -487,7 +486,7 @@ export default function EditProfilePage() {
                 ) : (
                   <Save className="mr-2 h-4 w-4" />
                 )}
-                Save Changes
+                {t("profileEdit.saveChanges")}
               </Button>
             </motion.div>
           </CardFooter>

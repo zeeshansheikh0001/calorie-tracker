@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/lib/i18n/provider";
 
 // Animated card component with hover effects
 const AnimatedCard: React.FC<{
@@ -109,40 +110,40 @@ const PulseEffect: React.FC<{
 };
 
 const activityLevels = [
-  { value: "sedentary", label: "Sedentary (little or no exercise)" },
-  { value: "lightly_active", label: "Lightly Active (light exercise/sports 1-3 days/week)" },
-  { value: "moderately_active", label: "Moderately Active (moderate exercise/sports 3-5 days/week)" },
-  { value: "very_active", label: "Very Active (hard exercise/sports 6-7 days a week)" },
-  { value: "extra_active", label: "Extra Active (very hard exercise/sports & physical job)" },
+  { value: "sedentary" },
+  { value: "lightly_active" },
+  { value: "moderately_active" },
+  { value: "very_active" },
+  { value: "extra_active" },
 ];
 
 const weightGoalTypes = [
-  { value: "lose_weight", label: "Lose Weight" },
-  { value: "maintain_weight", label: "Maintain Weight" },
-  { value: "gain_muscle", label: "Gain Muscle" },
-  { value: "general_health", label: "Improve General Health" },
+  { value: "lose_weight" },
+  { value: "maintain_weight" },
+  { value: "gain_muscle" },
+  { value: "general_health" },
 ];
 
 const allDietaryPreferences = [
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "vegan", label: "Vegan" },
-  { id: "gluten_free", label: "Gluten-Free" },
-  { id: "dairy_free", label: "Dairy-Free" },
-  { id: "nut_free", label: "Nut-Free" },
-  { id: "low_carb", label: "Low Carb" },
-  { id: "keto", label: "Keto" },
-  { id: "paleo", label: "Paleo" },
+  { id: "vegetarian" },
+  { id: "vegan" },
+  { id: "gluten_free" },
+  { id: "dairy_free" },
+  { id: "nut_free" },
+  { id: "low_carb" },
+  { id: "keto" },
+  { id: "paleo" },
 ];
 
 const primaryFocusOptions = [
-    { value: "general_health", label: "General Health & Wellness" },
-    { value: "strength_training", label: "Strength Training" },
-    { value: "muscle_gain", label: "Muscle Gain" },
-    { value: "weight_loss", label: "Weight Loss" },
-    { value: "endurance_training", label: "Endurance Training (e.g., running, cycling)" },
-    { value: "stress_reduction", label: "Stress Reduction & Mental Wellbeing" },
-    { value: "improved_sleep", label: "Improved Sleep Quality" },
-    { value: "flexibility_mobility", label: "Flexibility & Mobility" },
+    { value: "general_health" },
+    { value: "strength_training" },
+    { value: "muscle_gain" },
+    { value: "weight_loss" },
+    { value: "endurance_training" },
+    { value: "stress_reduction" },
+    { value: "improved_sleep" },
+    { value: "flexibility_mobility" },
 ];
 
 const ScheduleSection: React.FC<{ 
@@ -229,6 +230,7 @@ ScheduleSection.displayName = 'ScheduleSection';
 
 
 export default function AiFeaturesPage() {
+  const { t } = useLanguage();
   const [formState, setFormState] = useState<GenerateHealthScheduleInput>({
     calorieGoal: 2000,
     proteinGoal: 150,
@@ -306,19 +308,19 @@ export default function AiFeaturesPage() {
 
     try {
       if (formState.calorieGoal <= 0) {
-        throw new Error("Calorie goal must be greater than 0.");
+        throw new Error(t("ai.calorieGoalPositiveError"));
       }
       const result = await generateHealthSchedule(formState);
       setSchedule(result);
       toast({
-        title: "Health Schedule Generated!",
-        description: "Your personalized plan is ready below.",
+        title: t("ai.scheduleGeneratedTitle"),
+        description: t("ai.scheduleGeneratedDesc"),
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      const errorMessage = err instanceof Error ? err.message : t("ai.unknownError");
       setScheduleError(errorMessage);
       toast({
-        title: "Error Generating Schedule",
+        title: t("ai.scheduleErrorTitle"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -333,10 +335,10 @@ export default function AiFeaturesPage() {
     setSummary(null);
 
     if (!summaryDate) {
-      setSummaryError("No date selected for summary. Please select a date.");
+      setSummaryError(t("ai.noDateSelectedError"));
       toast({
-        title: "Date Not Selected",
-        description: "Please select a date to generate the summary.",
+        title: t("ai.dateNotSelectedTitle"),
+        description: t("ai.dateNotSelectedDesc"),
         variant: "destructive",
       });
       setIsLoadingSummary(false);
@@ -349,8 +351,8 @@ export default function AiFeaturesPage() {
 
     if (foodEntriesForSummary.length === 0) {
        toast({
-        title: "No Food Logged",
-        description: `No food items have been logged for ${format(summaryDate, "MMM d, yyyy")}. Summary cannot be generated.`,
+        title: t("ai.noFoodLoggedTitle"),
+        description: t("ai.noFoodLoggedDesc", { date: format(summaryDate, "MMM d, yyyy") }),
         variant: "default" // Changed to default as it's informational
       });
       setIsLoadingSummary(false);
@@ -380,14 +382,14 @@ export default function AiFeaturesPage() {
       const result = await summarizeDailyLog(input);
       setSummary(result);
       toast({
-        title: "Daily Summary Generated!",
-        description: `AI analysis for ${result.date} is ready.`,
+        title: t("ai.summaryGeneratedTitle"),
+        description: t("ai.summaryGeneratedDesc", { date: result.date }),
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+      const errorMessage = err instanceof Error ? err.message : t("ai.unknownError");
       setSummaryError(errorMessage);
       toast({
-        title: "Error Generating Summary",
+        title: t("ai.summaryErrorTitle"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -426,11 +428,11 @@ export default function AiFeaturesPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                AI Health Assistant
+                {t("ai.title")}
               </span>
             </h1>
             <p className="text-muted-foreground mt-1">
-              Personalized health planning and nutrition analysis powered by AI
+              {t("ai.subtitle")}
             </p>
           </div>
           
@@ -442,13 +444,13 @@ export default function AiFeaturesPage() {
             <TabsList className="grid w-full md:w-auto grid-cols-2">
               <TabsTrigger value="planner" className="flex items-center gap-2">
                 <Edit3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Health Planner</span>
-                <span className="sm:hidden">Planner</span>
+                <span className="hidden sm:inline">{t("ai.healthPlanner")}</span>
+                <span className="sm:hidden">{t("ai.plannerShort")}</span>
               </TabsTrigger>
               <TabsTrigger value="summary" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Food Summary</span>
-                <span className="sm:hidden">Summary</span>
+                <span className="hidden sm:inline">{t("ai.foodSummary")}</span>
+                <span className="sm:hidden">{t("ai.summaryShort")}</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -466,9 +468,9 @@ export default function AiFeaturesPage() {
                     <Edit3 className="h-6 w-6 text-primary" />
           </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold">Personalized AI Health Planner</CardTitle>
+                    <CardTitle className="text-2xl font-bold">{t("ai.plannerTitle")}</CardTitle>
                     <CardDescription className="mt-1">
-                      Create your tailored daily health schedule with AI assistance
+                      {t("ai.plannerDesc")}
           </CardDescription>
                   </div>
                 </div>
@@ -476,7 +478,7 @@ export default function AiFeaturesPage() {
                 <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30 rounded-lg flex items-start gap-3">
                   <Lightbulb className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-amber-800 dark:text-amber-300">
-                    Fill in your details below, and our AI will generate a comprehensive health plan tailored to your specific needs and goals.
+                    {t("ai.plannerHint")}
                   </p>
                 </div>
         </CardHeader>
@@ -488,7 +490,7 @@ export default function AiFeaturesPage() {
                       <AccordionTrigger className="text-lg font-medium hover:no-underline px-4 py-3 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300">
                         <div className="flex items-center gap-2">
                           <Flame className="h-5 w-5" />
-                          <span>Nutritional Goals & Macros</span>
+                          <span>{t("ai.nutritionalGoalsMacros")}</span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-4 pb-4 bg-blue-50/30 dark:bg-blue-950/10 space-y-4">
@@ -496,7 +498,7 @@ export default function AiFeaturesPage() {
                     <div>
                             <Label htmlFor="calorieGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Flame className="h-4 w-4" />
-                              Daily Calorie Goal (kcal)
+                              {t("ai.dailyCalorieGoal")}
                             </Label>
                             <Input 
                               type="number" 
@@ -510,7 +512,7 @@ export default function AiFeaturesPage() {
                     <div>
                             <Label htmlFor="proteinGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Drumstick className="h-4 w-4" />
-                              Daily Protein Goal (g)
+                              {t("ai.dailyProteinGoal")}
                             </Label>
                             <Input 
                               type="number" 
@@ -524,7 +526,7 @@ export default function AiFeaturesPage() {
                     <div>
                             <Label htmlFor="fatGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Droplets className="h-4 w-4" />
-                              Daily Fat Goal (g)
+                              {t("ai.dailyFatGoal")}
                             </Label>
                             <Input 
                               type="number" 
@@ -538,7 +540,7 @@ export default function AiFeaturesPage() {
                     <div>
                             <Label htmlFor="carbGoal" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                               <Wheat className="h-4 w-4" />
-                              Daily Carb Goal (g)
+                              {t("ai.dailyCarbGoal")}
                             </Label>
                             <Input 
                               type="number" 
@@ -557,7 +559,7 @@ export default function AiFeaturesPage() {
                       <AccordionTrigger className="text-lg font-medium hover:no-underline px-4 py-3 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300">
                         <div className="flex items-center gap-2">
                           <User className="h-5 w-5" />
-                          <span>Lifestyle & Preferences</span>
+                          <span>{t("ai.lifestylePreferences")}</span>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent className="pt-4 px-4 pb-4 bg-purple-50/30 dark:bg-purple-950/10 space-y-4">
@@ -565,7 +567,7 @@ export default function AiFeaturesPage() {
                   <div>
                             <Label htmlFor="weightGoalType" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Award className="h-4 w-4" />
-                              Primary Weight/Health Goal
+                              {t("ai.primaryWeightHealthGoal")}
                             </Label>
                             <Select 
                               name="weightGoalType" 
@@ -573,10 +575,10 @@ export default function AiFeaturesPage() {
                               onValueChange={(value) => handleSelectChange("weightGoalType", value)}
                             >
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
-                                <SelectValue placeholder="Select goal" />
+                                <SelectValue placeholder={t("ai.selectGoal")} />
                               </SelectTrigger>
                       <SelectContent>
-                        {weightGoalTypes.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                        {weightGoalTypes.map(opt => <SelectItem key={opt.value} value={opt.value}>{t(`ai.option.weightGoal.${opt.value}`)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -584,7 +586,7 @@ export default function AiFeaturesPage() {
                   <div>
                             <Label htmlFor="activityLevel" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Dumbbell className="h-4 w-4" />
-                              Activity Level
+                              {t("ai.activityLevel")}
                             </Label>
                             <Select 
                               name="activityLevel" 
@@ -592,10 +594,10 @@ export default function AiFeaturesPage() {
                               onValueChange={(value) => handleSelectChange("activityLevel", value)}
                             >
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
-                                <SelectValue placeholder="Select activity level" />
+                                <SelectValue placeholder={t("ai.selectActivityLevel")} />
                               </SelectTrigger>
                       <SelectContent>
-                        {activityLevels.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                        {activityLevels.map(opt => <SelectItem key={opt.value} value={opt.value}>{t(`ai.option.activity.${opt.value}`)}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -603,7 +605,7 @@ export default function AiFeaturesPage() {
                   <div>
                             <Label htmlFor="primaryFocus" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <Heart className="h-4 w-4" />
-                              Primary Fitness/Health Focus
+                              {t("ai.primaryFitnessFocus")}
                             </Label>
                             <Select 
                               name="primaryFocus" 
@@ -611,10 +613,10 @@ export default function AiFeaturesPage() {
                               onValueChange={(value) => handleSelectChange("primaryFocus", value)}
                             >
                               <SelectTrigger className="mt-1 border-purple-200 dark:border-purple-800/50 focus:ring-purple-500">
-                                <SelectValue placeholder="Select primary focus" />
+                                <SelectValue placeholder={t("ai.selectPrimaryFocus")} />
                               </SelectTrigger>
                         <SelectContent>
-                            {primaryFocusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                            {primaryFocusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{t(`ai.option.primaryFocus.${opt.value}`)}</SelectItem>)}
                         </SelectContent>
                     </Select>
                   </div>
@@ -622,7 +624,7 @@ export default function AiFeaturesPage() {
                    <div>
                             <Label htmlFor="sleepHoursGoal" className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                               <BedDouble className="h-4 w-4" />
-                              Target Sleep Hours
+                              {t("ai.targetSleepHours")}
                             </Label>
                             <Input 
                               type="number" 
@@ -630,7 +632,7 @@ export default function AiFeaturesPage() {
                               id="sleepHoursGoal" 
                               value={formState.sleepHoursGoal || ''} 
                               onChange={handleInputChange} 
-                              placeholder="e.g., 8" 
+                              placeholder={t("ai.sleepHoursPlaceholder")}
                               className="mt-1 border-purple-200 dark:border-purple-800/50 focus-visible:ring-purple-500" 
                               min="0" 
                               max="16" 
@@ -641,7 +643,7 @@ export default function AiFeaturesPage() {
                         <div className="pt-2">
                           <Label className="flex items-center gap-2 text-purple-700 dark:text-purple-300 mb-2">
                             <Salad className="h-4 w-4" />
-                            Dietary Preferences/Restrictions
+                            {t("ai.dietaryPreferencesRestrictions")}
                           </Label>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
                       {allDietaryPreferences.map(pref => (
@@ -663,7 +665,7 @@ export default function AiFeaturesPage() {
                                   htmlFor={`diet-${pref.id}`} 
                                   className="text-sm font-normal cursor-pointer"
                                 >
-                                  {pref.label}
+                                  {t(`ai.option.diet.${pref.id}`)}
                                 </Label>
                         </div>
                       ))}
@@ -678,7 +680,7 @@ export default function AiFeaturesPage() {
                   <div className="w-full flex flex-col sm:flex-row justify-between gap-4 items-center">
                     <p className="text-sm text-muted-foreground">
                       <Clock className="inline-block h-4 w-4 mr-1" />
-                      Generation takes about 10-15 seconds
+                      {t("ai.generationTimeHint")}
                     </p>
                     
                     <Button 
@@ -689,12 +691,12 @@ export default function AiFeaturesPage() {
                       {isLoadingSchedule ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Generating...
+                          {t("ai.generating")}
                         </>
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-              Generate My Health Schedule
+              {t("ai.generateHealthSchedule")}
                         </>
                       )}
             </Button>
@@ -707,7 +709,7 @@ export default function AiFeaturesPage() {
       {scheduleError && (
         <Alert variant="destructive" className="mt-6 w-full mx-auto animate-in fade-in-0 slide-in-from-bottom-3 duration-500">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{t("error.title")}</AlertTitle>
           <AlertDescription>{scheduleError}</AlertDescription>
         </Alert>
       )}
@@ -734,28 +736,28 @@ export default function AiFeaturesPage() {
                   
                   <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/30 rounded-lg">
                     <div className="flex items-center justify-between text-sm text-green-800 dark:text-green-300 mb-2">
-                      <span className="font-medium">Plan Overview</span>
+                      <span className="font-medium">{t("ai.planOverview")}</span>
                       <Badge variant="outline" className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
-                        {formState.weightGoalType.replace('_', ' ')}
+                        {t(`ai.option.weightGoal.${formState.weightGoalType}`)}
                       </Badge>
                     </div>
                     
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                       <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
                         <Flame className="h-3.5 w-3.5" />
-                        <span>{formState.calorieGoal} kcal</span>
+                        <span>{t("units.kcalValue", { value: formState.calorieGoal })}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
                         <Drumstick className="h-3.5 w-3.5" />
-                        <span>{formState.proteinGoal}g protein</span>
+                        <span>{formState.proteinGoal}g {t("macros.protein")}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
                         <Droplets className="h-3.5 w-3.5" />
-                        <span>{formState.fatGoal}g fat</span>
+                        <span>{formState.fatGoal}g {t("macros.fats")}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
                         <Wheat className="h-3.5 w-3.5" />
-                        <span>{formState.carbGoal}g carbs</span>
+                        <span>{formState.carbGoal}g {t("macros.carbs")}</span>
                       </div>
                     </div>
                   </div>
@@ -766,7 +768,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5 space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                         <Utensils className="h-5 w-5" />
-                        Meal Plan & Timings
+                        {t("ai.mealPlanTimings")}
                       </h3>
                       
                       <div className="space-y-3">
@@ -793,7 +795,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5 space-y-4">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                         <Dumbbell className="h-5 w-5" />
-                        Workout Plan
+                        {t("ai.workoutPlan")}
                       </h3>
                       
                       <div className="p-4 border border-green-200 dark:border-green-900/30 rounded-md bg-green-50/50 dark:bg-green-950/10">
@@ -824,7 +826,7 @@ export default function AiFeaturesPage() {
 
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400 mt-6 pt-2">
                         <Brain className="h-5 w-5" />
-                        Nutrient Balance Tip
+                        {t("ai.nutrientBalanceTip")}
                       </h3>
                       
                       <div className="p-4 border border-green-200 dark:border-green-900/30 rounded-md bg-green-50/50 dark:bg-green-950/10">
@@ -837,11 +839,11 @@ export default function AiFeaturesPage() {
                         <div>
                           <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                             <Droplets className="h-5 w-5" />
-                            Hydration Reminder
+                            {t("ai.hydrationReminder")}
                           </h3>
                           
                           <div className="mt-2 p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
-                            <p className="font-medium text-blue-700 dark:text-blue-400 mb-2">Target: {schedule.hydrationReminder.target}</p>
+                            <p className="font-medium text-blue-700 dark:text-blue-400 mb-2">{t("ai.targetLabel")}: {schedule.hydrationReminder.target}</p>
                             <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
                               {schedule.hydrationReminder.tips.map((tip, i) => (
                                 <motion.li 
@@ -860,11 +862,11 @@ export default function AiFeaturesPage() {
                         <div>
                           <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                             <BedDouble className="h-5 w-5" />
-                            Sleep Suggestion
+                            {t("ai.sleepSuggestion")}
                           </h3>
                           
                           <div className="mt-2 p-4 border border-purple-200 dark:border-purple-900/30 rounded-md bg-purple-50/50 dark:bg-purple-950/10">
-                            <p className="font-medium text-purple-700 dark:text-purple-400 mb-2">Target: {schedule.sleepSuggestion.target}</p>
+                            <p className="font-medium text-purple-700 dark:text-purple-400 mb-2">{t("ai.targetLabel")}: {schedule.sleepSuggestion.target}</p>
                             {schedule.sleepSuggestion.bedtimeRoutineTip && (
                               <p className="text-sm text-muted-foreground">{schedule.sleepSuggestion.bedtimeRoutineTip}</p>
                             )}
@@ -875,7 +877,7 @@ export default function AiFeaturesPage() {
                           <div>
                             <h3 className="text-lg font-semibold flex items-center gap-2 text-green-700 dark:text-green-400">
                               <Info className="h-5 w-5" />
-                              General Notes
+                              {t("ai.generalNotes")}
                             </h3>
                             
                             <div className="mt-2 p-4 border border-amber-200 dark:border-amber-900/30 rounded-md bg-amber-50/50 dark:bg-amber-950/10">
@@ -915,9 +917,9 @@ export default function AiFeaturesPage() {
                     <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </div>
                   <div>
-                    <CardTitle className="text-2xl font-bold">AI Daily Food Log Summary</CardTitle>
+                    <CardTitle className="text-2xl font-bold">{t("ai.dailyFoodSummaryTitle")}</CardTitle>
                     <CardDescription className="mt-1">
-                      Get AI-powered analysis of your daily nutrition
+                      {t("ai.dailyFoodSummaryDesc")}
           </CardDescription>
                   </div>
                 </div>
@@ -925,7 +927,7 @@ export default function AiFeaturesPage() {
                 <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/30 rounded-lg flex items-start gap-3">
                   <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                   <p className="text-sm text-blue-800 dark:text-blue-300">
-                    Select a date below to analyze your food log entries. Our AI will provide personalized insights and suggestions based on your nutritional goals.
+                    {t("ai.summaryDateHint")}
                   </p>
                 </div>
         </CardHeader>
@@ -935,7 +937,7 @@ export default function AiFeaturesPage() {
                   <div className="space-y-3">
                     <Label htmlFor="summaryDate" className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                       <CalendarDays className="h-4 w-4" />
-                      Date for Summary
+                      {t("ai.dateForSummary")}
                     </Label>
                     
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -953,12 +955,12 @@ export default function AiFeaturesPage() {
                                   {format(summaryDate, "PPP")}
                                   {isToday(summaryDate) && (
                                     <Badge variant="outline" className="ml-2 text-[10px] py-0 h-4 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                                      Today
+                                      {t("home.today")}
                                     </Badge>
                                   )}
                                 </span>
                               ) : (
-                                <span className="text-muted-foreground">Pick a date</span>
+                                <span className="text-muted-foreground">{t("ai.pickDate")}</span>
                               )}
                             </div>
                             <ChevronDown className="h-4 w-4 opacity-50" />
@@ -982,7 +984,7 @@ export default function AiFeaturesPage() {
                     
                     {!summaryDate && (
                       <p className="text-sm text-muted-foreground">
-                        Please select a date for the summary.
+                        {t("ai.selectDateForSummary")}
                       </p>
                     )}
           </div>
@@ -991,9 +993,9 @@ export default function AiFeaturesPage() {
                     <div className="text-sm text-muted-foreground">
                       <p className="flex items-center gap-2 mb-1">
                         <Sparkles className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium text-foreground">AI-Powered Analysis</span>
+                        <span className="font-medium text-foreground">{t("ai.poweredAnalysis")}</span>
                       </p>
-                      <p>Get personalized insights about your nutrition based on your food log entries.</p>
+                      <p>{t("ai.poweredAnalysisDesc")}</p>
                     </div>
                     
                     <Button 
@@ -1004,12 +1006,12 @@ export default function AiFeaturesPage() {
                       {isLoadingSummary ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Analyzing...
+                          {t("ai.analyzing")}
                         </>
                       ) : (
                         <>
                           <Sparkles className="mr-2 h-4 w-4" />
-            Generate Summary for {summaryDate ? format(summaryDate, "MMM d") : "Selected Date"}
+            {t("ai.generateSummaryFor", { date: summaryDate ? format(summaryDate, "MMM d") : t("progress.selectedDate") })}
                         </>
                       )}
           </Button>
@@ -1021,7 +1023,7 @@ export default function AiFeaturesPage() {
                 <CardFooter className="border-t pt-4 bg-red-50/50 dark:bg-red-950/10">
             <Alert variant="destructive" className="w-full">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Summary Error</AlertTitle>
+              <AlertTitle>{t("ai.summaryErrorTitle")}</AlertTitle>
               <AlertDescription>{summaryError}</AlertDescription>
             </Alert>
           </CardFooter>
@@ -1039,12 +1041,12 @@ export default function AiFeaturesPage() {
                         <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <CardTitle className="text-xl font-bold text-blue-700 dark:text-blue-400">
-                        Summary for {summary.date}
+                        {t("ai.summaryFor", { date: summary.date })}
                       </CardTitle>
                     </div>
                     
                     <Badge variant="outline" className="bg-blue-100/50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800">
-                      AI Analysis
+                      {t("ai.analysisBadge")}
                     </Badge>
             </div>
                 </CardHeader>
@@ -1054,7 +1056,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <Info className="h-5 w-5" />
-                        Overall Assessment
+                        {t("ai.overallAssessment")}
                       </h3>
                       
                       <div className="p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
@@ -1065,7 +1067,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <Utensils className="h-5 w-5" />
-                        Consumed Items
+                        {t("ai.consumedItems")}
                       </h3>
                       
                       <div className="p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
@@ -1076,7 +1078,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <ListChecks className="h-5 w-5" />
-                        Nutritional Analysis
+                        {t("ai.nutritionalAnalysis")}
                       </h3>
                       
                       <div className="p-4 border border-blue-200 dark:border-blue-900/30 rounded-md bg-blue-50/50 dark:bg-blue-950/10">
@@ -1087,7 +1089,7 @@ export default function AiFeaturesPage() {
                     <div className="p-5">
                       <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400 mb-3">
                         <Brain className="h-5 w-5" />
-                        Actionable Suggestions
+                        {t("ai.actionableSuggestions")}
                       </h3>
                       
                       <div className="space-y-2">
@@ -1114,7 +1116,7 @@ export default function AiFeaturesPage() {
                   <div className="w-full flex flex-col sm:flex-row justify-between items-center gap-4">
                     <p className="text-sm text-muted-foreground">
                       <Info className="inline-block h-4 w-4 mr-1" />
-                      Analysis based on your food log entries and nutritional goals
+                      {t("ai.analysisBasedOnLog")}
                     </p>
                     
                     <Button 
@@ -1125,7 +1127,7 @@ export default function AiFeaturesPage() {
                       }}
                     >
                       <Printer className="mr-2 h-4 w-4" />
-                      Print or Save This Summary
+                      {t("ai.printSummary")}
                     </Button>
             </div>
           </CardFooter>

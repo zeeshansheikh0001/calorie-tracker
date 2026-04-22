@@ -2,14 +2,12 @@
 'use server';
 /**
  * @fileOverview Analyzes a text description of food to estimate calorie count, nutritional information, and health benefits.
- *
- * - analyzeFoodText - A function that handles the food text analysis process.
- * - AnalyzeFoodTextInput - The input type for the analyzeFoodText function.
- * - AnalyzeFoodTextOutput - The return type for the analyzeFoodText function.
+ * Supports Google Gemini (Genkit) or OpenAI via AI_PROVIDER env (openai = use OPENAI_API_KEY).
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import OpenAI from 'openai';
 
 const AnalyzeFoodTextInputSchema = z.object({
   description: z
@@ -57,10 +55,63 @@ function getGeminiApiKey(): string | undefined {
   return undefined;
 }
 
+function getOpenAIApiKey(): string | undefined {
+  const v = process.env.OPENAI_API_KEY;
+  return v?.trim() || undefined;
+}
+
+function getAiProvider(): 'gemini' | 'openai' {
+  const p = process.env.AI_PROVIDER?.toLowerCase().trim();
+  if (p === 'openai' && getOpenAIApiKey()) return 'openai';
+  return 'gemini';
+}
+
+const NUTRITION_SYSTEM_PROMPT = `You are an expert nutritionist and a highly precise nutritional calculator. Your primary goal is to provide the most accurate possible estimates for the food described.
+
+Respond with ONLY a valid JSON object (no markdown, no code fence). The JSON must have these exact keys:
+calorieEstimate (number), proteinEstimate (number), fatEstimate (number), saturatedFatEstimate (number, optional), carbEstimate (number), fiberEstimate (number, optional), sugarEstimate (number, optional), cholesterolEstimate (number, optional), sodiumEstimate (number, optional), estimatedQuantityNote (string), commonIngredientsInfluence (string, optional), healthBenefits (array of strings), healthierTips (string, optional), estimationDisclaimer (string, optional).
+
+Rules: If the user specifies a quantity (e.g. 150g salmon), base all estimates on that. If not, assume a standard portion (e.g. 100g for meats, 1 medium for fruit). estimatedQuantityNote must clearly state the quantity. For vague descriptions set all numbers to 0 and set estimatedQuantityNote to "Unable to determine quantity or provide accurate estimates due to vague description."`;
+
+async function analyzeFoodTextWithOpenAI(input: AnalyzeFoodTextInput): Promise<AnalyzeFoodTextOutput> {
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  const model = process.env.OPENAI_MODEL?.trim() || 'gpt-4o-mini';
+  const res = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: NUTRITION_SYSTEM_PROMPT },
+      { role: 'user', content: `Food description: ${input.description}` },
+    ],
+    temperature: 0.2,
+  });
+  const raw = res.choices[0]?.message?.content?.trim();
+  if (!raw) throw new Error('OpenAI returned no content.');
+  const json = raw.replace(/^```json\s*|\s*```$/g, '').trim();
+  const parsed = JSON.parse(json) as Record<string, unknown>;
+  return {
+    calorieEstimate: Number(parsed.calorieEstimate) || 0,
+    proteinEstimate: Number(parsed.proteinEstimate) || 0,
+    fatEstimate: Number(parsed.fatEstimate) || 0,
+    saturatedFatEstimate: parsed.saturatedFatEstimate != null ? Number(parsed.saturatedFatEstimate) : undefined,
+    carbEstimate: Number(parsed.carbEstimate) || 0,
+    fiberEstimate: parsed.fiberEstimate != null ? Number(parsed.fiberEstimate) : undefined,
+    sugarEstimate: parsed.sugarEstimate != null ? Number(parsed.sugarEstimate) : undefined,
+    cholesterolEstimate: parsed.cholesterolEstimate != null ? Number(parsed.cholesterolEstimate) : undefined,
+    sodiumEstimate: parsed.sodiumEstimate != null ? Number(parsed.sodiumEstimate) : undefined,
+    estimatedQuantityNote: String(parsed.estimatedQuantityNote ?? ''),
+    commonIngredientsInfluence: parsed.commonIngredientsInfluence != null ? String(parsed.commonIngredientsInfluence) : undefined,
+    healthBenefits: Array.isArray(parsed.healthBenefits) ? parsed.healthBenefits.map(String) : [],
+    healthierTips: parsed.healthierTips != null ? String(parsed.healthierTips) : undefined,
+    estimationDisclaimer: parsed.estimationDisclaimer != null ? String(parsed.estimationDisclaimer) : undefined,
+  };
+}
+
 export async function analyzeFoodText(input: AnalyzeFoodTextInput): Promise<AnalyzeFoodTextOutput> {
+  const provider = getAiProvider();
+  if (provider === 'openai') return analyzeFoodTextWithOpenAI(input);
   if (!getGeminiApiKey()) {
     throw new Error(
-      'AI (Gemini) is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY) in Vercel: Project Settings → Environment Variables, then redeploy.'
+      'AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY) for Gemini, or set AI_PROVIDER=openai and OPENAI_API_KEY for OpenAI. Then redeploy.'
     );
   }
   return analyzeFoodTextFlow(input);

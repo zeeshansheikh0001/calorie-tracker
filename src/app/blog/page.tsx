@@ -12,18 +12,39 @@ import { Input } from "@/components/ui/input";
 import { blogData } from "@/data/blog-content";
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/lib/i18n/provider";
+import { translateBlogPosts } from "@/lib/i18n/auto-translate";
+import type { BlogPost } from "@/types";
 
 export default function BlogPage() {
+  const { t, locale } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState(blogData);
+  const [localizedPosts, setLocalizedPosts] = useState<BlogPost[]>(blogData);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(blogData);
   const [activeCategory, setActiveCategory] = useState("all");
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLocalizedPosts = async () => {
+      const translated = await translateBlogPosts(blogData, locale);
+      if (!cancelled) {
+        setLocalizedPosts(translated);
+      }
+    };
+
+    loadLocalizedPosts();
+    return () => {
+      cancelled = true;
+    };
+  }, [locale]);
+
   // Get unique categories
-  const categories = ["all", ...Array.from(new Set(blogData.map(post => post.category || "Uncategorized")))];
+  const categories = ["all", ...Array.from(new Set(localizedPosts.map(post => post.category || t("blog.uncategorized"))))];
 
   // Filter posts based on search term and category
   useEffect(() => {
-    const filtered = blogData.filter(post => {
+    const filtered = localizedPosts.filter(post => {
       const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
       
@@ -33,14 +54,14 @@ export default function BlogPage() {
     });
     
     setFilteredPosts(filtered);
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, localizedPosts]);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold mb-4">Nutrition & Fitness Blog</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("blog.title")}</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          Expert advice, science-backed articles, and practical tips to help you achieve your health and fitness goals.
+          {t("blog.subtitle")}
         </p>
       </div>
       
@@ -49,7 +70,7 @@ export default function BlogPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Search articles..." 
+            placeholder={t("blog.searchPlaceholder")} 
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -64,7 +85,7 @@ export default function BlogPage() {
                 value={category}
                 className="capitalize"
               >
-                {category}
+                {category === "all" ? t("blog.allCategories") : category}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -118,7 +139,7 @@ export default function BlogPage() {
                                 ? filteredPosts[0].author.name
                                 : typeof filteredPosts[0].author === 'string' 
                                   ? filteredPosts[0].author 
-                                  : "Author"
+                                  : t("blog.authorFallback")
                             } 
                           />
                           <AvatarFallback>
@@ -135,7 +156,7 @@ export default function BlogPage() {
                               ? filteredPosts[0].author.name
                               : typeof filteredPosts[0].author === 'string'
                                 ? filteredPosts[0].author
-                                : "Author"}
+                                : t("blog.authorFallback")}
                           </div>
                           {filteredPosts[0].publishDate && (
                             <div className="text-xs text-muted-foreground flex items-center">
@@ -148,7 +169,7 @@ export default function BlogPage() {
                     )}
                     
                     <Button className="w-full sm:w-auto">
-                      Read Article
+                      {t("blog.readArticle")}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
@@ -197,7 +218,7 @@ export default function BlogPage() {
                           ? post.author.name
                           : typeof post.author === 'string'
                             ? post.author
-                            : "Author"}
+                            : t("blog.authorFallback")}
                       </span>
                       <span className="flex items-center">
                         <CalendarDays className="h-3 w-3 mr-1" />
@@ -215,9 +236,9 @@ export default function BlogPage() {
       {/* No results message */}
       {filteredPosts.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground mb-4">No articles found matching your search criteria.</p>
+          <p className="text-lg text-muted-foreground mb-4">{t("blog.noResults")}</p>
           <Button variant="outline" onClick={() => {setSearchTerm(""); setActiveCategory("all");}}>
-            Clear Filters
+            {t("blog.clearFilters")}
           </Button>
         </div>
       )}

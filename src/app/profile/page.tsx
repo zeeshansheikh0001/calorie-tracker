@@ -49,6 +49,10 @@ import { cn } from "@/lib/utils";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { FeedbackStats } from "@/components/FeedbackStats";
 import { GooglePlayBanner } from "@/components/ui/google-play-banner";
+import { useLanguage } from "@/lib/i18n/provider";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Image from "next/image";
 
 interface ListItemProps {
   href?: string;
@@ -133,28 +137,34 @@ const ListItem: React.FC<ListItemProps> = ({
 export default function ProfilePage() {
   const { userProfile, isLoading, updateUserProfile } = useUserProfile();
   const { toast } = useToast();
+  const { t, locale, setLocale, supportedLocales } = useLanguage();
   const [avatarHover, setAvatarHover] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isFeedbackStatsOpen, setIsFeedbackStatsOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
+  // QR-only support mode (Razorpay temporarily disabled).
+  const supportQrUrl = process.env.NEXT_PUBLIC_SUPPORT_QR_URL || "/images/qr.jpeg";
   
-  const handleLogout = () => {
+  const handleLanguageChange = (value: string) => {
+    const nextLocale = value as "en" | "ar" | "es" | "fr" | "de";
+    setLocale(nextLocale);
+    updateUserProfile({ language: nextLocale });
     toast({
-      title: "Coming Soon",
-      description: "Logout functionality is not yet implemented.",
+      title: t("profile.language"),
+      description: t("profile.languageUpdated"),
     });
   };
   
-  const handleAppSettings = () => {
-    toast({
-      title: "Coming Soon",
-      description: "App Settings page is not yet implemented.",
-    });
-  };
+  useEffect(() => {
+    if (userProfile.language && userProfile.language !== locale) {
+      setLocale(userProfile.language);
+    }
+  }, [userProfile.language, locale, setLocale]);
 
   // Get gender label with proper capitalization
   const getGenderLabel = (gender?: string) => {
-    if (!gender) return "Not specified";
-    return gender.charAt(0).toUpperCase() + gender.slice(1);
+    if (!gender) return t("profile.genderNotSpecified");
+    return t(`profile.gender.${gender}`);
   };
 
   // Format height in feet-inches when the unit is feet
@@ -237,7 +247,7 @@ export default function ProfilePage() {
                     {userProfile.age && (
                       <Badge variant="outline" className="bg-white/10 text-white border-white/20 font-medium py-1 px-2">
                         <Calendar className="h-3 w-3 mr-1 opacity-80" />
-                        {userProfile.age} years
+                    {t("profile.years", { count: userProfile.age })}
                       </Badge>
                     )}
                   </>
@@ -260,7 +270,7 @@ export default function ProfilePage() {
                       <Avatar className="h-24 w-24 border-4 border-white/30 shadow-2xl relative">
                         <AvatarImage 
                           src={userProfile.avatarUrl} 
-                          alt={userProfile.name || "User"} 
+                          alt={userProfile.name || t("profile.user")} 
                           className="object-cover"
                         />
                         <AvatarFallback className="text-2xl bg-primary-foreground/10 text-white">
@@ -302,7 +312,7 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <>
-                      <h1 className="text-2xl font-bold tracking-tight">{userProfile.name || "Guest User"}</h1>
+                      <h1 className="text-2xl font-bold tracking-tight">{userProfile.name || t("profile.guestUser")}</h1>
                       
                       <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                         {userProfile.gender && (
@@ -323,11 +333,11 @@ export default function ProfilePage() {
                       <div className="flex gap-2 mt-1">
                         <Link href="/profile/edit">
                           <Button size="sm" variant="secondary" className="h-8 px-3 bg-white text-primary hover:bg-white/90 shadow-md">
-                            Edit Profile
+                            {t("profile.editProfile")}
                           </Button>
                         </Link>
                         <Button size="sm" variant="outline" className="h-8 px-3 bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50">
-                          Share
+                          {t("profile.share")}
                         </Button>
                       </div>
                     </>
@@ -341,7 +351,7 @@ export default function ProfilePage() {
         {/* Settings Section */}
         <h2 className="text-xl font-semibold mb-4 flex items-center">
           <Settings className="h-5 w-5 mr-2 text-primary" />
-          Settings & Preferences
+          {t("profile.settingsTitle")}
         </h2>
         
         <Card className="border-border/40 shadow-md">
@@ -350,8 +360,8 @@ export default function ProfilePage() {
               href="/goals" 
               icon={HeartPulse} 
               iconColorClass="text-red-500" 
-              text="Nutrition Goals" 
-              subtext="Set and manage your daily nutrition targets"
+              text={t("profile.nutritionGoals")} 
+              subtext={t("profile.nutritionGoalsSubtext")}
             />
             
             <Separator className="my-1" />
@@ -360,8 +370,8 @@ export default function ProfilePage() {
               href="/reminders" 
               icon={Bell} 
               iconColorClass="text-amber-500" 
-              text="Reminders & Notifications" 
-              subtext="Configure when and how you're notified"
+              text={t("profile.reminders")} 
+              subtext={t("profile.remindersSubtext")}
             />
             
             <Separator className="my-1" />
@@ -370,8 +380,8 @@ export default function ProfilePage() {
               href="/privacy"
               icon={Shield} 
               iconColorClass="text-emerald-500" 
-              text="Privacy & Security" 
-              subtext="Manage your data and privacy preferences"
+              text={t("profile.privacy")} 
+              subtext={t("profile.privacySubtext")}
               isLink={true}
             />
             
@@ -381,8 +391,8 @@ export default function ProfilePage() {
               href="/terms"
               icon={FileText} 
               iconColorClass="text-purple-500" 
-              text="Terms of Service" 
-              subtext="Read our terms and conditions"
+              text={t("profile.terms")} 
+              subtext={t("profile.termsSubtext")}
               isLink={true}
             />
             
@@ -392,21 +402,45 @@ export default function ProfilePage() {
               href="/about"
               icon={Info} 
               iconColorClass="text-blue-500" 
-              text="About & Help" 
-              subtext="App information and support"
+              text={t("profile.about")} 
+              subtext={t("profile.aboutSubtext")}
               isLink={true}
             />
             
             <Separator className="my-1" />
-            
+
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-medium">{t("profile.language")}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{t("profile.languageSubtext")}</div>
+                </div>
+                <div className="w-[180px]">
+                  <Select value={locale} onValueChange={handleLanguageChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {supportedLocales.map((lang) => (
+                        <SelectItem key={lang.value} value={lang.value}>
+                          {lang.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-1" />
+
             <ListItem 
-              icon={LogOut} 
-              iconColorClass="text-destructive" 
-              text="Log Out" 
-              subtext="Sign out of your account"
+              icon={Info}
+              iconColorClass="text-violet-500" 
+              text={t("profile.support")} 
+              subtext={t("profile.supportSubtext")}
               isLink={false}
-              onClick={handleLogout}
-              isDestructive={true}
+              onClick={() => setIsSupportOpen(true)}
             />
           </CardContent>
         </Card>
@@ -419,17 +453,17 @@ export default function ProfilePage() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Apple className="h-5 w-5 text-primary" />
-                <CardTitle className="text-xl">Saved Diet Charts</CardTitle>
+                <CardTitle className="text-xl">{t("profile.savedDietCharts")}</CardTitle>
               </div>
               <Link href="/diet-chart">
                 <Button variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  New Diet Chart
+                  {t("profile.createDietChart")}
                 </Button>
               </Link>
             </div>
             <CardDescription>
-              Your saved diet plans and nutrition charts
+              {t("profile.savedDietChartsSubtext")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -449,7 +483,7 @@ export default function ProfilePage() {
                       <div>
                         <h3 className="font-medium text-base">{chart.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          Created on {formatDate(chart.createdAt)}
+                          {t("profile.createdOn", { date: formatDate(chart.createdAt) })}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -464,15 +498,15 @@ export default function ProfilePage() {
                     {chart.dietChart.macroBreakdown && (
                       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                         <div className="p-1 bg-primary/10 rounded">
-                          <div className="text-xs text-muted-foreground">Protein</div>
+                          <div className="text-xs text-muted-foreground">{t("macros.protein")}</div>
                           <div className="font-medium">{chart.dietChart.macroBreakdown.protein}g</div>
                         </div>
                         <div className="p-1 bg-primary/10 rounded">
-                          <div className="text-xs text-muted-foreground">Carbs</div>
+                          <div className="text-xs text-muted-foreground">{t("macros.carbs")}</div>
                           <div className="font-medium">{chart.dietChart.macroBreakdown.carbs}g</div>
                         </div>
                         <div className="p-1 bg-primary/10 rounded">
-                          <div className="text-xs text-muted-foreground">Fats</div>
+                          <div className="text-xs text-muted-foreground">{t("macros.fats")}</div>
                           <div className="font-medium">{chart.dietChart.macroBreakdown.fats}g</div>
                         </div>
                       </div>
@@ -485,14 +519,14 @@ export default function ProfilePage() {
                 <div className="bg-primary/5 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
                   <Apple className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-medium text-lg mb-2">No Saved Diet Charts</h3>
+                <h3 className="font-medium text-lg mb-2">{t("profile.noSavedDietCharts")}</h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  You haven't saved any diet charts yet.
+                  {t("profile.noSavedDietChartsSubtext")}
                 </p>
                 <Link href="/diet-chart">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create New Diet Chart
+                    {t("profile.createDietChart")}
                   </Button>
                 </Link>
               </div>
@@ -509,9 +543,9 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-5 w-5 text-primary" />
                     <div>
-                      <CardTitle className="text-xl">Help Us Improve</CardTitle>
+                      <CardTitle className="text-xl">{t("profile.helpUsImprove")}</CardTitle>
                       <CardDescription>
-                        Share your feedback, report bugs, or suggest new features
+                        {t("profile.helpUsImproveSubtext")}
                       </CardDescription>
                     </div>
                   </div>
@@ -576,9 +610,31 @@ export default function ProfilePage() {
 
         {/* App Version */}
         <div className="mt-8 text-center text-xs text-muted-foreground">
-          <p>Calorie Tracker v1.0.0</p>
-          <p className="mt-1">© 2025 All Rights Reserved</p>
+          <p>{t("profile.appVersion", { version: "1.0.0" })}</p>
+          <p className="mt-1">© 2025 {t("profile.allRightsReserved")}</p>
         </div>
+
+        <Dialog open={isSupportOpen} onOpenChange={setIsSupportOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("profile.supportDialogTitle")}</DialogTitle>
+              <DialogDescription>{t("profile.supportDialogDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Razorpay button intentionally commented for QR-only mode.
+                  Re-enable once international Razorpay account is active. */}
+              <div className="rounded-lg border p-3 text-center">
+                <p className="text-sm font-medium mb-2">{t("profile.scanQr")}</p>
+                {supportQrUrl ? (
+                  <Image src={supportQrUrl} alt="Support QR" width={220} height={220} className="mx-auto rounded-md" />
+                ) : (
+                  <p className="text-xs text-muted-foreground">{t("profile.qrUnavailable")}</p>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">{t("profile.supportThanks")}</p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </div>
   );

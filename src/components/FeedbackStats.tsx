@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Star, Bug, Lightbulb, ThumbsUp } from "lucide-react";
 import { feedbackService, type FeedbackStats } from "@/lib/feedback-service";
+import { useLanguage } from "@/lib/i18n/provider";
 
 export function FeedbackStats() {
+  const { t, locale } = useLanguage();
   const [stats, setStats] = useState<FeedbackStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,13 +47,13 @@ export function FeedbackStats() {
   const getFeedbackTypeLabel = (type: string) => {
     switch (type) {
       case "bug":
-        return "Bug Reports";
+        return t("feedback.typeBug");
       case "feature":
-        return "Feature Requests";
+        return t("feedback.typeFeature");
       case "general":
-        return "General Feedback";
+        return t("feedback.typeGeneral");
       case "rating":
-        return "App Ratings";
+        return t("feedback.typeRating");
       default:
         return type;
     }
@@ -63,7 +65,7 @@ export function FeedbackStats() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Feedback Statistics
+            {t("feedback.statsTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -83,18 +85,18 @@ export function FeedbackStats() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
-            Feedback Statistics
+            {t("feedback.statsTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Feedback Yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("feedback.noFeedbackYet")}</h3>
             <p className="text-gray-500 mb-4">
-              Be the first to share your thoughts and help us improve the app!
+              {t("feedback.noFeedbackDesc")}
             </p>
             <Button onClick={loadStats} variant="outline">
-              Refresh
+              {t("feedback.refresh")}
             </Button>
           </div>
         </CardContent>
@@ -107,10 +109,10 @@ export function FeedbackStats() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
-          Feedback Statistics
+          {t("feedback.statsTitle")}
         </CardTitle>
         <CardDescription>
-          Community feedback insights and metrics
+          {t("feedback.statsDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -118,23 +120,23 @@ export function FeedbackStats() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-primary/5 rounded-lg">
             <div className="text-2xl font-bold text-primary">{stats.totalSubmissions}</div>
-            <div className="text-sm text-muted-foreground">Total Submissions</div>
+            <div className="text-sm text-muted-foreground">{t("feedback.totalSubmissions")}</div>
           </div>
           <div className="text-center p-4 bg-primary/5 rounded-lg">
             <div className="text-2xl font-bold text-primary">{stats.averageRating}</div>
-            <div className="text-sm text-muted-foreground">Average Rating</div>
+            <div className="text-sm text-muted-foreground">{t("feedback.averageRating")}</div>
           </div>
           <div className="text-center p-4 bg-primary/5 rounded-lg">
             <div className="text-2xl font-bold text-primary">
               {Object.keys(stats.feedbackByType).length}
             </div>
-            <div className="text-sm text-muted-foreground">Feedback Types</div>
+            <div className="text-sm text-muted-foreground">{t("feedback.feedbackTypes")}</div>
           </div>
         </div>
 
         {/* Feedback by Type */}
         <div>
-          <h4 className="font-medium mb-3">Feedback by Type</h4>
+          <h4 className="font-medium mb-3">{t("feedback.byType")}</h4>
           <div className="space-y-2">
             {Object.entries(stats.feedbackByType).map(([type, count]) => (
               <div key={type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -151,7 +153,7 @@ export function FeedbackStats() {
         {/* Recent Submissions */}
         {stats.recentSubmissions.length > 0 && (
           <div>
-            <h4 className="font-medium mb-3">Recent Submissions</h4>
+          <h4 className="font-medium mb-3">{t("feedback.recentSubmissions")}</h4>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {stats.recentSubmissions.map((submission, index) => (
                 <div key={index} className="p-3 bg-gray-50 rounded-lg">
@@ -161,7 +163,7 @@ export function FeedbackStats() {
                       <span className="text-sm font-medium">{submission.title}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(submission.timestamp).toLocaleDateString()}
+                      {new Date(submission.timestamp).toLocaleDateString(locale)}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">
@@ -170,7 +172,7 @@ export function FeedbackStats() {
                   {submission.rating && (
                     <div className="flex items-center gap-1 mt-1">
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs text-muted-foreground">{submission.rating}/5</span>
+                      <span className="text-xs text-muted-foreground">{t("feedback.ratingValue", { rating: submission.rating })}</span>
                     </div>
                   )}
                 </div>
@@ -182,7 +184,7 @@ export function FeedbackStats() {
         {/* Actions */}
         <div className="flex gap-2 pt-4 border-t">
           <Button onClick={loadStats} variant="outline" size="sm">
-            Refresh Stats
+            {t("feedback.refreshStats")}
           </Button>
           <Button 
             onClick={() => feedbackService.exportFeedback().then(csv => {
@@ -197,7 +199,7 @@ export function FeedbackStats() {
             variant="outline" 
             size="sm"
           >
-            Export CSV
+            {t("feedback.exportCsv")}
           </Button>
         </div>
       </CardContent>

@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Suspense } from "react";
+import { useLanguage } from "@/lib/i18n/provider";
 
 const initialGoals: Goal = {
   calories: 2000,
@@ -33,6 +34,7 @@ const recommendedRanges = {
 };
 
 function GoalsPageContent() {
+  const { t } = useLanguage();
   const [goals, setGoals] = useState<Goal>(initialGoals);
   const [isLoading, setIsLoading] = useState(false);
   const [activeField, setActiveField] = useState<keyof Goal | null>(null);
@@ -126,9 +128,9 @@ function GoalsPageContent() {
               </div>
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Nutrition Goals</h1>
+          <h1 className="text-3xl font-bold mb-2">{t("goals.title")}</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Set your personalized nutrition targets to track progress and achieve your health objectives.
+            {t("goals.subtitle")}
           </p>
         </motion.div>
 
@@ -288,7 +290,7 @@ function GoalsPageContent() {
                   className="group"
                 >
                   <RefreshCw className="h-3.5 w-3.5 mr-1.5 group-hover:rotate-180 transition-transform duration-500" />
-                  Reset
+                  {t("goals.reset")}
                 </Button>
                 
                 <Button 
@@ -307,7 +309,7 @@ function GoalsPageContent() {
                   ) : (
                     <Save className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
                   )}
-                  <span>{isLoading ? 'Saving...' : 'Save Goals'}</span>
+                  <span>{isLoading ? t("goals.saving") : t("goals.save")}</span>
                   
                   <motion.div
                     className="absolute inset-0 bg-primary/10"
@@ -328,8 +330,9 @@ function GoalsPageContent() {
 }
 
 export default function GoalsPage() {
+  const { t } = useLanguage();
   return (
-    <Suspense fallback={<div className="p-8 text-center">Loading nutrition goals...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">{t("goals.loading")}</div>}>
       <GoalsPageContent />
     </Suspense>
   );

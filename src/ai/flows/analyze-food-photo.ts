@@ -12,6 +12,35 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+const GEMINI_API_KEY_ENV_NAMES = ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_API_KEY'] as const;
+
+function getGeminiApiKey(): string | undefined {
+  for (const name of GEMINI_API_KEY_ENV_NAMES) {
+    const value = process.env[name];
+    if (value && value.trim()) return value;
+  }
+  return undefined;
+}
+
+function getSafePhotoAnalysisErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return 'Photo analysis failed. Please try again.';
+  }
+
+  const msg = error.message;
+  if (msg.includes('API_KEY_INVALID') || msg.toLowerCase().includes('api key not valid')) {
+    return 'AI provider key is invalid. Update GEMINI_API_KEY (or GOOGLE_API_KEY) and retry.';
+  }
+  if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('rate limit')) {
+    return 'AI request limit reached. Please try again in a few minutes.';
+  }
+  if (msg.toLowerCase().includes('model')) {
+    return 'Configured AI model is unavailable. Check AI_MODEL configuration.';
+  }
+
+  return 'Unable to analyze the photo right now. Please try again.';
+}
+
 const AnalyzeFoodPhotoInputSchema = z.object({
   photoDataUri: z
     .string()
@@ -46,6 +75,11 @@ const AnalyzeFoodPhotoOutputSchema = z.object({
 export type AnalyzeFoodPhotoOutput = z.infer<typeof AnalyzeFoodPhotoOutputSchema>;
 
 export async function analyzeFoodPhoto(input: AnalyzeFoodPhotoInput): Promise<AnalyzeFoodPhotoOutput> {
+  if (!getGeminiApiKey()) {
+    throw new Error(
+      'AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY / GOOGLE_GENAI_API_KEY) and restart the server.'
+    );
+  }
   return analyzeFoodPhotoFlow(input);
 }
 
@@ -93,8 +127,16 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodPhotoOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      if (!output) {
+        throw new Error('No output returned from AI provider.');
+      }
+      return output;
+    } catch (error) {
+      console.error('analyzeFoodPhotoFlow failed:', error);
+      throw new Error(getSafePhotoAnalysisErrorMessage(error));
+    }
   }
 );
 

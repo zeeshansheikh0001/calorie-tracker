@@ -8,6 +8,7 @@ const DEFAULT_USER_PROFILE: UserProfile = {
   name: "Guest User",
   email: "", 
   avatarUrl: "https://placehold.co/100x100.png",
+  language: "en",
   savedDietCharts: [],
 };
 
@@ -28,6 +29,7 @@ export function useUserProfile() {
           name: parsedProfile.name || DEFAULT_USER_PROFILE.name,
           email: parsedProfile.email || DEFAULT_USER_PROFILE.email,
           avatarUrl: parsedProfile.avatarUrl || DEFAULT_USER_PROFILE.avatarUrl,
+          language: parsedProfile.language || DEFAULT_USER_PROFILE.language,
           age: parsedProfile.age,
           gender: parsedProfile.gender,
           height: parsedProfile.height,

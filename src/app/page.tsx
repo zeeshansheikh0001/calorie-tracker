@@ -57,6 +57,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { blogData } from "@/data/blog-content";
 import { GooglePlayBanner } from "@/components/ui/google-play-banner";
 import { shouldShowGooglePlayButton } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/provider";
 
 // Dynamically import CalorieDonutChart
 const CalorieDonutChart = dynamic(
@@ -99,7 +100,9 @@ interface MealCardProps {
   onDelete: (id: string) => void;
 }
 
-const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, protein, fat, carbs, onDelete }) => (
+const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, protein, fat, carbs, onDelete }) => {
+  const { t } = useLanguage();
+  return (
   <motion.div
     key={id}
     initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -133,28 +136,29 @@ const MealCard: React.FC<MealCardProps> = React.memo(({ id, name, calories, prot
             <div className="flex items-center font-bold text-lg text-poppins shrink-0" style={{color: 'hsl(var(--text-kcal-raw))'}}>
               <Flame className="h-5 w-5 mr-1.5" />
               {Math.round(calories)}
-              <span className="text-xs font-normal ml-1 text-muted-foreground">kcal</span>
+              <span className="text-xs font-normal ml-1 text-muted-foreground">{t("units.kcal")}</span>
             </div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
           <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
             <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-protein-raw))'}}>{Math.round(protein)}g</span>
-            <span className="text-poppins">Protein</span>
+            <span className="text-poppins">{t("macros.protein")}</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
             <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-fat-raw))'}}>{Math.round(fat)}g</span>
-            <span className="text-poppins">Fat</span>
+            <span className="text-poppins">{t("macros.fats")}</span>
           </div>
           <div className="flex flex-col items-center p-2 bg-secondary/20 rounded-md">
             <span className="font-medium text-sm text-poppins" style={{color: 'hsl(var(--text-carbs-raw))'}}>{Math.round(carbs)}g</span>
-            <span className="text-poppins">Carbs</span>
+            <span className="text-poppins">{t("macros.carbs")}</span>
           </div>
         </div>
       </div>
     </Card>
   </motion.div>
-));
+  );
+});
 MealCard.displayName = 'MealCard';
 
 
@@ -190,11 +194,12 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
   if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') {
     return null;
   }
+  const { t } = useLanguage();
   const { cx, cy } = viewBox;
   return (
     <text x={cx} y={cy} fill="hsl(var(--foreground))" textAnchor="middle" dominantBaseline="central">
       <tspan x={cx} y={cy - 8} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
-      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
+      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">{t("home.calories")}</tspan>
     </text>
   );
 };
@@ -204,6 +209,7 @@ interface CustomDonutTooltipProps extends TooltipProps<number, string> {
 }
 
 const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
+  const { t } = useLanguage();
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const value = payload[0].value || 0; 
@@ -211,16 +217,17 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
 
     let displayName = name;
     if (name === 'ConsumedNoGoal') {
-      displayName = 'Consumed';
+      displayName = t("home.tooltip.consumed");
     } else if (name === 'Empty') {
-      displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+      displayName = goalCalories > 0 ? t("home.tooltip.goalNotReached") : t("home.tooltip.goalNotSet");
     } else if (name === 'Remaining' && goalCalories > 0) {
-      displayName = 'Remaining in Goal';
+      displayName = t("home.tooltip.remainingInGoal");
     }
 
-    const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
-      ? '0 kcal'
-      : `${Math.round(value)} kcal`;
+    const displayValue =
+      (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
+        ? t("units.kcalValue", { value: 0 })
+        : t("units.kcalValue", { value: Math.round(value) });
 
     return (
       <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>
@@ -328,6 +335,7 @@ const InfoTooltip = ({ title, description, color }: { title: string; description
 };
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   // TODO: Uncomment when Supabase auth is fully implemented
   // const router = useRouter(); // Add this line to initialize router
   // const supabase = createClient();
@@ -567,7 +575,7 @@ export default function DashboardPage() {
                       👋
                     </motion.span>
                   </motion.h1>
-                  <span className="text-white/90 text-xs font-medium">Track your nutrition journey</span>
+                  <span className="text-white/90 text-xs font-medium">{t("home.trackJourney")}</span>
                 </div>
             </>
           )}
@@ -598,7 +606,7 @@ export default function DashboardPage() {
                   variant="outline" 
                   size="icon" 
                   className="rounded-full border-white/20 bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm group-hover:bg-green-500/20 group-hover:border-green-400/30 transition-all duration-300"
-                  title="Download on Google Play"
+                  title={t("home.downloadGooglePlay")}
                 >
                   <svg 
                     className="h-5 w-5" 
@@ -642,7 +650,7 @@ export default function DashboardPage() {
               >
                 <Flame className="h-4 w-4 text-white" />
               </motion.div>
-              <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white">Calories</h3>
+              <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white">{t("home.calories")}</h3>
             </div>
                       
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -653,7 +661,7 @@ export default function DashboardPage() {
               >
                 <Button variant="ghost" size="sm" className="flex items-center gap-1 text-sm font-normal h-8 text-[#8E8E93]">
                   <CalendarDays className="h-3.5 w-3.5" />
-                  <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? "Today" : format(currentSelectedDate, "MMM d, yyyy")) : "Select Date"}</span>
+                  <span>{currentSelectedDate ? (isToday(currentSelectedDate) ? t("home.today") : format(currentSelectedDate, "MMM d, yyyy")) : t("home.selectDate")}</span>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </Button>
               </motion.div>
@@ -700,7 +708,7 @@ export default function DashboardPage() {
                       transition={{ duration: 0.4, delay: 0.3 }}
                     >
                       {Math.round(consumedCalories)}
-                      <span className="text-base font-normal text-[#8E8E93] ml-1">kcal</span>
+                      <span className="text-base font-normal text-[#8E8E93] ml-1">{t("units.kcal")}</span>
                     </motion.div>
 
                     {goalCalories > 0 && (
@@ -780,7 +788,7 @@ export default function DashboardPage() {
                 className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#5AC8FA]/20 to-[#007AFF]/10"
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
               >
-                <span className="text-xs text-[#8E8E93] mb-1">Carbs</span>
+                <span className="text-xs text-[#8E8E93] mb-1">{t("macros.carbs")}</span>
                 <span className="text-lg font-semibold text-[#007AFF]">{Math.round(todayCarbs)}g</span>
               </motion.div>
               
@@ -788,7 +796,7 @@ export default function DashboardPage() {
                 className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#4CD964]/20 to-[#34C759]/10"
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
               >
-                <span className="text-xs text-[#8E8E93] mb-1">Protein</span>
+                <span className="text-xs text-[#8E8E93] mb-1">{t("macros.protein")}</span>
                 <span className="text-lg font-semibold text-[#34C759]">{Math.round(todayProtein)}g</span>
               </motion.div>
               
@@ -796,7 +804,7 @@ export default function DashboardPage() {
                 className="flex flex-col items-center p-3 rounded-lg bg-gradient-to-br from-[#FF9500]/20 to-[#FF9500]/10"
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
               >
-                <span className="text-xs text-[#8E8E93] mb-1">Fat</span>
+                <span className="text-xs text-[#8E8E93] mb-1">{t("macros.fats")}</span>
                 <span className="text-lg font-semibold text-[#FF9500]">{Math.round(todayFat)}g</span>
               </motion.div>
             </motion.div>
@@ -842,8 +850,8 @@ export default function DashboardPage() {
                   {/* Info button with Dialog */}
                   <div className="absolute top-3 right-3 z-20">
                     <InfoTooltip 
-                      title="AI Food Detection"
-                      description="Take a picture of your food or upload an image and our AI will detect what you're eating and calculate the nutritional information"
+                      title={t("home.aiFoodDetectionTitle")}
+                      description={t("home.aiFoodDetectionDescription")}
                       color="from-[#FF3B30] to-[#FF2D55]"
                     />
                   </div>
@@ -860,8 +868,8 @@ export default function DashboardPage() {
                     </motion.div>
             
                     <div className="text-center">
-                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Take Photo</h3>
-                      <p className="text-[#8E8E93] text-sm">Snap or upload food image</p>
+                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">{t("home.takePhoto")}</h3>
+                      <p className="text-[#8E8E93] text-sm">{t("home.takePhotoSubtext")}</p>
                     </div>
                   </CardContent>
               </Card>
@@ -885,8 +893,8 @@ export default function DashboardPage() {
                   {/* Info button with Dialog */}
                   <div className="absolute top-3 right-3 z-20">
                     <InfoTooltip 
-                      title="Custom Food Entry"
-                      description="Manually log food items with precise measurements and access our extensive database of nutritional information"
+                      title={t("home.customFoodEntryTitle")}
+                      description={t("home.customFoodEntryDescription")}
                       color="from-[#007AFF] to-[#5AC8FA]"
                     />
                   </div>
@@ -903,8 +911,8 @@ export default function DashboardPage() {
                     </motion.div>
                     
                     <div className="text-center">
-                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">Manual Entry</h3>
-                      <p className="text-[#8E8E93] text-sm">Log food details manually</p>
+                      <h3 className="font-semibold text-base text-[#1C1C1E] dark:text-white mb-1">{t("home.manualEntry")}</h3>
+                      <p className="text-[#8E8E93] text-sm">{t("home.manualEntrySubtext")}</p>
                     </div>
                   </CardContent>
               </Card>
@@ -927,7 +935,7 @@ export default function DashboardPage() {
           <div className="h-7 w-7 rounded-full bg-[#AF52DE] flex items-center justify-center">
             <BarChart2 className="h-4 w-4 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Nutrition Overview</h2>
+          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">{t("home.nutritionOverview")}</h2>
         </div>
         
          {isDataLoading ? (
@@ -945,11 +953,11 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, transition: { duration: 0.2 } }}
               >
                 <div className="mb-2">
-                  <span className="text-sm text-[#8E8E93]">Calories</span>
+                  <span className="text-sm text-[#8E8E93]">{t("home.calories")}</span>
                   <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FF3B30] to-[#FF2D55]">
                     {Math.round(todayCalories)}
                   </h3>
-                  <span className="text-xs text-[#8E8E93]">kcal</span>
+                  <span className="text-xs text-[#8E8E93]">{t("units.kcal")}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -973,11 +981,11 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, transition: { duration: 0.2 } }}
               >
                 <div className="mb-2">
-                  <span className="text-sm text-[#8E8E93]">Carbs</span>
+                  <span className="text-sm text-[#8E8E93]">{t("macros.carbs")}</span>
                   <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#007AFF] to-[#5AC8FA]">
                     {Math.round(todayCarbs)}
                   </h3>
-                  <span className="text-xs text-[#8E8E93]">grams</span>
+                  <span className="text-xs text-[#8E8E93]">{t("units.grams")}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -1001,11 +1009,11 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, transition: { duration: 0.2 } }}
               >
                 <div className="mb-2">
-                  <span className="text-sm text-[#8E8E93]">Protein</span>
+                  <span className="text-sm text-[#8E8E93]">{t("macros.protein")}</span>
                   <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#34C759] to-[#4CD964]">
                     {Math.round(todayProtein)}
                   </h3>
-                  <span className="text-xs text-[#8E8E93]">grams</span>
+                  <span className="text-xs text-[#8E8E93]">{t("units.grams")}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -1029,11 +1037,11 @@ export default function DashboardPage() {
                 whileHover={{ y: -2, transition: { duration: 0.2 } }}
               >
                 <div className="mb-2">
-                  <span className="text-sm text-[#8E8E93]">Fat</span>
+                  <span className="text-sm text-[#8E8E93]">{t("macros.fats")}</span>
                   <h3 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FF9500] to-[#FFCC00]">
                     {Math.round(todayFat)}
                   </h3>
-                  <span className="text-xs text-[#8E8E93]">grams</span>
+                  <span className="text-xs text-[#8E8E93]">{t("units.grams")}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -1072,7 +1080,7 @@ export default function DashboardPage() {
           >
             <Utensils className="h-4 w-4 text-white" />
           </motion.div>
-          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">Food Journal</h2>
+          <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-white">{t("home.foodJournal")}</h2>
           
           <div className="ml-auto">
             <Link href="/log-food/photo" passHref>
@@ -1086,7 +1094,7 @@ export default function DashboardPage() {
                   className="text-sm bg-gradient-to-r from-[#FF9500] to-[#FFCC00] hover:opacity-90 text-white border-none shadow-sm hover:shadow-md px-4 rounded-full h-8"
                 >
                   <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Add Meal
+                  {t("home.addMeal")}
                 </Button>
               </motion.div>
             </Link>
@@ -1173,7 +1181,7 @@ export default function DashboardPage() {
                               transition={{ duration: 0.8, delay: 0.2 }}
                             ></motion.div>
                           </div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Protein</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t("macros.protein")}</span>
                         </div>
 
                         <div>
@@ -1188,7 +1196,7 @@ export default function DashboardPage() {
                               transition={{ duration: 0.8, delay: 0.3 }}
                             ></motion.div>
                           </div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Fats</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t("macros.fats")}</span>
                         </div>
 
                         <div>
@@ -1203,7 +1211,7 @@ export default function DashboardPage() {
                               transition={{ duration: 0.8, delay: 0.4 }}
                             ></motion.div>
                           </div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Carbs</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{t("macros.carbs")}</span>
                         </div>
                       </div>
                     </div>
@@ -1219,7 +1227,7 @@ export default function DashboardPage() {
                   onClick={() => setShowAllMeals(!showAllMeals)}
                   className="px-4 rounded-full border-[#E5E5EA] dark:border-gray-800 text-[#8E8E93] hover:bg-[#F2F2F7] dark:hover:bg-gray-900/20 shadow-sm text-sm h-8"
                   >
-                    {showAllMeals ? "View Less" : "View More"}
+                    {showAllMeals ? t("home.viewLess") : t("home.viewMore")}
                 </Button>
               </div>
             )}
@@ -1252,7 +1260,7 @@ export default function DashboardPage() {
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#FF9500] to-[#FFCC00] rounded-full flex items-center justify-center">
                 <Camera className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-[#1C1C1E] dark:text-white">No meals logged yet</h3>
+              <h3 className="text-lg font-semibold mb-2 text-[#1C1C1E] dark:text-white">{t("home.noMeals")}</h3>
               <p className="text-[#8E8E93] mb-5 text-sm max-w-md mx-auto">
                 Track what you eat to get insights about your nutrition for{" "}
                 <span className="font-medium text-[#1C1C1E] dark:text-white">
@@ -1279,7 +1287,7 @@ export default function DashboardPage() {
                       initial={{ x: 0 }}
                       whileHover={{ x: 3 }}
                     >
-                      Add Your First Meal
+                      {t("home.addFirstMeal")}
                       <ArrowRight className="h-4 w-4" />
                     </motion.span>
                   </Link>
@@ -1307,7 +1315,7 @@ export default function DashboardPage() {
             >
               <BookOpen className="h-5 w-5 text-white" />
             </motion.div>
-            <h2 className="text-xl font-bold text-[#1C1C1E] dark:text-white">Health & Wellness</h2>
+            <h2 className="text-xl font-bold text-[#1C1C1E] dark:text-white">{t("home.healthWellness")}</h2>
       </div>
 
           <Link href="/blog" passHref>
@@ -1320,7 +1328,7 @@ export default function DashboardPage() {
                 size="sm" 
                 className="text-sm font-medium text-[#007AFF] hover:text-[#007AFF]/90 hover:bg-[#007AFF]/5"
               >
-                View All
+                {t("home.viewAll")}
                 <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </motion.div>
@@ -1357,7 +1365,7 @@ export default function DashboardPage() {
                       {/* Category label */}
                       <div className="absolute top-4 left-4 z-20">
                         <span className="px-3 py-1 text-xs font-medium rounded-full bg-white/90 text-[#007AFF]">
-                          {index % 2 === 0 ? "Nutrition" : "Fitness"}
+                          {index % 2 === 0 ? t("home.category.nutrition") : t("home.category.fitness")}
                         </span>
         </div>
       </div>
@@ -1433,7 +1441,7 @@ export default function DashboardPage() {
             <CardHeader className="p-5 pb-3 bg-gradient-to-r from-sky-50/90 to-cyan-50/90 dark:from-sky-950/10 dark:to-cyan-950/5 border-b border-sky-100/80 dark:border-sky-900/10">
               <CardTitle className="text-md flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-sky-400"></span>
-                More Reading
+                {t("home.moreReading")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 bg-gradient-to-br from-sky-50/60 to-cyan-50/60 dark:from-sky-950/5 dark:to-cyan-950/5">
@@ -1497,7 +1505,7 @@ export default function DashboardPage() {
               <Sparkles className="h-5 w-5 text-white" />
             </motion.div>
           </div>
-          <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#AF52DE] to-[#5856D6] dark:from-[#AF52DE] dark:to-[#5856D6]">AI Nutrition Insights</h2>
+          <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#AF52DE] to-[#5856D6] dark:from-[#AF52DE] dark:to-[#5856D6]">{t("home.aiInsights")}</h2>
         </div>
         
         <motion.div
@@ -1578,7 +1586,7 @@ export default function DashboardPage() {
                   whileTap={{ scale: 0.9 }}
                 >
                   <PlusCircle className="h-6 w-6" />
-                  <span className="sr-only">Add food</span>
+                  <span className="sr-only">{t("home.addFoodSr")}</span>
                 </motion.button>
               </div>
             </Link>

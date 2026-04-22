@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/lib/i18n/provider";
 
 type Props = {
 	open: boolean;
@@ -11,17 +12,18 @@ type Props = {
 };
 
 export function ReviewPrompt({ open, onClose, onRated, onSnooze }: Props) {
+	const { t } = useLanguage();
 	return (
 		<Dialog open={open} onOpenChange={(v) => !v && onClose()}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Enjoying Calorie Tracker?</DialogTitle>
-					<DialogDescription>Your feedback helps us improve.</DialogDescription>
+					<DialogTitle>{t("reviewPrompt.title")}</DialogTitle>
+					<DialogDescription>{t("reviewPrompt.description")}</DialogDescription>
 				</DialogHeader>
 
 				<div className="flex gap-2 justify-end">
-					<Button variant="ghost" onClick={onSnooze}>Maybe later</Button>
-					<Button variant="secondary" onClick={onClose}>No thanks</Button>
+					<Button variant="ghost" onClick={onSnooze}>{t("reviewPrompt.maybeLater")}</Button>
+					<Button variant="secondary" onClick={onClose}>{t("reviewPrompt.noThanks")}</Button>
 					<Button
 						onClick={() => {
 							onRated();
@@ -31,7 +33,7 @@ export function ReviewPrompt({ open, onClose, onRated, onSnooze }: Props) {
 							// window.open("https://example.com/rate", "_blank");
 						}}
 					>
-						Rate now
+						{t("reviewPrompt.rateNow")}
 					</Button>
 				</div>
 			</DialogContent>

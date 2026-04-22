@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, Star, Users, Smartphone } from "lucide-react";
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/provider";
 
 interface GooglePlayBannerProps {
   variant?: "default" | "compact" | "minimal";
@@ -17,6 +18,7 @@ export function GooglePlayBanner({
   className = "",
   showOnMobile = true 
 }: GooglePlayBannerProps) {
+  const { t } = useLanguage();
   const playStoreUrl = "https://play.google.com/store/apps/details?id=com.calorietracker.app";
 
   if (variant === "minimal") {
@@ -39,7 +41,7 @@ export function GooglePlayBanner({
             className="flex items-center justify-center gap-3"
           >
             <Download className="h-5 w-5" />
-            <span className="font-semibold">Download on Google Play</span>
+            <span className="font-semibold">{t("home.downloadGooglePlay")}</span>
           </a>
         </Button>
       </motion.div>
@@ -62,8 +64,8 @@ export function GooglePlayBanner({
                   <Smartphone className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-green-800 dark:text-green-200">Get the Mobile App</h3>
-                  <p className="text-sm text-green-600 dark:text-green-400">Enhanced experience on your phone</p>
+                  <h3 className="font-semibold text-green-800 dark:text-green-200">{t("playBanner.getMobileApp")}</h3>
+                  <p className="text-sm text-green-600 dark:text-green-400">{t("playBanner.enhancedExperience")}</p>
                 </div>
               </div>
               <Button
@@ -78,7 +80,7 @@ export function GooglePlayBanner({
                   className="flex items-center gap-2"
                 >
                   <Download className="h-4 w-4" />
-                  Install
+                  {t("playBanner.install")}
                 </a>
               </Button>
             </div>
@@ -121,25 +123,24 @@ export function GooglePlayBanner({
                     CalorieTracker Mobile
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-400">
-                    Available on Google Play
+                    {t("playBanner.availableOnGooglePlay")}
                   </p>
                 </div>
               </div>
 
               <p className="text-green-700 dark:text-green-300 mb-4 text-sm leading-relaxed">
-                Get the full mobile experience with AI-powered food detection, 
-                offline tracking, and push notifications. Perfect for on-the-go nutrition tracking.
+                {t("playBanner.fullMobileExperience")}
               </p>
 
               {/* App stats */}
               <div className="flex items-center justify-center md:justify-start gap-4 text-xs text-green-600 dark:text-green-400 mb-4">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-current" />
-                  <span className="font-medium">4.8 Rating</span>
+                  <span className="font-medium">{t("playBanner.ratingStat")}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
-                  <span className="font-medium">10K+ Downloads</span>
+                  <span className="font-medium">{t("playBanner.downloadStat")}</span>
                 </div>
               </div>
             </div>
@@ -163,8 +164,8 @@ export function GooglePlayBanner({
                   >
                     <Download className="h-6 w-6" />
                     <div className="text-left">
-                      <div className="text-sm font-medium">Download on</div>
-                      <div className="text-lg font-bold">Google Play</div>
+                      <div className="text-sm font-medium">{t("playBanner.downloadOn")}</div>
+                      <div className="text-lg font-bold">{t("playBanner.googlePlay")}</div>
                     </div>
                   </a>
                 </Button>

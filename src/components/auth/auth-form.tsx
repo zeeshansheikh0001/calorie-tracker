@@ -15,8 +15,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n/provider";
 
 export function AuthForm() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSigningUp, setIsSigningUp] = useState(false);
@@ -76,8 +78,8 @@ export function AuthForm() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     toast({
-      title: "Authentication Disabled",
-      description: "Supabase auth is not fully implemented. This is a mock form.",
+      title: t("auth.disabledTitle"),
+      description: t("auth.disabledDesc"),
       variant: "default",
     });
 
@@ -88,29 +90,29 @@ export function AuthForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl text-center">
-          {isSigningUp ? "Sign Up" : "Login"}
+          {isSigningUp ? t("auth.signUp") : t("auth.login")}
         </CardTitle>
         <CardDescription className="text-center">
           {isSigningUp
-            ? "Enter your email and password to create an account."
-            : "Enter your email and password to access your account."}
+            ? t("auth.signUpDesc")
+            : t("auth.loginDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleAuth} className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="m@example.com"
+              placeholder={t("auth.emailPlaceholder")}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <Input
               id="password"
               type="password"
@@ -121,20 +123,20 @@ export function AuthForm() {
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading
-              ? "Loading..."
+              ? t("auth.loading")
               : isSigningUp
-              ? "Sign Up"
-              : "Login"}
+              ? t("auth.signUp")
+              : t("auth.login")}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
-          {isSigningUp ? "Already have an account?" : "Don't have an account?"}{" "}
+          {isSigningUp ? t("auth.alreadyHaveAccount") : t("auth.noAccount")}{" "}
           <Button
             variant="link"
             onClick={() => setIsSigningUp(!isSigningUp)}
             disabled={isLoading}
           >
-            {isSigningUp ? "Login" : "Sign Up"}
+            {isSigningUp ? t("auth.login") : t("auth.signUp")}
           </Button>
         </div>
       </CardContent>

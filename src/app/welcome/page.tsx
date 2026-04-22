@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAdaptivePerformance } from "@/hooks/use-performance";
 import { GooglePlayBanner } from "@/components/ui/google-play-banner";
+import { useLanguage } from "@/lib/i18n/provider";
 
 // Add this style tag to extract RGB values from the CSS variables
 // which will be used for background gradients
@@ -111,6 +112,7 @@ const OptimizedBackground = memo(() => {
 OptimizedBackground.displayName = "OptimizedBackground";
 
 export default function WelcomePage() {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -133,8 +135,8 @@ export default function WelcomePage() {
       console.error("Error parsing profile:", error);
       toast({
         variant: "destructive",
-        title: "Error loading profile",
-        description: "There was an error loading your profile. Please try again.",
+        title: t("welcome.errorLoadingProfileTitle"),
+        description: t("welcome.errorLoadingProfileDesc"),
       });
       router.push("/onboarding");
     }
@@ -167,7 +169,7 @@ export default function WelcomePage() {
             </div>
           </motion.div>
           <h3 className="text-lg font-medium text-slate-700 dark:text-slate-300 mt-4">
-            Loading your dashboard...
+            {t("welcome.loadingDashboard")}
           </h3>
         </motion.div>
       </div>
@@ -204,7 +206,7 @@ export default function WelcomePage() {
                 <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 dark:from-primary dark:to-primary/80 text-transparent bg-clip-text">
                   CalorieTracker
                 </h1>
-                <p className="text-muted-foreground text-sm font-medium mt-0.5">Your personal nutrition assistant</p>
+                <p className="text-muted-foreground text-sm font-medium mt-0.5">{t("welcome.personalAssistant")}</p>
               </div>
             </div>
             
@@ -215,14 +217,13 @@ export default function WelcomePage() {
             >
               <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
                 <Sparkles className="h-4 w-4 mr-2" />
-                Welcome, {profile?.name || "Friend"}!
+                {t("welcome.welcomeUser", { name: profile?.name || t("welcome.friend") })}
               </div>
               <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text leading-tight">
-                Your Fitness Journey <br />Starts Right Here
+                {t("welcome.journeyLine1")} <br />{t("welcome.journeyLine2")}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
-                We've created a personalized plan based on your {profile?.fitnessGoal?.replace('_', ' ') || "fitness"} goal. 
-                Let's start tracking your progress and achieving results together.
+                {t("welcome.personalizedPlan", { goal: profile?.fitnessGoal?.replace('_', ' ') || t("welcome.fitnessGoalFallback") })}
               </p>
             </motion.div>
             
@@ -234,22 +235,22 @@ export default function WelcomePage() {
             >
               <FeaturedItem 
                 icon={<Flame className="h-4 w-4" />}
-                title="Personalized Nutrition Plan"
-                description={`Your daily target: ${profile?.calories} calories, ${profile?.protein}g protein, ${profile?.fat}g fat, ${profile?.carbs}g carbs`}
+                title={t("welcome.featurePlanTitle")}
+                description={t("welcome.featurePlanDesc", { calories: profile?.calories, protein: profile?.protein, fat: profile?.fat, carbs: profile?.carbs })}
                 delay={0.1}
               />
               
               <FeaturedItem 
                 icon={<BarChart3 className="h-4 w-4" />}
-                title="Progress Tracking"
-                description="Monitor your daily intake and track your progress toward your goals"
+                title={t("welcome.featureTrackingTitle")}
+                description={t("welcome.featureTrackingDesc")}
                 delay={0.15}
               />
               
               <FeaturedItem 
                 icon={<PieChart className="h-4 w-4" />}
-                title="Insights & Analysis"
-                description="Get detailed insights about your nutrition habits and progress over time"
+                title={t("welcome.featureInsightsTitle")}
+                description={t("welcome.featureInsightsDesc")}
                 delay={0.2}
               />
             </motion.div>
@@ -264,11 +265,11 @@ export default function WelcomePage() {
                 onClick={handleContinue}
                 className="gap-4 h-12 px-8 rounded-xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 relative overflow-hidden"
               >
-                <span className="relative z-10">Go to Dashboard</span>
+                <span className="relative z-10">{t("welcome.goToDashboard")}</span>
                 <ArrowRight className="h-4 w-4 relative z-10" />
               </Button>
               <p className="text-xs text-slate-500 dark:text-slate-500 mt-3 text-center">
-                You can always update your goals and preferences in your profile settings
+                {t("welcome.updateGoalsHint")}
               </p>
             </motion.div>
 
@@ -296,7 +297,7 @@ export default function WelcomePage() {
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
                   <LayoutDashboard className="h-5 w-5 text-primary" />
-                  <h3 className="font-medium text-slate-200">Dashboard</h3>
+                  <h3 className="font-medium text-slate-200">{t("welcome.dashboard")}</h3>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
@@ -310,14 +311,14 @@ export default function WelcomePage() {
               
               {/* Daily progress */}
               <div className="mb-6">
-                <h4 className="text-sm font-medium text-slate-300 mb-3">Today's Progress</h4>
+                <h4 className="text-sm font-medium text-slate-300 mb-3">{t("welcome.todayProgress")}</h4>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5 min-w-[95px]">
                       <div className="p-1.5 rounded-full bg-red-500/20 text-red-400">
                         <Flame className="h-4 w-4" />
                       </div>
-                      <span className="text-xs font-medium text-slate-300">Calories</span>
+                      <span className="text-xs font-medium text-slate-300">{t("home.calories")}</span>
                     </div>
                     <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden">
                       <div className="h-full bg-red-500" style={{ width: "65%" }} />
@@ -335,7 +336,7 @@ export default function WelcomePage() {
                           <path d="M12 12C12 12 16 15.5 16 18.5C16 21 14.5 22 12 22C9.5 22 8 21 8 18.5C8 15.5 12 12 12 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-slate-300">Protein</span>
+                      <span className="text-xs font-medium text-slate-300">{t("macros.protein")}</span>
                     </div>
                     <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-500" style={{ width: "75%" }} />
@@ -354,7 +355,7 @@ export default function WelcomePage() {
                           <path d="M10 5H14L15 9H9L10 5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-slate-300">Fat</span>
+                      <span className="text-xs font-medium text-slate-300">{t("macros.fats")}</span>
                     </div>
                     <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden">
                       <div className="h-full bg-amber-500" style={{ width: "55%" }} />
@@ -372,7 +373,7 @@ export default function WelcomePage() {
                           <path d="M5 22V19C5 17.8954 5.89543 17 7 17H17C18.1046 17 19 17.8954 19 19V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <span className="text-xs font-medium text-slate-300">Carbs</span>
+                      <span className="text-xs font-medium text-slate-300">{t("macros.carbs")}</span>
                     </div>
                     <div className="h-2 flex-grow bg-slate-800 rounded-full overflow-hidden">
                       <div className="h-full bg-emerald-500" style={{ width: "60%" }} />
@@ -387,10 +388,10 @@ export default function WelcomePage() {
               {/* Fitness Progress */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-medium text-slate-300">Fitness Progress</h4>
+                  <h4 className="text-sm font-medium text-slate-300">{t("welcome.fitnessProgress")}</h4>
                   <div className="text-indigo-400 flex items-center gap-1 text-xs font-medium">
                     <Check className="h-3 w-3" />
-                    Improving fitness
+                    {t("welcome.improvingFitness")}
                   </div>
                 </div>
                 
@@ -402,12 +403,12 @@ export default function WelcomePage() {
                   <div className="flex items-center gap-2 text-slate-400">
                     <TrendingUp className="h-4 w-4" />
                     <span className="text-xs font-medium">
-                      On Track
+                      {t("progress.onTrack")}
                     </span>
                   </div>
                   <div className="bg-indigo-500/20 text-indigo-400 text-xs font-medium px-2 py-0.5 rounded-full">
                     <Target className="h-3 w-3 inline-block mr-1" />
-                    7 Day Streak
+                    {t("welcome.dayStreak")}
                   </div>
                 </div>
               </div>

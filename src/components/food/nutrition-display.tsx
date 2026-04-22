@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label"; // Added Label
 import { Switch } from "@/components/ui/switch"; // Added Switch
 import type { Goal } from "@/types"; // Added Goal type
+import { useLanguage } from "@/lib/i18n/provider";
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -323,6 +324,10 @@ interface NutritionItemProps {
   delay?: number;
   showRadial?: boolean;
   radialLabel?: string;
+  noGoalText?: string;
+  ofDailyGoalText?: string;
+  exceededDailyGoalText?: string;
+  overLimitText?: string;
 }
 
 const NutritionItem: React.FC<NutritionItemProps> = React.memo(({ 
@@ -334,7 +339,11 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
   percentage = 0,
   delay = 0,
   showRadial = false,
-  radialLabel = "of Daily Goal"
+  radialLabel = "",
+  noGoalText = "",
+  ofDailyGoalText = "",
+  exceededDailyGoalText = "",
+  overLimitText = "{{value}}",
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [highlight, setHighlight] = useState(false);
@@ -434,10 +443,10 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
           </span>
           <span className="text-xs text-muted-foreground">
             {percentage > 0 
-              ? percentage > 100 && label === "Fat"
-                ? <span className="text-amber-500">We've exceeded daily goal</span>
-                : `${Math.round(percentage)}% of daily goal`
-              : 'No goal set'}
+              ? percentage > 100 && colorClass.includes("yellow")
+                ? <span className="text-amber-500">{exceededDailyGoalText}</span>
+                : `${Math.round(percentage)}% ${ofDailyGoalText}`
+              : noGoalText}
           </span>
         </div>
         
@@ -464,9 +473,9 @@ const NutritionItem: React.FC<NutritionItemProps> = React.memo(({
             />
           </div>
           
-          {percentage > 100 && label === "Fat" && (
+          {percentage > 100 && colorClass.includes("yellow") && (
             <div className="mt-1 text-right">
-              <span className="text-xs text-amber-500">We're {Math.round(percentage - 100)}% over our limit</span>
+              <span className="text-xs text-amber-500">{overLimitText.replace("{{value}}", String(Math.round(percentage - 100)))}</span>
             </div>
           )}
         </div>
@@ -550,6 +559,7 @@ const ParticleBackground: React.FC<{
 };
 
 export default function NutritionDisplay({ result, estimatedQuantityNote, goals, isLoadingGoals }: NutritionDisplayProps) {
+  const { t } = useLanguage();
   const quantityNote = result.estimatedQuantityNote || estimatedQuantityNote;
   const [showDetails, setShowDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<'macros' | 'calories' | 'chart'>('macros');
@@ -635,7 +645,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                   <Sparkles className="h-5 w-5 text-primary relative z-10" />
                 </FloatingElement>
                 <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  Nutritional Analysis
+                  {t("nutritionDisplay.nutritionalAnalysis")}
                 </span>
               </CardTitle>
                             
@@ -663,7 +673,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       <Flame className="h-4 w-4 text-red-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Total Calories</p>
+                      <p className="text-xs text-muted-foreground">{t("nutritionDisplay.totalCalories")}</p>
                       <div className="flex items-baseline">
                         <motion.p 
                           key={calorieEstimate}
@@ -673,7 +683,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         >
                           {calorieEstimate.toLocaleString()}
                         </motion.p>
-                        <span className="text-xs font-normal ml-0.5 text-muted-foreground">kcal</span>
+                        <span className="text-xs font-normal ml-0.5 text-muted-foreground">{t("units.kcal")}</span>
                         
                         {caloriePercentage > 100 && goals && (
                           <motion.div
@@ -684,7 +694,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                             <Badge variant="outline" className="bg-amber-100/30 text-amber-500 border-amber-200/50 flex items-center gap-1">
                               <AlertCircle className="h-3 w-3" />
                               <span className="text-[10px]">
-                                +{Math.round(calorieEstimate - goals.calories)} kcal
+                                +{Math.round(calorieEstimate - goals.calories)} {t("units.kcal")}
                               </span>
                             </Badge>
                           </motion.div>
@@ -725,7 +735,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       layoutId="tabHighlightNutrition"
                     />
                   )}
-                  Macros
+                  {t("nutritionDisplay.tabs.macros")}
                 </motion.button>
                 <motion.button
                   className={`text-xs px-3 py-1 rounded-full transition-colors relative ${activeTab === 'calories' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
@@ -738,7 +748,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       layoutId="tabHighlightNutrition"
                     />
                   )}
-                  Calories
+                  {t("nutritionDisplay.tabs.calories")}
                 </motion.button>
                 <motion.button
                   className={`text-xs px-3 py-1 rounded-full transition-colors relative ${activeTab === 'chart' ? 'text-primary font-medium' : 'text-muted-foreground'}`}
@@ -751,7 +761,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       layoutId="tabHighlightNutrition"
                     />
                   )}
-                  Chart
+                  {t("nutritionDisplay.tabs.chart")}
                 </motion.button>
               </div>
             </div>
@@ -768,42 +778,58 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         <div className="grid grid-cols-1 gap-3">
                     <NutritionItem 
                       icon={Flame} 
-                      label="Calories" 
+                      label={t("home.calories")} 
                       value={calorieEstimate.toLocaleString()} 
-                      unit="kcal" 
+                      unit={t("units.kcal")} 
                       colorClass="text-red-500" 
                       delay={0}
                       percentage={caloriePercentage}
+                      noGoalText={t("progress.noGoalSet")}
+                      ofDailyGoalText={t("nutritionDisplay.ofDailyGoal")}
+                      exceededDailyGoalText={t("nutritionDisplay.exceededDailyGoal")}
+                      overLimitText={t("nutritionDisplay.overLimitText", { value: "{{value}}" })}
                     />
                   
                     <NutritionItem 
                       icon={Drumstick} 
-                      label="Protein" 
+                      label={t("macros.protein")} 
                       value={proteinEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-blue-500" 
                       percentage={proteinPercentage}
                       delay={0.1}
+                      noGoalText={t("progress.noGoalSet")}
+                      ofDailyGoalText={t("nutritionDisplay.ofDailyGoal")}
+                      exceededDailyGoalText={t("nutritionDisplay.exceededDailyGoal")}
+                      overLimitText={t("nutritionDisplay.overLimitText", { value: "{{value}}" })}
                     />
                     
                     <NutritionItem 
                       icon={Droplets} 
-                      label="Fat" 
+                      label={t("macros.fats")} 
                       value={fatEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-yellow-500" 
                       percentage={fatPercentage}
                       delay={0.2}
+                      noGoalText={t("progress.noGoalSet")}
+                      ofDailyGoalText={t("nutritionDisplay.ofDailyGoal")}
+                      exceededDailyGoalText={t("nutritionDisplay.exceededDailyGoal")}
+                      overLimitText={t("nutritionDisplay.overLimitText", { value: "{{value}}" })}
                     />
                     
                     <NutritionItem 
                       icon={Wheat} 
-                      label="Carbohydrates" 
+                      label={t("nutritionDisplay.carbohydrates")} 
                       value={carbEstimate.toLocaleString()} 
                       unit="g" 
                       colorClass="text-green-500" 
                       percentage={carbPercentage}
                       delay={0.3}
+                      noGoalText={t("progress.noGoalSet")}
+                      ofDailyGoalText={t("nutritionDisplay.ofDailyGoal")}
+                      exceededDailyGoalText={t("nutritionDisplay.exceededDailyGoal")}
+                      overLimitText={t("nutritionDisplay.overLimitText", { value: "{{value}}" })}
                     />
                   </div>
                 </motion.div>
@@ -835,20 +861,22 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                             size={120}
                             strokeWidth={10}
                             showAnimation={true}
-                            label="of Daily Goal"
+                            label={t("nutritionDisplay.ofDailyGoal")}
                           />
                         </div>
                         
                         <div className="text-center space-y-1">
-                          <h3 className="text-lg font-semibold text-red-500">Calorie Breakdown</h3>
+                          <h3 className="text-lg font-semibold text-red-500">{t("nutritionDisplay.calorieBreakdown")}</h3>
                            <p className="text-sm text-muted-foreground">
-                            { goals && goals.calories > 0 ? `Daily Goal: ${goals.calories.toLocaleString()} kcal` : "No daily goal set"}
+                            {goals && goals.calories > 0
+                              ? t("nutritionDisplay.dailyGoalValue", { value: goals.calories.toLocaleString() })
+                              : t("nutritionDisplay.noDailyGoalSet")}
                           </p>
                           
                           <div className="mt-4 text-center">
                             <div className="inline-block px-4 py-2 rounded-lg bg-background/70 backdrop-blur-sm border border-border/30 shadow-lg">
                               <p className="text-3xl font-bold text-red-500">{calorieEstimate.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">calories in this meal</p>
+                              <p className="text-xs text-muted-foreground">{t("nutritionDisplay.caloriesInThisMeal")}</p>
                             </div>
                           </div>
                         </div>
@@ -862,10 +890,10 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
                           <Drumstick className="h-3.5 w-3.5 text-blue-500" />
                         </div>
-                        <span className="text-xs">From Protein</span>
+                        <span className="text-xs">{t("nutritionDisplay.fromProtein")}</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(proteinEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(proteinEstimate * 4)} <span className="text-xs text-muted-foreground">{t("units.kcal")}</span>
                       </p>
                     </div>
                     
@@ -874,10 +902,10 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         <div className="p-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
                           <Droplets className="h-3.5 w-3.5 text-yellow-500" />
                         </div>
-                        <span className="text-xs">From Fat</span>
+                        <span className="text-xs">{t("nutritionDisplay.fromFat")}</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(fatEstimate * 9)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(fatEstimate * 9)} <span className="text-xs text-muted-foreground">{t("units.kcal")}</span>
                       </p>
                     </div>
                     
@@ -886,10 +914,10 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         <div className="p-1.5 rounded-full bg-green-100 dark:bg-green-900/30">
                           <Wheat className="h-3.5 w-3.5 text-green-500" />
                         </div>
-                        <span className="text-xs">From Carbs</span>
+                        <span className="text-xs">{t("nutritionDisplay.fromCarbs")}</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(carbEstimate * 4)} <span className="text-xs text-muted-foreground">kcal</span>
+                        {Math.round(carbEstimate * 4)} <span className="text-xs text-muted-foreground">{t("units.kcal")}</span>
                       </p>
                     </div>
                     
@@ -898,10 +926,10 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                         <div className="p-1.5 rounded-full bg-primary/10">
                           <Heart className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        <span className="text-xs">Goal Contribution</span>
+                        <span className="text-xs">{t("nutritionDisplay.goalContribution")}</span>
                       </div>
                       <p className="text-lg font-semibold mt-1">
-                        {Math.round(caloriePercentage)}% <span className="text-xs text-muted-foreground">of daily</span>
+                        {Math.round(caloriePercentage)}% <span className="text-xs text-muted-foreground">{t("nutritionDisplay.ofDaily")}</span>
                       </p>
                     </div>
           </div>
@@ -922,16 +950,16 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                     <div className="bg-muted/30 rounded-lg overflow-hidden backdrop-blur-sm border border-border/30 p-4">
                       <h3 className="text-sm font-medium mb-4 flex items-center">
                         <Activity className="h-4 w-4 mr-2 text-primary/70" />
-                        Macronutrient Breakdown
+                        {t("nutritionDisplay.macroBreakdown")}
                       </h3>
                       
                       <div className="h-60 relative">
                         <Bar
                           data={{
-                            labels: ['Protein', 'Fat', 'Carbs'],
+                            labels: [t("macros.protein"), t("macros.fats"), t("macros.carbs")],
                             datasets: [
                               {
-                                label: 'Current Meal (g)',
+                                label: t("nutritionDisplay.currentMealG"),
                                 data: [proteinEstimate, fatEstimate, carbEstimate],
                                 backgroundColor: [
                                   'rgba(59, 130, 246, 0.7)', // Blue for protein
@@ -952,7 +980,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                                 ],
                               },
                               {
-                                label: 'Daily Goal (g)',
+                                label: t("nutritionDisplay.dailyGoalG"),
                                 data: [
                                   goals && goals.protein > 0 ? goals.protein : 50,
                                   goals && goals.fat > 0 ? goals.fat : 30,
@@ -1032,8 +1060,8 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                       
                       <div className="text-xs text-muted-foreground mt-4 pt-3 border-t border-border/30">
                         <div className="flex justify-between items-center">
-                          <span>Showing comparison to daily goals</span>
-                          <span>Hover for detailed values</span>
+                          <span>{t("nutritionDisplay.showingComparison")}</span>
+                          <span>{t("nutritionDisplay.hoverDetails")}</span>
                         </div>
                       </div>
                     </div>
@@ -1042,26 +1070,26 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                     <div className="bg-muted/30 rounded-lg overflow-hidden backdrop-blur-sm border border-border/30 p-4">
                       <h3 className="text-sm font-medium mb-3 flex items-center">
                         <Flame className="h-4 w-4 mr-2 text-red-500/70" />
-                        Calories Summary
+                        {t("nutritionDisplay.caloriesSummary")}
                       </h3>
                       
                       <div className="mt-2 grid gap-4">
                         <div className="flex items-center justify-between">
         <div>
-                            <p className="text-sm font-medium">Current Meal</p>
-                            <p className="text-xs text-muted-foreground">Estimated calories</p>
+                            <p className="text-sm font-medium">{t("nutritionDisplay.currentMeal")}</p>
+                            <p className="text-xs text-muted-foreground">{t("nutritionDisplay.estimatedCalories")}</p>
                           </div>
                           <div className="bg-red-500/10 px-3 py-1.5 rounded-lg">
                             <span className="text-lg font-semibold text-red-500">{calorieEstimate}</span>
-                            <span className="text-xs text-muted-foreground ml-1">kcal</span>
+                            <span className="text-xs text-muted-foreground ml-1">{t("units.kcal")}</span>
                           </div>
                         </div>
                         
                         <div className="p-3 bg-background/50 rounded-lg border border-border/30">
                           <div className="flex justify-between text-xs mb-1.5">
-                            <span className="text-muted-foreground">Progress to daily goal</span>
+                            <span className="text-muted-foreground">{t("nutritionDisplay.progressToDailyGoal")}</span>
                             <span className="font-medium">
-                              {calorieEstimate} / {goals && goals.calories > 0 ? goals.calories : 2000} kcal
+                              {calorieEstimate} / {goals && goals.calories > 0 ? goals.calories : 2000} {t("units.kcal")}
                             </span>
                           </div>
                           <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
@@ -1075,7 +1103,7 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                             />
                           </div>
                           <div className="mt-2 text-xs text-right text-muted-foreground">
-                            {Math.round((calorieEstimate / (goals && goals.calories > 0 ? goals.calories : 2000)) * 100)}% of daily goal
+                            {Math.round((calorieEstimate / (goals && goals.calories > 0 ? goals.calories : 2000)) * 100)}% {t("nutritionDisplay.ofDailyGoal")}
                           </div>
                         </div>
                       </div>
@@ -1095,11 +1123,11 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
               <div className="flex items-center justify-between p-3 border-b border-border/20 bg-muted/30">
                 <div className="flex items-center">
                   <Utensils className="h-4 w-4 text-primary/70 mr-2" />
-                  <h4 className="font-medium text-sm">Identified Dish(es)</h4>
+                  <h4 className="font-medium text-sm">{t("nutritionDisplay.identifiedDishes")}</h4>
                 </div>
                 {result.ingredients && result.ingredients.length > 0 && (
                   <Badge variant="outline" className="text-xs px-2 py-0 h-5 bg-primary/5 text-primary">
-                    {result.ingredients.length} item{result.ingredients.length !== 1 ? 's' : ''}
+                    {t("nutritionDisplay.itemsCount", { count: result.ingredients.length })}
                   </Badge>
                 )}
           </div>
@@ -1131,13 +1159,13 @@ export default function NutritionDisplay({ result, estimatedQuantityNote, goals,
                   
                   <div className="mt-2 flex justify-end items-center text-xs text-muted-foreground">
                     <Info className="h-3 w-3 mr-1 inline-block" /> 
-                    <span>AI-powered recognition</span>
+                    <span>{t("nutritionDisplay.aiPoweredRecognition")}</span>
                   </div>
             </div>
           ) : (
                 <div className="p-4 flex items-center justify-center text-xs text-muted-foreground">
                   <Orbit className="h-3.5 w-3.5 mr-1.5" />
-                  <span>No specific dish identified</span>
+                  <span>{t("nutritionDisplay.noSpecificDish")}</span>
                 </div>
               )}
             </motion.div>

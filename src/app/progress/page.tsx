@@ -9,6 +9,7 @@ import { useDailyLog } from "@/hooks/use-daily-log";
 import { useGoals } from "@/hooks/use-goals";
 import { format, isToday } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/provider";
 
 const CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -61,6 +62,7 @@ const renderActiveShape = (props: any) => {
 };
 
 export default function ProgressPage() {
+  const { t, locale } = useLanguage();
   const { dailyLog, foodEntries, isLoading: isLoadingLog, currentSelectedDate } = useDailyLog();
   const { goals, isLoading: isLoadingGoals } = useGoals();
   const [activeIndex, setActiveIndex] = useState(0);
@@ -79,15 +81,15 @@ export default function ProgressPage() {
   const isOnTrackToday = calorieGoal > 0 && caloriesToday <= calorieGoal;
 
   const calorieChartData = [
-    { name: 'Consumed', value: Math.round(caloriesToday), fill: 'hsl(var(--chart-1))' },
-    { name: 'Goal', value: Math.round(calorieGoal), fill: 'hsl(var(--chart-2))' },
+    { name: t("progress.consumed"), value: Math.round(caloriesToday), fill: 'hsl(var(--chart-1))' },
+    { name: t("progress.goal"), value: Math.round(calorieGoal), fill: 'hsl(var(--chart-2))' },
   ];
 
   const macroData = [
-    { name: 'Protein', value: proteinToday > 0 ? proteinToday : 0.01 },
-    { name: 'Fat', value: fatToday > 0 ? fatToday : 0.01 },
-    { name: 'Carbs', value: carbsToday > 0 ? carbsToday : 0.01 },
-  ].filter(m => m.value > 0);
+    { name: t("macros.protein"), value: proteinToday > 0 ? proteinToday : 0.01 },
+    { name: t("macros.fats"), value: fatToday > 0 ? fatToday : 0.01 },
+    { name: t("macros.carbs"), value: carbsToday > 0 ? carbsToday : 0.01 },
+  ].filter((m) => m.value > 0);
 
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
@@ -95,9 +97,13 @@ export default function ProgressPage() {
   
   const selectedDateFormatted = currentSelectedDate 
     ? isToday(currentSelectedDate) 
-      ? "Today" 
-      : format(currentSelectedDate, "MMM d, yyyy") 
-    : "Selected Date";
+      ? t("home.today") 
+      : new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }).format(currentSelectedDate)
+    : t("progress.selectedDate");
 
   // Show charts after a delay for better animation sequence
   useEffect(() => {
@@ -126,7 +132,7 @@ export default function ProgressPage() {
               <div className="bg-primary/10 p-2 rounded-full mr-3">
                 <TrendingUp className="h-6 w-6 md:h-7 md:w-7 text-primary" />
               </div>
-              Nutritional Stats
+              {t("progress.title")}
             </h1>
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -180,11 +186,11 @@ export default function ProgressPage() {
                 >
                   {calorieGoal > 0 
                     ? caloriesToday <= calorieGoal * 0.8
-                      ? 'Well Below Target'
+                      ? t("progress.wellBelowTarget")
                       : caloriesToday <= calorieGoal
-                      ? 'On Target'
-                      : 'Over Target'
-                    : 'No Goal Set'}
+                      ? t("progress.onTarget")
+                      : t("progress.overTarget")
+                    : t("progress.noGoalSet")}
                 </motion.div>
               </div>
             </CardHeader>
@@ -204,7 +210,7 @@ export default function ProgressPage() {
                       className="text-2xl md:text-3xl font-bold"
                     >
                       {Math.round(caloriesToday).toLocaleString()} 
-                      <span className="text-sm text-muted-foreground ml-1">kcal</span>
+                      <span className="text-sm text-muted-foreground ml-1">{t("units.kcal")}</span>
                     </motion.div>
                     
                     <motion.div
@@ -214,14 +220,17 @@ export default function ProgressPage() {
                       className="text-sm text-right"
                     >
                       <div className="text-muted-foreground">
-                        Goal: <span className="font-medium text-foreground">{Math.round(calorieGoal).toLocaleString()} kcal</span>
+                        {t("progress.goalLabel")}:{" "}
+                        <span className="font-medium text-foreground">
+                          {t("units.kcalValue", { value: Math.round(calorieGoal).toLocaleString() })}
+                        </span>
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
                         {calorieGoal > 0 
                           ? caloriesToday > calorieGoal 
-                            ? `${Math.round(caloriesToday - calorieGoal).toLocaleString()} over`
-                            : `${Math.round(calorieGoal - caloriesToday).toLocaleString()} remaining`
-                          : "No goal set"}
+                            ? t("progress.overBy", { value: Math.round(caloriesToday - calorieGoal).toLocaleString() })
+                            : t("progress.remaining", { value: Math.round(calorieGoal - caloriesToday).toLocaleString() })
+                          : t("progress.noGoalSet")}
                       </div>
                     </motion.div>
                   </div>
@@ -234,7 +243,7 @@ export default function ProgressPage() {
                   transition={{ delay: 0.5 }}
                   className="flex justify-between mb-1 text-xs"
                 >
-                  <span className="text-muted-foreground">Progress</span>
+                  <span className="text-muted-foreground">{t("progress.progressLabel")}</span>
                   <span className="font-medium">{Math.round(calorieProgress)}%</span>
                 </motion.div>
                 <motion.div
@@ -276,7 +285,7 @@ export default function ProgressPage() {
                   ) : (
                     <XCircle className="h-4 w-4 text-red-500 mr-2" />
                   )}
-                  Goal Adherence
+                  {t("progress.goalAdherence")}
                 </CardTitle>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -286,7 +295,7 @@ export default function ProgressPage() {
                       : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                   }`}
                 >
-                  {isOnTrackToday ? 'On Track' : 'Off Track'}
+                  {isOnTrackToday ? t("progress.onTrack") : t("progress.offTrack")}
                 </motion.div>
               </div>
             </CardHeader>
@@ -307,7 +316,7 @@ export default function ProgressPage() {
                         isOnTrackToday ? 'text-green-500' : 'text-red-500'
                       }`}
                     >
-                      {calorieGoal > 0 ? `${Math.round(calorieProgress)}%` : "No Goal"}
+                      {calorieGoal > 0 ? `${Math.round(calorieProgress)}%` : t("progress.noGoal")}
                     </motion.div>
                     
                     <motion.div
@@ -324,7 +333,7 @@ export default function ProgressPage() {
                           className="flex items-center bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-md"
                         >
                           <CheckCircle className="h-3.5 w-3.5 text-green-500 mr-1" />
-                          <span className="text-xs font-medium text-green-700 dark:text-green-400">On target!</span>
+                          <span className="text-xs font-medium text-green-700 dark:text-green-400">{t("progress.onTargetExclaim")}</span>
                         </motion.div>
                       ) : (
                         <motion.div
@@ -335,19 +344,18 @@ export default function ProgressPage() {
                         >
                           <XCircle className="h-3.5 w-3.5 text-red-500 mr-1" />
                           <span className="text-xs font-medium text-red-700 dark:text-red-400">
-                            {caloriesToday > calorieGoal ? "Over limit" : "No goal set"}
+                            {caloriesToday > calorieGoal ? t("progress.overLimit") : t("progress.noGoalSet")}
                           </span>
                         </motion.div>
                       )}
                     </motion.div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {isOnTrackToday 
-                      ? `Still have ${Math.round(calorieGoal - caloriesToday).toLocaleString()} kcal remaining for today!`
-                      : calorieGoal > 0 
-                        ? `Exceeded by ${Math.round(caloriesToday - calorieGoal).toLocaleString()} kcal`
-                        : "Set a calorie goal to track progress"
-                    }
+                    {isOnTrackToday
+                      ? t("progress.stillHaveRemainingToday", { value: Math.round(calorieGoal - caloriesToday).toLocaleString() })
+                      : calorieGoal > 0
+                        ? t("progress.exceededBy", { value: Math.round(caloriesToday - calorieGoal).toLocaleString() })
+                        : t("progress.setGoalToTrack")}
                   </p>
                 </>
               )}
@@ -429,10 +437,10 @@ export default function ProgressPage() {
                     className="text-sm text-muted-foreground mt-3 text-center"
                   >
                     {mealsLoggedToday === 0 
-                      ? "No meals logged today" 
+                      ? t("progress.noMealsLoggedToday")
                       : mealsLoggedToday === 1 
-                        ? "1 meal logged today"
-                        : `${mealsLoggedToday} meals logged today`
+                        ? t("progress.oneMealLoggedToday")
+                        : t("progress.mealsLoggedToday", { count: mealsLoggedToday })
                     }
                   </motion.p>
                 </div>
@@ -454,7 +462,7 @@ export default function ProgressPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center">
                   <BarChartIcon className="mr-2 h-5 w-5 text-primary"/>
-                  <span>Calories: Consumed vs. Goal</span>
+                  <span>{t("progress.caloriesConsumedVsGoal")}</span>
                 </CardTitle>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -463,12 +471,12 @@ export default function ProgressPage() {
                   {selectedDateFormatted}
                 </motion.div>
               </div>
-              <CardDescription>Comparison of consumed calories against your daily goal.</CardDescription>
+              <CardDescription>{t("progress.caloriesChartSubtext")}</CardDescription>
             </CardHeader>
             <CardContent className="h-[350px] w-full px-2">
               {isLoading ? (
                 <div className="h-full w-full bg-muted rounded-lg animate-pulse flex items-center justify-center">
-                  <span className="text-muted-foreground text-sm">Loading chart data...</span>
+                  <span className="text-muted-foreground text-sm">{t("progress.loadingChartData")}</span>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
@@ -505,7 +513,7 @@ export default function ProgressPage() {
                     />
                     <Bar 
                       dataKey="value" 
-                      name="Calories" 
+                      name={t("home.calories")} 
                       radius={[6, 6, 0, 0]}
                       animationDuration={1500}
                       animationBegin={200}
@@ -543,7 +551,7 @@ export default function ProgressPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center">
                   <PieChartIcon className="mr-2 h-5 w-5 text-primary"/>
-                  <span>Macronutrient Distribution</span>
+                  <span>{t("progress.macroDistributionTitle")}</span>
                 </CardTitle>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -552,18 +560,18 @@ export default function ProgressPage() {
                   {selectedDateFormatted}
                 </motion.div>
               </div>
-              <CardDescription>Protein, Fat, and Carbs breakdown for your meals.</CardDescription>
+              <CardDescription>{t("progress.macroDistributionSubtext")}</CardDescription>
             </CardHeader>
             <CardContent className="h-[350px] w-full px-2 relative overflow-hidden">
               {isLoading ? (
                 <div className="h-full w-full bg-muted rounded-lg animate-pulse flex items-center justify-center">
-                  <span className="text-muted-foreground text-sm">Loading chart data...</span>
+                  <span className="text-muted-foreground text-sm">{t("progress.loadingChartData")}</span>
                 </div>
               ) : macroData.length === 0 ? (
                 <div className="h-full w-full flex flex-col items-center justify-center bg-muted/30 rounded-lg text-muted-foreground">
                   <PieChartIcon className="h-10 w-10 mb-3 text-muted-foreground/50" />
-                  <p className="text-center">No macro data for this day.</p>
-                  <p className="text-xs mt-1 text-center max-w-xs">Log some food entries to see your macro distribution.</p>
+                  <p className="text-center">{t("progress.noMacroData")}</p>
+                  <p className="text-xs mt-1 text-center max-w-xs">{t("progress.noMacroDataSubtext")}</p>
                 </div>
               ) : (
                 <>

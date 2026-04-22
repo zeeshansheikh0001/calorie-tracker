@@ -40,24 +40,20 @@ import {
 } from "@/components/ui/select"
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/i18n/provider";
 
 // ReminderSettings interface is now imported from the hook
 
 // For rendering time in a more human-readable format
-const formatTime = (time: string) => {
+const formatTime = (time: string, locale: string) => {
   const [hours, minutes] = time.split(':');
-  const hour = parseInt(hours);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
-  return `${hour12}:${minutes} ${ampm}`;
-};
-
-// For rendering day of week with proper capitalization
-const formatDay = (day: string) => {
-  return day.charAt(0).toUpperCase() + day.slice(1);
+  const date = new Date();
+  date.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(date);
 };
 
 export default function RemindersPage() {
+  const { t, locale } = useLanguage();
   const { reminders, saveReminders, isLoading } = useLocalReminders();
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
@@ -89,8 +85,8 @@ export default function RemindersPage() {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       toast({
-        title: "Reminders Updated!",
-        description: "Your reminder preferences have been saved locally.",
+        title: t("reminders.updatedTitle"),
+        description: t("reminders.updatedDesc"),
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
@@ -106,8 +102,8 @@ export default function RemindersPage() {
     } catch (error) {
       console.error('Error saving reminder settings:', error);
       toast({
-        title: "Error",
-        description: "Failed to save reminder settings. Please try again.",
+        title: t("error.title"),
+        description: t("reminders.saveFailed"),
         variant: "destructive",
       });
     } finally {
@@ -120,23 +116,23 @@ export default function RemindersPage() {
       const granted = await requestPermission();
       if (granted) {
         toast({
-          title: "🔔 Notifications Enabled",
-          description: "You will now receive smart reminders for your health goals.",
+          title: t("reminders.notificationsEnabledTitle"),
+          description: t("reminders.notificationsEnabledDesc"),
           variant: "default",
           action: <CheckCircle className="text-green-500" />,
         });
       } else {
         toast({
-          title: "Permission Denied",
-          description: "Please enable notifications in your browser settings to receive reminders.",
+          title: t("reminders.permissionDeniedTitle"),
+          description: t("reminders.permissionDeniedDesc"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Error enabling notifications:', error);
       toast({
-        title: "Notification Setup Failed",
-        description: error instanceof Error ? error.message : "Please try again or check your browser settings.",
+        title: t("reminders.notificationSetupFailedTitle"),
+        description: error instanceof Error ? error.message : t("reminders.notificationSetupFailedDesc"),
         variant: "destructive",
       });
     }
@@ -146,14 +142,14 @@ export default function RemindersPage() {
     try {
       await sendTestNotification();
       toast({
-        title: "🧪 Test Notification Sent",
-        description: "Check your device - you should see a test notification!",
+        title: t("reminders.testSentTitle"),
+        description: t("reminders.testSentDesc"),
         variant: "default",
       });
     } catch (error) {
       toast({
-        title: "Test Failed",
-        description: "Unable to send test notification. Please check your settings.",
+        title: t("reminders.testFailedTitle"),
+        description: t("reminders.testFailedDesc"),
         variant: "destructive",
       });
     }
@@ -171,8 +167,8 @@ export default function RemindersPage() {
     };
     saveReminders(defaultReminders);
     toast({
-      title: "Settings Reset",
-      description: "Reminder settings have been reset to defaults.",
+      title: t("reminders.resetTitle"),
+      description: t("reminders.resetDesc"),
       variant: "default",
     });
   };
@@ -182,7 +178,7 @@ export default function RemindersPage() {
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading reminder settings...</p>
+          <p>{t("reminders.loading")}</p>
         </div>
       </div>
     );
@@ -215,9 +211,9 @@ export default function RemindersPage() {
               </div>
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Smart Reminders</h1>
+          <h1 className="text-3xl font-bold mb-2">{t("reminders.title")}</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Set up personalized notifications to help you stay on track with your health and nutrition goals.
+            {t("reminders.subtitle")}
           </p>
           <div className="flex justify-center mt-6 space-x-4">
             <Button
@@ -225,7 +221,7 @@ export default function RemindersPage() {
               variant="default"
               disabled={!isSupported || permission === 'granted'}
             >
-              {permission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
+              {permission === 'granted' ? t("reminders.notificationsEnabled") : t("reminders.enableNotifications")}
             </Button>
           </div>
         </motion.div>
@@ -241,10 +237,10 @@ export default function RemindersPage() {
               >
                 <Sparkles className="h-8 w-8" />
               </motion.div>
-              Reminder Settings
+              {t("reminders.settingsTitle")}
           </CardTitle>
             <CardDescription className="text-center">
-              Customize your reminders to support your healthy habits
+              {t("reminders.settingsSubtext")}
           </CardDescription>
         </CardHeader>
           
@@ -264,8 +260,8 @@ export default function RemindersPage() {
                       <Clock className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-medium">Evening Meal Reminder</h3>
-                      <p className="text-sm text-muted-foreground">Reminds you to log your dinner</p>
+                      <h3 className="text-base font-medium">{t("reminders.eveningMealTitle")}</h3>
+                      <p className="text-sm text-muted-foreground">{t("reminders.eveningMealDesc")}</p>
                     </div>
                   </div>
                   
@@ -287,7 +283,7 @@ export default function RemindersPage() {
                     >
                       <div className="pt-3 border-t border-border/30">
                         <Label htmlFor="logMealsTime" className="text-sm font-medium mb-2 flex items-center">
-                          <Clock className="h-3.5 w-3.5 mr-1.5 text-primary/70" /> Reminder Time
+                          <Clock className="h-3.5 w-3.5 mr-1.5 text-primary/70" /> {t("reminders.reminderTime")}
                         </Label>
                         <div className="mt-1 relative">
                   <Input
@@ -319,8 +315,8 @@ export default function RemindersPage() {
                       <Droplets className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-medium">Hydration Reminders</h3>
-                      <p className="text-sm text-muted-foreground">Regular water drinking notifications</p>
+                      <h3 className="text-base font-medium">{t("reminders.hydrationTitle")}</h3>
+                      <p className="text-sm text-muted-foreground">{t("reminders.hydrationDesc")}</p>
                     </div>
             </div>
 
@@ -342,7 +338,7 @@ export default function RemindersPage() {
                     >
                       <div className="pt-3 border-t border-border/30">
                         <Label htmlFor="drinkWaterFrequency" className="text-sm font-medium mb-2 flex items-center">
-                          <Bell className="h-3.5 w-3.5 mr-1.5 text-blue-500/70" /> Reminder Frequency
+                          <Bell className="h-3.5 w-3.5 mr-1.5 text-blue-500/70" /> {t("reminders.frequency")}
                         </Label>
                         <div className="mt-1 relative">
                           <Select 
@@ -351,19 +347,19 @@ export default function RemindersPage() {
                             onValueChange={(value) => handleSelectChange(value, "drinkWaterFrequency")}
                           >
                             <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder={t("reminders.selectFrequency")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="every_hour">Every Hour</SelectItem>
-                      <SelectItem value="every_2_hours">Every 2 Hours</SelectItem>
-                      <SelectItem value="every_3_hours">Every 3 Hours</SelectItem>
+                      <SelectItem value="every_hour">{t("reminders.everyHour")}</SelectItem>
+                      <SelectItem value="every_2_hours">{t("reminders.every2Hours")}</SelectItem>
+                      <SelectItem value="every_3_hours">{t("reminders.every3Hours")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                         
                         <div className="flex items-center mt-3 text-xs text-muted-foreground">
                           <Droplets className="h-3 w-3 mr-1.5" />
-                          <span>We'll remind you to stay hydrated during waking hours</span>
+                          <span>{t("reminders.hydrationHint")}</span>
                         </div>
                       </div>
                     </motion.div>
@@ -385,8 +381,8 @@ export default function RemindersPage() {
                       <Scale className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-base font-medium">Weekly Weigh-In</h3>
-                      <p className="text-sm text-muted-foreground">Track your progress consistently</p>
+                      <h3 className="text-base font-medium">{t("reminders.weighInTitle")}</h3>
+                      <p className="text-sm text-muted-foreground">{t("reminders.weighInDesc")}</p>
                     </div>
             </div>
 
@@ -410,7 +406,7 @@ export default function RemindersPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                             <Label htmlFor="weighInDay" className="text-sm font-medium mb-2 flex items-center">
-                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-green-500/70" /> Day of Week
+                              <Calendar className="h-3.5 w-3.5 mr-1.5 text-green-500/70" /> {t("reminders.dayOfWeek")}
                             </Label>
                             <div className="mt-1 relative">
                               <Select 
@@ -419,23 +415,23 @@ export default function RemindersPage() {
                                 onValueChange={(value) => handleSelectChange(value, "weighInDay")}
                               >
                                 <SelectTrigger>
-                        <SelectValue placeholder="Select day" />
+                        <SelectValue placeholder={t("reminders.selectDay")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="monday">Monday</SelectItem>
-                        <SelectItem value="tuesday">Tuesday</SelectItem>
-                        <SelectItem value="wednesday">Wednesday</SelectItem>
-                        <SelectItem value="thursday">Thursday</SelectItem>
-                        <SelectItem value="friday">Friday</SelectItem>
-                        <SelectItem value="saturday">Saturday</SelectItem>
-                        <SelectItem value="sunday">Sunday</SelectItem>
+                        <SelectItem value="monday">{t("day.monday")}</SelectItem>
+                        <SelectItem value="tuesday">{t("day.tuesday")}</SelectItem>
+                        <SelectItem value="wednesday">{t("day.wednesday")}</SelectItem>
+                        <SelectItem value="thursday">{t("day.thursday")}</SelectItem>
+                        <SelectItem value="friday">{t("day.friday")}</SelectItem>
+                        <SelectItem value="saturday">{t("day.saturday")}</SelectItem>
+                        <SelectItem value="sunday">{t("day.sunday")}</SelectItem>
                       </SelectContent>
                     </Select>
                             </div>
                   </div>
                   <div>
                             <Label htmlFor="weighInTime" className="text-sm font-medium mb-2 flex items-center">
-                              <Clock className="h-3.5 w-3.5 mr-1.5 text-green-500/70" /> Time
+                              <Clock className="h-3.5 w-3.5 mr-1.5 text-green-500/70" /> {t("reminders.time")}
                             </Label>
                             <div className="mt-1 relative">
                     <Input
@@ -448,7 +444,7 @@ export default function RemindersPage() {
                               />
                               
                               <Badge className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none bg-green-100 dark:bg-green-900/30 text-green-500 border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/40">
-                                {formatTime(reminders.weighInTime)}
+                                {formatTime(reminders.weighInTime, locale)}
                               </Badge>
                             </div>
                           </div>
@@ -456,7 +452,7 @@ export default function RemindersPage() {
                         
                         <div className="flex items-center mt-3 text-xs text-muted-foreground">
                           <AlarmCheck className="h-3 w-3 mr-1.5" />
-                          <span>You'll be reminded every {formatDay(reminders.weighInDay)} at {formatTime(reminders.weighInTime)}</span>
+                          <span>{t("reminders.weighInHint", { day: t(`day.${reminders.weighInDay}`), time: formatTime(reminders.weighInTime, locale) })}</span>
                   </div>
                 </div>
                     </motion.div>
@@ -472,7 +468,7 @@ export default function RemindersPage() {
                   className="flex items-center space-x-2"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  <span>Reset to Defaults</span>
+                  <span>{t("reminders.resetButton")}</span>
                 </Button>
                 <Button 
                   type="submit" 
@@ -484,12 +480,12 @@ export default function RemindersPage() {
                       <span className="animate-spin mr-2">
                         <RefreshCw className="h-4 w-4" />
                       </span>
-                      <span>Saving...</span>
+                      <span>{t("reminders.saving")}</span>
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      <span>Save Settings</span>
+                      <span>{t("reminders.saveSettings")}</span>
                     </>
                   )}
                 </Button>

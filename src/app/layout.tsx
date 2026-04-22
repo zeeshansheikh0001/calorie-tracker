@@ -10,6 +10,7 @@ import GoogleAnalytics from '@/lib/analytics';
 // Vercel Web Analytics: enable in project Analytics tab, then redeploy and promote to production
 import { Analytics } from '@vercel/analytics/next';
 import { ServiceWorkerRegistrar } from '@/components/service-worker-registrar';
+import { LanguageProvider } from '@/lib/i18n/provider';
 
 // TODO: Uncomment when Supabase auth is fully implemented
 // import SupabaseProvider from "@/components/supabase-provider";
@@ -161,7 +162,9 @@ export default function RootLayout({
         >
           {/* TODO: Uncomment when Supabase auth is fully implemented */}
           {/* <SupabaseProvider> */}
-            <AppLayout>{children}</AppLayout>
+            <LanguageProvider>
+              <AppLayout>{children}</AppLayout>
+            </LanguageProvider>
           {/* </SupabaseProvider> */}
           <Toaster />
         </ThemeProvider>

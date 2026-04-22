@@ -38,6 +38,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarUrl?: string;
+  language?: "en" | "ar" | "es" | "fr" | "de";
   age?: number;
   height?: number;  // in centimeters
   weight?: number;  // in kilograms

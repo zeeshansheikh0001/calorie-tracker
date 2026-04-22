@@ -14,6 +14,7 @@ import { PlusCircle, Save, Utensils, Flame, Drumstick, Droplets, Wheat, ChevronL
 import type { FoodEntry } from "@/types";
 import { analyzeFoodText, type AnalyzeFoodTextInput, type AnalyzeFoodTextOutput } from "@/ai/flows/analyze-food-text-flow";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/provider";
 
 interface NutritionDisplayItemProps {
   icon: React.ElementType;
@@ -62,6 +63,7 @@ const NutritionDisplayItem: FC<NutritionDisplayItemProps> = ({
 );
 
 export default function ManualLogPage() {
+  const { t } = useLanguage();
   const [foodName, setFoodName] = useState("");
   const [estimatedNutrition, setEstimatedNutrition] = useState<AnalyzeFoodTextOutput | null>(null);
   
@@ -92,27 +94,27 @@ export default function ManualLogPage() {
       if (estimatedNutrition) setEstimatedNutrition(null);
       setAiError(null);
       toast({
-        title: "Voice Input Received",
-        description: "Food description captured from voice input.",
+        title: t("manual.voiceReceivedTitle"),
+        description: t("manual.voiceReceivedDesc"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Voice Input Error",
+        title: t("manual.voiceErrorTitle"),
         description: error,
         variant: "destructive",
       });
     },
     onRecordingStart: () => {
       toast({
-        title: "Recording Started",
-        description: "Speak your food description now...",
+        title: t("manual.recordingStartedTitle"),
+        description: t("manual.recordingStartedDesc"),
       });
     },
     onRecordingStop: () => {
       toast({
-        title: "Recording Complete",
-        description: "Processing your voice input...",
+        title: t("manual.recordingCompleteTitle"),
+        description: t("manual.recordingCompleteDesc"),
       });
     },
   });
@@ -136,7 +138,7 @@ export default function ManualLogPage() {
 
   const handleAiEstimate = async () => {
     if (!foodName.trim()) {
-      setAiError("Please enter a food description first.");
+      setAiError(t("manual.enterFoodFirstError"));
       setEstimatedNutrition(null);
       return;
     }
@@ -150,8 +152,8 @@ export default function ManualLogPage() {
       setEstimatedNutrition(result);
 
       toast({
-        title: "AI Estimation Complete",
-        description: "Nutritional details and benefits have been estimated. Review and log if correct.",
+        title: t("manual.aiCompleteTitle"),
+        description: t("manual.aiCompleteDesc"),
         action: <Sparkles className="text-yellow-500" />,
       });
 
@@ -161,7 +163,7 @@ export default function ManualLogPage() {
       setAiError(errorMessage);
       setEstimatedNutrition(null);
       toast({
-        title: "AI Estimation Failed",
+        title: t("manual.aiFailedTitle"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -182,8 +184,8 @@ export default function ManualLogPage() {
   const handleVoiceInput = async () => {
     if (!isSupported) {
       toast({
-        title: "Voice Input Not Supported",
-        description: "Speech recognition is not supported in this browser.",
+        title: t("manual.voiceNotSupportedTitle"),
+        description: t("manual.voiceNotSupportedDesc"),
         variant: "destructive",
       });
       return;
@@ -193,8 +195,8 @@ export default function ManualLogPage() {
       const granted = await requestPermission();
       if (!granted) {
         toast({
-          title: "Microphone Permission Required",
-          description: "Please allow microphone access to use voice input.",
+          title: t("manual.micPermissionTitle"),
+          description: t("manual.micPermissionDesc"),
           variant: "destructive",
         });
         return;
@@ -218,8 +220,8 @@ export default function ManualLogPage() {
     e.preventDefault();
     if (!estimatedNutrition) {
       toast({
-        title: "Cannot Log",
-        description: "Please estimate nutritional information with AI first.",
+        title: t("manual.cannotLogTitle"),
+        description: t("manual.cannotLogDesc"),
         variant: "destructive",
       });
       return;
@@ -229,7 +231,7 @@ export default function ManualLogPage() {
 
     try {
       const foodEntryData: Omit<FoodEntry, "id" | "timestamp"> = {
-        name: foodName || "Unnamed Food", // Use the foodName from input as the primary name
+        name: foodName || t("manual.unnamedFood"), // Use the foodName from input as the primary name
         calories: estimatedNutrition.calorieEstimate,
         protein: estimatedNutrition.proteinEstimate,
         fat: estimatedNutrition.fatEstimate,
@@ -239,8 +241,8 @@ export default function ManualLogPage() {
       addFoodEntry(foodEntryData);
 
       toast({
-        title: "Meal Logged!",
-        description: `${foodEntryData.name} (${foodEntryData.calories.toFixed(0)} kcal) has been added to your log.`,
+        title: t("manual.mealLoggedTitle"),
+        description: t("manual.mealLoggedDesc", { name: foodEntryData.name, calories: foodEntryData.calories.toFixed(0) }),
         action: <PlusCircle className="text-green-500" />,
       });
 
@@ -250,8 +252,8 @@ export default function ManualLogPage() {
       console.error('Navigation error:', error);
       setIsNavigating(false);
       toast({
-        title: "Navigation Error",
-        description: "There was an issue navigating back. Please try again.",
+        title: t("manual.navigationErrorTitle"),
+        description: t("manual.navigationErrorDesc"),
         variant: "destructive",
       });
     }
@@ -305,7 +307,7 @@ export default function ManualLogPage() {
             className="flex flex-col items-center space-y-4"
           >
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Navigating...</p>
+            <p className="text-sm text-muted-foreground">{t("manual.navigating")}</p>
           </motion.div>
         </motion.div>
       )}
@@ -334,7 +336,7 @@ export default function ManualLogPage() {
              className="mb-4 group text-sm hover:bg-transparent disabled:opacity-50"
            >
             <ChevronLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            Back
+            {t("photo.back")}
            </Button>
         </motion.div>
       </motion.div>
@@ -359,7 +361,7 @@ export default function ManualLogPage() {
                 >
                   <Utensils className="h-6 w-6 text-primary" />
                 </motion.div>
-                <motion.span layoutId="title">Food Logger</motion.span>
+                <motion.span layoutId="title">{t("manual.foodLogger")}</motion.span>
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -368,7 +370,7 @@ export default function ManualLogPage() {
                   className="ml-auto flex items-center gap-1 text-sm font-normal px-2 py-1 rounded-full bg-primary/10 text-primary"
                 >
                   <Sparkles className="h-4 w-4" />
-                  <span>AI Powered</span>
+                  <span>{t("manual.aiPowered")}</span>
                 </motion.div>
               </CardTitle>
               <CardDescription className="mt-2">
@@ -378,7 +380,7 @@ export default function ManualLogPage() {
                   transition={{ delay: 0.1 }}
                   className="text-sm text-muted-foreground"
                 >
-                  Describe your meal to get instant nutrition estimates
+                  {t("manual.describeMeal")}
                 </motion.p>
               </CardDescription>
             </motion.div>
@@ -395,7 +397,7 @@ export default function ManualLogPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="foodName" className="text-sm font-medium flex items-center gap-2">
                     <UtensilsCrossed className="h-4 w-4 text-primary" />
-                    Food Description
+                    {t("manual.foodDescription")}
                   </Label>
                   <motion.span 
                     initial={{ opacity: 0 }}
@@ -403,7 +405,7 @@ export default function ManualLogPage() {
                     transition={{ delay: 0.2 }}
                     className="text-xs text-muted-foreground px-2 py-1 rounded-full bg-muted/50"
                   >
-                    {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : 'Today'}
+                    {currentSelectedDate ? currentSelectedDate.toLocaleDateString() : t("home.today")}
                   </motion.span>
                 </div>
                 
@@ -422,7 +424,7 @@ export default function ManualLogPage() {
                       setAiError(null); 
                     }}
                     onKeyDown={handleFoodNameKeyDown}
-                    placeholder="e.g., 200g grilled salmon with asparagus"
+                    placeholder={t("manual.placeholder")}
                     className="flex-1 min-h-12 max-h-32 px-3 py-3 rounded-md border border-input bg-transparent focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50"
                     style={{
                       height: 'auto',
@@ -509,7 +511,7 @@ export default function ManualLogPage() {
                   className="flex items-center gap-2 text-xs text-muted-foreground pl-1"
                 >
                   <Info className="h-3 w-3" />
-                  <span>Include quantities for better accuracy</span>
+                  <span>{t("manual.includeQuantities")}</span>
                 </motion.div>
                 
                 <motion.div
@@ -541,7 +543,7 @@ export default function ManualLogPage() {
                         animate={{ opacity: 1 }}
                       >
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>Analyzing...</span>
+                        <span>{t("ai.analyzing")}</span>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -560,7 +562,7 @@ export default function ManualLogPage() {
                         >
                           <Sparkles className="mr-2 h-4 w-4" />
                         </motion.div>
-                        <span>Analyze with AI</span>
+                        <span>{t("manual.analyzeWithAi")}</span>
                       </motion.div>
                     )}
                   </Button>
@@ -577,7 +579,7 @@ export default function ManualLogPage() {
                   >
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Error</AlertTitle>
+                      <AlertTitle>{t("error.title")}</AlertTitle>
                       <AlertDescription>{aiError}</AlertDescription>
                     </Alert>
                   </motion.div>
@@ -594,7 +596,7 @@ export default function ManualLogPage() {
                   >
                     <Alert variant="destructive">
                       <MicOff className="h-4 w-4" />
-                      <AlertTitle>Voice Input Error</AlertTitle>
+                      <AlertTitle>{t("manual.voiceErrorTitle")}</AlertTitle>
                       <AlertDescription>{speechError}</AlertDescription>
                     </Alert>
                   </motion.div>
@@ -619,7 +621,7 @@ export default function ManualLogPage() {
                           className="text-lg font-medium flex items-center gap-2"
                         >
                           <Flame className="h-5 w-5 text-primary" />
-                          Nutrition Facts
+                          {t("manual.nutritionFacts")}
                         </motion.h3>
                         {estimatedNutrition.estimatedQuantityNote && (
                           <motion.span 
@@ -635,7 +637,7 @@ export default function ManualLogPage() {
                       
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <NutritionBar 
-                          label="Calories" 
+                          label={t("home.calories")} 
                           value={estimatedNutrition.calorieEstimate.toFixed(0)} 
                           unit="kcal" 
                           color="bg-red-500" 
@@ -644,7 +646,7 @@ export default function ManualLogPage() {
                         />
                         
                         <NutritionBar 
-                          label="Protein" 
+                          label={t("macros.protein")} 
                           value={estimatedNutrition.proteinEstimate.toFixed(1)} 
                           unit="g" 
                           color="bg-blue-500" 
@@ -653,7 +655,7 @@ export default function ManualLogPage() {
                         />
                         
                         <NutritionBar 
-                          label="Carbs" 
+                          label={t("macros.carbs")} 
                           value={estimatedNutrition.carbEstimate.toFixed(1)} 
                           unit="g" 
                           color="bg-green-500" 
@@ -662,7 +664,7 @@ export default function ManualLogPage() {
                         />
                         
                         <NutritionBar 
-                          label="Fat" 
+                          label={t("macros.fats")} 
                           value={estimatedNutrition.fatEstimate.toFixed(1)} 
                           unit="g" 
                           color="bg-amber-500" 
@@ -684,35 +686,35 @@ export default function ManualLogPage() {
                           <div className="grid grid-cols-3 gap-3 pt-3 border-t text-sm">
                             {estimatedNutrition.saturatedFatEstimate !== undefined && estimatedNutrition.saturatedFatEstimate >= 0 && (
                               <NutrientDetail 
-                                label="Sat. Fat" 
+                                label={t("manual.saturatedFat")} 
                                 value={`${estimatedNutrition.saturatedFatEstimate.toFixed(1)}g`} 
                                 delay={0.4}
                               />
                             )}
                             {estimatedNutrition.fiberEstimate !== undefined && estimatedNutrition.fiberEstimate >= 0 && (
                               <NutrientDetail 
-                                label="Fiber" 
+                                label={t("manual.fiber")} 
                                 value={`${estimatedNutrition.fiberEstimate.toFixed(1)}g`} 
                                 delay={0.45}
                               />
                             )}
                             {estimatedNutrition.sugarEstimate !== undefined && estimatedNutrition.sugarEstimate >= 0 && (
                               <NutrientDetail 
-                                label="Sugar" 
+                                label={t("manual.sugar")} 
                                 value={`${estimatedNutrition.sugarEstimate.toFixed(1)}g`} 
                                 delay={0.5}
                               />
                             )}
                             {estimatedNutrition.cholesterolEstimate !== undefined && estimatedNutrition.cholesterolEstimate >= 0 && (
                               <NutrientDetail 
-                                label="Cholesterol" 
+                                label={t("manual.cholesterol")} 
                                 value={`${estimatedNutrition.cholesterolEstimate.toFixed(0)}mg`} 
                                 delay={0.55}
                               />
                             )}
                             {estimatedNutrition.sodiumEstimate !== undefined && estimatedNutrition.sodiumEstimate >= 0 && (
                               <NutrientDetail 
-                                label="Sodium" 
+                                label={t("manual.sodium")} 
                                 value={`${estimatedNutrition.sodiumEstimate.toFixed(0)}mg`} 
                                 delay={0.6}
                               />
@@ -725,7 +727,7 @@ export default function ManualLogPage() {
                     {estimatedNutrition.commonIngredientsInfluence && (
                       <InfoSection 
                         icon={<Brain className="h-4 w-4 text-primary" />}
-                        title="Nutritional Insights"
+                        title={t("manual.nutritionalInsightsTitle")}
                         content={estimatedNutrition.commonIngredientsInfluence}
                         delay={0.6}
                       />
@@ -755,7 +757,7 @@ export default function ManualLogPage() {
                           >
                             <div className="flex items-center gap-2">
                               <ShieldCheck className="h-4 w-4 text-primary" />
-                              <h4 className="text-sm font-medium">Health Benefits</h4>
+                              <h4 className="text-sm font-medium">{t("manual.healthBenefitsTitle")}</h4>
                             </div>
                             <div className="space-y-2 text-xs text-muted-foreground bg-muted/20 p-3 rounded-lg">
                               {benefitsToRender.map((benefit, index) => (
@@ -785,7 +787,7 @@ export default function ManualLogPage() {
                     {estimatedNutrition.healthierTips && (
                       <InfoSection 
                         icon={<Leaf className="h-4 w-4 text-primary" />}
-                        title="Healthier Options"
+                        title={t("manual.healthierOptionsTitle")}
                         content={estimatedNutrition.healthierTips}
                         delay={0.8}
                         bgClass="bg-green-50/30 dark:bg-green-900/10"
@@ -819,7 +821,7 @@ export default function ManualLogPage() {
                           {isNavigating ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              <span>Saving...</span>
+                              <span>{t("common.saving")}</span>
                             </>
                           ) : (
                             <>
@@ -834,7 +836,7 @@ export default function ManualLogPage() {
                               >
                                 <PlusCircle className="mr-2 h-4 w-4" />
                               </motion.div>
-                              <span>Add to Food Log</span>
+                              <span>{t("manual.addToFoodLog")}</span>
                             </>
                           )}
                         </motion.div>

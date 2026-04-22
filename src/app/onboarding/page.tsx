@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useGoals } from "@/hooks/use-goals";
 import { AnimatedBackground, FadeIn, SimplePulse } from "@/components/ui/optimized-animations";
 import { useAdaptivePerformance } from "@/hooks/use-performance";
+import { useLanguage } from "@/lib/i18n/provider";
 
 interface UserProfile {
   name: string;
@@ -252,62 +253,68 @@ interface ContinueButtonProps {
 }
 
 const ContinueButton = memo(({ onClick, text = "Continue", isLoading = false }: ContinueButtonProps) => (
-  <motion.div
-    whileHover={{ scale: 1.02, translateY: -2 }}
-    whileTap={{ scale: 0.98 }}
-    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-  >
-    <Button 
-      onClick={onClick} 
-      disabled={isLoading}
-      className="gap-4 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
-    >
-      <span className="relative z-10">
-        {isLoading ? "Processing..." : text}
-      </span>
-      {isLoading ? (
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-          className="relative z-10"
-        >
-          <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </motion.div>
-      ) : (
-        <motion.div
-          className="relative z-10 ml-1"
-          animate={{ x: [0, 5, 0] }}
-          transition={{ 
-            duration: 1,
-            repeat: Infinity,
-            repeatType: "loop",
-            ease: "easeInOut",
-            repeatDelay: 1,
-          }}
-        >
-          <ArrowRight className="h-4 w-4" />
-        </motion.div>
-      )}
+  {
+    const { t } = useLanguage();
+    return (
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-        initial={{ x: '-100%' }}
-        animate={{ x: '100%' }}
-        transition={{ 
-          duration: 1.5, 
-          repeat: Infinity, 
-          repeatDelay: 2
-        }}
-      />
-    </Button>
-  </motion.div>
-));
+        whileHover={{ scale: 1.02, translateY: -2 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+      >
+        <Button 
+          onClick={onClick} 
+          disabled={isLoading}
+          className="gap-4 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
+        >
+          <span className="relative z-10">
+            {isLoading ? t("onboarding.processing") : text}
+          </span>
+          {isLoading ? (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              className="relative z-10"
+            >
+              <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="relative z-10 ml-1"
+              animate={{ x: [0, 5, 0] }}
+              transition={{ 
+                duration: 1,
+                repeat: Infinity,
+                repeatType: "loop",
+                ease: "easeInOut",
+                repeatDelay: 1,
+              }}
+            >
+              <ArrowRight className="h-4 w-4" />
+            </motion.div>
+          )}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+            initial={{ x: '-100%' }}
+            animate={{ x: '100%' }}
+            transition={{ 
+              duration: 1.5, 
+              repeat: Infinity, 
+              repeatDelay: 2
+            }}
+          />
+        </Button>
+      </motion.div>
+    );
+  }
+);
 
 ContinueButton.displayName = "ContinueButton";
 
 export default function OnboardingPage() {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [profile, setProfile] = useState<UserProfile>({
     name: "",
@@ -429,16 +436,16 @@ export default function OnboardingPage() {
       if (!profile.name) {
         toast({
           variant: "destructive",
-          title: "Missing name",
-          description: "Please enter your name to continue.",
+          title: t("onboarding.missingNameTitle"),
+          description: t("onboarding.missingNameDesc"),
         });
         return;
       }
       if (profile.age < 12 || profile.age > 100) {
         toast({
           variant: "destructive",
-          title: "Invalid age",
-          description: "Please enter a valid age between 12 and 100.",
+          title: t("onboarding.invalidAgeTitle"),
+          description: t("onboarding.invalidAgeDesc"),
         });
         return;
       }
@@ -451,32 +458,32 @@ export default function OnboardingPage() {
       if (profile.unit === "metric" && (profile.weight < 30 || profile.weight > 250)) {
         toast({
           variant: "destructive",
-          title: "Invalid weight",
-          description: "Please enter a valid weight between 30kg and 250kg.",
+          title: t("onboarding.invalidWeightTitle"),
+          description: t("onboarding.invalidWeightMetric"),
         });
         return;
       }
       if (profile.unit === "imperial" && (profile.weight < 66 || profile.weight > 550)) {
         toast({
           variant: "destructive",
-          title: "Invalid weight",
-          description: "Please enter a valid weight between 66lbs and 550lbs.",
+          title: t("onboarding.invalidWeightTitle"),
+          description: t("onboarding.invalidWeightImperial"),
         });
         return;
       }
       if (profile.unit === "metric" && (profile.height < 100 || profile.height > 250)) {
         toast({
           variant: "destructive",
-          title: "Invalid height",
-          description: "Please enter a valid height between 100cm and 250cm.",
+          title: t("onboarding.invalidHeightTitle"),
+          description: t("onboarding.invalidHeightMetric"),
         });
         return;
       }
       if (profile.unit === "imperial" && (profile.height < 39 || profile.height > 98)) {
         toast({
           variant: "destructive",
-          title: "Invalid height",
-          description: "Please enter a valid height between 39in and 98in.",
+          title: t("onboarding.invalidHeightTitle"),
+          description: t("onboarding.invalidHeightImperial"),
         });
         return;
       }
@@ -503,8 +510,8 @@ export default function OnboardingPage() {
     if (profile.calories < 1000 || profile.protein < 10 || profile.fat < 10 || profile.carbs < 10) {
       toast({
         variant: "destructive",
-        title: "Invalid nutrition values",
-        description: "Please enter reasonable values for your nutrition goals.",
+        title: t("onboarding.invalidNutritionTitle"),
+        description: t("onboarding.invalidNutritionDesc"),
       });
       setIsLoading(false);
       return;
@@ -528,8 +535,8 @@ export default function OnboardingPage() {
       
       // Show success message
       toast({
-        title: "Profile Saved!",
-        description: "Your profile and nutrition goals have been created successfully.",
+        title: t("onboarding.profileSavedTitle"),
+        description: t("onboarding.profileSavedDesc"),
       });
       
       // Redirect to welcome page
@@ -542,33 +549,33 @@ export default function OnboardingPage() {
   const fitnessGoalOptions = useMemo(() => [
     {
       id: "muscle_gain" as const,
-      title: "Muscle Gain",
+      title: t("onboarding.goal.muscleGain"),
       icon: "💪",
-      description: "Build and maintain muscle mass",
+      description: t("onboarding.goal.muscleGainDesc"),
     },
     {
       id: "weight_loss" as const,
-      title: "Weight Loss",
+      title: t("onboarding.goal.weightLoss"),
       icon: "🔻",
-      description: "Reduce body fat and lose weight",
+      description: t("onboarding.goal.weightLossDesc"),
     },
     {
       id: "get_fit" as const,
-      title: "Get Fit",
+      title: t("onboarding.goal.getFit"),
       icon: "🏃",
-      description: "Improve overall fitness and condition",
+      description: t("onboarding.goal.getFitDesc"),
     },
     {
       id: "overall_health" as const,
-      title: "Overall Health",
+      title: t("onboarding.goal.overallHealth"),
       icon: "❤️",
-      description: "Maintain a balanced lifestyle",
+      description: t("onboarding.goal.overallHealthDesc"),
     },
     {
       id: "stamina" as const,
-      title: "Stamina",
+      title: t("onboarding.goal.stamina"),
       icon: "⚡",
-      description: "Improve endurance and energy levels",
+      description: t("onboarding.goal.staminaDesc"),
     },
   ], []);
 
@@ -624,7 +631,7 @@ export default function OnboardingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              Profile Exists
+              {t("onboarding.profileExists")}
             </motion.h2>
             
             <motion.p 
@@ -633,7 +640,7 @@ export default function OnboardingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              You already have a profile! Redirecting to your dashboard shortly...
+              {t("onboarding.profileExistsDesc")}
             </motion.p>
             
             <motion.div
@@ -645,7 +652,7 @@ export default function OnboardingPage() {
                 onClick={() => router.push("/welcome")}
                 className="gap-2 h-12 px-8 rounded-xl w-full bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20 relative overflow-hidden"
             >
-                <span className="relative z-10">Go to Welcome</span>
+                <span className="relative z-10">{t("onboarding.goToWelcome")}</span>
                 <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </motion.div>
@@ -692,7 +699,7 @@ export default function OnboardingPage() {
               <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 dark:from-primary dark:to-primary/80 text-transparent bg-clip-text">
                 CalorieTracker
               </h1>
-              <p className="text-muted-foreground text-sm font-medium mt-0.5">Your personal nutrition assistant</p>
+              <p className="text-muted-foreground text-sm font-medium mt-0.5">{t("welcome.personalAssistant")}</p>
             </motion.div>
           </div>
         </motion.div>
@@ -740,7 +747,7 @@ export default function OnboardingPage() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     <CardTitle className="text-3xl font-bold flex justify-center items-center gap-2 bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
-                      Welcome!
+                      {t("onboarding.welcome")}
                       <motion.div
                         initial={{ opacity: 0, rotate: -20, scale: 0 }}
                         animate={{ opacity: 1, rotate: 0, scale: 1 }}
@@ -750,7 +757,7 @@ export default function OnboardingPage() {
                     </motion.div>
                   </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
-                      Let's set up your profile to personalize your experience
+                      {t("onboarding.setupProfile")}
                   </CardDescription>
                   </motion.div>
                 </CardHeader>
@@ -764,7 +771,7 @@ export default function OnboardingPage() {
                       transition={{ duration: 0.5, delay: 0.3 }}
                     >
                       <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                        <User className="h-4 w-4 text-primary" /> Your Name
+                        <User className="h-4 w-4 text-primary" /> {t("onboarding.yourName")}
                       </Label>
                       <motion.div
                         whileFocus={{ scale: 1.01 }}
@@ -776,7 +783,7 @@ export default function OnboardingPage() {
                           value={profile.name}
                           onChange={handleInputChange}
                           className="bg-white/50 dark:bg-slate-800/50 h-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
-                          placeholder="Enter your name"
+                          placeholder={t("onboarding.enterName")}
                           autoComplete="off"
                         />
                       </motion.div>
@@ -789,7 +796,7 @@ export default function OnboardingPage() {
                       transition={{ duration: 0.5, delay: 0.4 }}
                     >
                       <Label htmlFor="age" className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                        <Calendar className="h-4 w-4 text-primary" /> Your Age
+                        <Calendar className="h-4 w-4 text-primary" /> {t("onboarding.yourAge")}
                       </Label>
                       <motion.div
                         whileFocus={{ scale: 1.01 }}
@@ -802,7 +809,7 @@ export default function OnboardingPage() {
                           value={profile.age === 0 ? "" : profile.age}
                           onChange={handleInputChange}
                           className="bg-white/50 dark:bg-slate-800/50 h-12 rounded-xl border-slate-200 dark:border-slate-700 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-300 shadow-sm"
-                          placeholder="Enter your age"
+                          placeholder={t("onboarding.enterAge")}
                           min={12}
                           max={100}
                         />
@@ -816,7 +823,7 @@ export default function OnboardingPage() {
                       transition={{ duration: 0.5, delay: 0.5 }}
                     >
                       <Label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Gender
+                        {t("onboarding.gender")}
                       </Label>
                       <div className="grid grid-cols-3 gap-3">
                         <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }} whileTap={{ scale: 0.97 }}>
@@ -903,7 +910,7 @@ export default function OnboardingPage() {
                       onClick={handlePreviousStep}
                       className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
-                      Back
+                      {t("onboarding.back")}
                     </Button>
                   </motion.div>
                   <ContinueButton onClick={handleNextStep} />
@@ -943,7 +950,7 @@ export default function OnboardingPage() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
-                      What's Your Primary Goal?
+                      {t("onboarding.primaryGoalTitle")}
                     </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
                       Select your main fitness objective to personalize your plan
@@ -979,7 +986,7 @@ export default function OnboardingPage() {
                       onClick={handlePreviousStep}
                       className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
-                      Back
+                      {t("onboarding.back")}
                     </Button>
                   </motion.div>
                   <ContinueButton onClick={handleNextStep} />
@@ -1019,7 +1026,7 @@ export default function OnboardingPage() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
-                      Your Measurements
+                      {t("onboarding.measurementsTitle")}
                     </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
                       Let's get your measurements to calculate personalized nutrition goals
@@ -1153,9 +1160,9 @@ export default function OnboardingPage() {
                         </svg>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">Why we need this information</h4>
+                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("onboarding.whyNeedInfo")}</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          Your height and weight help us calculate personalized nutrition goals based on your body's specific needs for optimal health.
+                          {t("onboarding.whyNeedInfoDesc")}
                         </p>
                       </div>
                     </div>
@@ -1173,7 +1180,7 @@ export default function OnboardingPage() {
                       onClick={handlePreviousStep}
                       className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
-                      Back
+                      {t("onboarding.back")}
                     </Button>
                   </motion.div>
                   <ContinueButton onClick={handleNextStep} />
@@ -1209,10 +1216,10 @@ export default function OnboardingPage() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-50 dark:to-slate-300 text-transparent bg-clip-text">
-                      Your Nutrition Goals
+                      {t("onboarding.nutritionGoalsTitle")}
                   </CardTitle>
                     <CardDescription className="text-center max-w-sm mx-auto mt-3 text-slate-600 dark:text-slate-400 text-base">
-                      Personalized based on your profile and measurements
+                      {t("onboarding.nutritionGoalsSubtitle")}
                   </CardDescription>
                   </motion.div>
                 </CardHeader>
@@ -1220,7 +1227,7 @@ export default function OnboardingPage() {
                 <CardContent className="space-y-7 px-8">
                   <div className="space-y-6">
                     <NutritionInput 
-                      label="Daily Calories" 
+                      label={t("onboarding.dailyCalories")} 
                       name="calories"
                       value={profile.calories}
                       onChange={handleNumberInputChange}
@@ -1233,7 +1240,7 @@ export default function OnboardingPage() {
                     />
                     
                     <NutritionInput 
-                      label="Daily Protein" 
+                      label={t("onboarding.dailyProtein")} 
                       name="protein"
                       value={profile.protein}
                       onChange={handleNumberInputChange}
@@ -1246,7 +1253,7 @@ export default function OnboardingPage() {
                     />
                     
                     <NutritionInput 
-                      label="Daily Fat" 
+                      label={t("onboarding.dailyFat")} 
                       name="fat"
                       value={profile.fat}
                       onChange={handleNumberInputChange}
@@ -1259,7 +1266,7 @@ export default function OnboardingPage() {
                     />
                     
                     <NutritionInput 
-                      label="Daily Carbohydrates" 
+                      label={t("onboarding.dailyCarbs")} 
                       name="carbs"
                       value={profile.carbs}
                       onChange={handleNumberInputChange}
@@ -1287,9 +1294,9 @@ export default function OnboardingPage() {
                         </svg>
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">These are your suggested values</h4>
+                        <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("onboarding.suggestedValues")}</h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                          Calculated based on your age, gender, weight, and height. You can adjust them if needed.
+                          {t("onboarding.suggestedValuesDesc")}
                         </p>
                       </div>
                     </div>
@@ -1307,12 +1314,12 @@ export default function OnboardingPage() {
                       onClick={handlePreviousStep}
                       className="h-12 px-6 gap-2 rounded-xl bg-white/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 font-medium"
                     >
-                      Back
+                      {t("onboarding.back")}
                     </Button>
                   </motion.div>
                   <ContinueButton 
                       onClick={handleNextStep} 
-                    text="Complete Setup"
+                    text={t("onboarding.completeSetup")}
                     isLoading={isLoading}
                   />
                 </CardFooter>

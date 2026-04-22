@@ -17,9 +17,11 @@ import { useGoals } from "@/hooks/use-goals"; // Added
 import type { Goal } from "@/types"; // Added
 import { Slider } from "@/components/ui/slider";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/i18n/provider";
 
 
 export default function LogFoodByPhotoPage() {
+  const { t } = useLanguage();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -462,8 +464,8 @@ export default function LogFoodByPhotoPage() {
           });
         } else {
           toast({
-            title: "Analysis Complete",
-            description: "Nutritional information has been estimated.",
+            title: t("toast.analysisComplete"),
+            description: t("toast.analysisComplete"),
             variant: "default",
             action: <CheckCircle className="text-green-500" />,
           });
@@ -479,7 +481,7 @@ export default function LogFoodByPhotoPage() {
       setError(errorMessage);
       setIsLoading(false);
       toast({
-        title: "Analysis Failed",
+        title: t("toast.analysisFailed"),
         description: errorMessage,
         variant: "destructive",
         action: <AlertCircle className="text-red-500" />,
@@ -577,7 +579,7 @@ export default function LogFoodByPhotoPage() {
       >
         <Button variant="ghost" onClick={() => router.back()} className="mb-2 md:mb-4 group text-sm flex items-center">
           <ChevronLeft className="mr-1 h-4 w-4 group-hover:text-primary transition-colors" />
-          <span className="group-hover:text-primary transition-colors">Back</span>
+          <span className="group-hover:text-primary transition-colors">{t("photo.back")}</span>
         </Button>
       </motion.div>
       
@@ -720,13 +722,13 @@ export default function LogFoodByPhotoPage() {
                 <TabsTrigger value="upload" className="data-[state=active]:bg-gradient-to-r from-primary/30 to-primary/20 data-[state=active]:backdrop-blur-sm data-[state=active]:shadow-sm rounded-full transition-all duration-300">
                   <motion.div className="flex items-center" whileTap={{ scale: 0.95 }}>
                     <UploadCloud className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Upload</span> Photo
+                    <span className="hidden sm:inline">{t("photo.uploadWord")}</span> {t("photo.photoWord")}
                   </motion.div>
                 </TabsTrigger>
                 <TabsTrigger value="camera" className="data-[state=active]:bg-gradient-to-r from-primary/30 to-primary/20 data-[state=active]:backdrop-blur-sm data-[state=active]:shadow-sm rounded-full transition-all duration-300">
                   <motion.div className="flex items-center" whileTap={{ scale: 0.95 }}>
                     <Camera className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Use</span> Camera
+                    <span className="hidden sm:inline">{t("photo.useWord")}</span> {t("photo.cameraWord")}
                   </motion.div>
                 </TabsTrigger>
               </TabsList>
@@ -799,7 +801,7 @@ export default function LogFoodByPhotoPage() {
                               }}
                               whileTap={{ scale: 0.97 }}
                             >
-                              <span>{selectedFile ? 'Change photo' : 'Upload a food photo'}</span>
+                              <span>{selectedFile ? t("photo.changePhoto") : t("photo.uploadFoodPhoto")}</span>
                               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                               <Input id="food-photo-input" ref={fileInputRef} name="food-photo" type="file" className="sr-only" onChange={handleFileChange} accept="image/*" />
                             </motion.label>
@@ -810,11 +812,11 @@ export default function LogFoodByPhotoPage() {
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
                               >
-                                or drag and drop
+                                {t("photo.dragDrop")}
                               </motion.p>
                             )}
                           </div>
-                          {!selectedFile && <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF up to 10MB</p>}
+                          {!selectedFile && <p className="text-xs text-muted-foreground mt-1">{t("photo.fileTypesHint")}</p>}
                           {selectedFile && <p className="text-xs text-muted-foreground pt-2">{selectedFile.name}</p>}
                         </div>
                       </motion.div>
@@ -872,7 +874,7 @@ export default function LogFoodByPhotoPage() {
                                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                                     className="h-2 w-2 rounded-full"
                                   />
-                                  <span>Camera active</span>
+                                  <span>{t("photo.cameraActive")}</span>
                                 </motion.div>
                               )}
                               
@@ -894,7 +896,7 @@ export default function LogFoodByPhotoPage() {
                                   >
                                     <Loader2 className="h-8 w-8 mb-2" />
                                   </motion.div>
-                                  <p className="font-medium">Starting camera...</p>
+                                  <p className="font-medium">{t("photo.startingCamera")}</p>
                                 </motion.div>
                               )}
                               
@@ -913,13 +915,13 @@ export default function LogFoodByPhotoPage() {
                                   >
                                     <VideoOff className="h-8 w-8 sm:h-10 sm:w-10 text-red-400" />
                                   </motion.div>
-                                  <AlertTitle className="text-lg font-semibold mb-2">Camera Access Denied</AlertTitle>
+                                  <AlertTitle className="text-lg font-semibold mb-2">{t("photo.cameraAccessDenied")}</AlertTitle>
                                   <AlertDescription className="text-sm mb-4 max-w-md mx-auto opacity-90">
-                                    Please allow camera access in your browser settings. Ensure no other app is using the camera.
+                                    {t("photo.cameraAccessDeniedDesc")}
                                   </AlertDescription>
                                   <motion.div whileTap={{ scale: 0.95 }}>
                                     <Button variant="secondary" size="sm" onClick={() => setAttemptId(prev => prev + 1)} className="rounded-full">
-                                      Retry Access
+                                      {t("photo.retryAccess")}
                                     </Button>
                                   </motion.div>
                                 </motion.div>
@@ -943,7 +945,7 @@ export default function LogFoodByPhotoPage() {
                                   >
                                     <Loader2 className="h-8 w-8 mb-2" />
                                   </motion.div>
-                                  <p className="font-medium">Initializing camera stream...</p>
+                                  <p className="font-medium">{t("photo.initializingStream")}</p>
                                 </motion.div>
                               )}
                               
@@ -979,7 +981,7 @@ export default function LogFoodByPhotoPage() {
                                       onClick={toggleFlash} 
                                       variant="outline" 
                                       size="icon" 
-                                      title={isFlashOn ? "Turn Flash Off" : "Turn Flash On"} 
+                                      title={isFlashOn ? t("photo.turnFlashOff") : t("photo.turnFlashOn")} 
                                       className={isFlashOn 
                                         ? "bg-yellow-100 hover:bg-yellow-200 text-yellow-600 rounded-full shadow-md border-yellow-200" 
                                         : "rounded-full shadow-md border-primary/10 hover:bg-primary/5"
@@ -1057,7 +1059,7 @@ export default function LogFoodByPhotoPage() {
                                     }}
                                   />
                                 </motion.div>
-                                {isStreamActive ? 'Capture Food Photo' : (isCameraLoading ? 'Camera Starting...' : 'Waiting for Camera...')}
+                                {isStreamActive ? t("photo.captureFoodPhoto") : (isCameraLoading ? t("photo.cameraStarting") : t("photo.waitingForCamera"))}
                               </Button>
                             </motion.div>
                           </motion.div>
@@ -1087,7 +1089,7 @@ export default function LogFoodByPhotoPage() {
                     transition={{ delay: 0.1 }}
                   >
                     <Camera className="h-4 w-4 text-primary" />
-                    <span>Food Photo Preview</span>
+                    <span>{t("photo.preview")}</span>
                   </motion.h3>
                   <motion.div 
                     className="flex justify-center"
@@ -1111,7 +1113,7 @@ export default function LogFoodByPhotoPage() {
                       <div className="aspect-video bg-black/5 flex items-center justify-center overflow-hidden">
                         <Image
                           src={previewUrl}
-                          alt="Food preview"
+                          alt={t("photo.foodPreviewAlt")}
                           width={400} 
                           height={300}
                           className="w-full h-auto max-h-[350px] object-contain z-10"
@@ -1128,7 +1130,7 @@ export default function LogFoodByPhotoPage() {
                         className="absolute bottom-3 left-3 text-xs text-white/90 rounded-full px-2.5 py-1 bg-black/50 backdrop-blur-sm z-30 flex items-center gap-1.5"
                       >
                         <Sparkles className="h-3 w-3 text-accent" />
-                        <span>Ready for analysis</span>
+                        <span>{t("photo.readyForAnalysis")}</span>
                       </motion.div>
                     </div>
                   </motion.div>
@@ -1145,7 +1147,7 @@ export default function LogFoodByPhotoPage() {
                         onClick={resetPhotoState} 
                         className="rounded-full shadow-sm border-primary/20 hover:bg-primary/5 group"
                       >
-                        <span className="group-hover:mr-1 transition-all">{capturedDataUriForAnalysis ? "Retake or Upload New" : "Clear Photo"}</span>
+                        <span className="group-hover:mr-1 transition-all">{capturedDataUriForAnalysis ? t("photo.retakeOrUploadNew") : t("photo.clearPhoto")}</span>
                       </Button>
                     </motion.div>
                   </motion.div>
@@ -1163,7 +1165,7 @@ export default function LogFoodByPhotoPage() {
                 >
                   <Alert variant="destructive" className="mt-4 rounded-xl border-red-300/20">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>{t("error.title")}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 </motion.div>
@@ -1207,8 +1209,8 @@ export default function LogFoodByPhotoPage() {
                       }}
                     />
                   </motion.div>
-                  <p className="text-foreground/90 font-medium text-center">Analyzing your meal with AI...</p>
-                  <p className="text-muted-foreground text-sm mt-2 text-center">This may take a few moments as we identify ingredients and calculate nutrition.</p>
+                  <p className="text-foreground/90 font-medium text-center">{t("photo.analyzingMeal")}</p>
+                  <p className="text-muted-foreground text-sm mt-2 text-center">{t("photo.analyzingMealDesc")}</p>
                   
                   <motion.div
                     className="w-48 h-2 bg-muted rounded-full overflow-hidden mt-4"
@@ -1287,7 +1289,7 @@ export default function LogFoodByPhotoPage() {
                         }}
                       >
                         <Sparkles className="h-4 w-4 text-primary" />
-                        <span>AI Analysis Results</span>
+                        <span>{t("photo.aiAnalysisResults")}</span>
                         <Sparkles className="h-4 w-4 text-primary" />
                       </motion.h3>
                     </motion.div>
@@ -1334,7 +1336,7 @@ export default function LogFoodByPhotoPage() {
                         transition={{ duration: 0.5 }}
                       />
                       <CheckCircle className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                      <span className="relative z-10">Add to Daily Log</span>
+                      <span className="relative z-10">{t("photo.addToLog")}</span>
                     </Button>
                   </motion.div>
                 </motion.div>
@@ -1385,7 +1387,7 @@ export default function LogFoodByPhotoPage() {
                       <Pizza className="h-4 w-4" />
                     </motion.div>
                   )}
-                  <span className="relative z-10">{analysisResult ? 'Re-analyze Food' : 'Analyze Food Photo'}</span>
+                  <span className="relative z-10">{analysisResult ? t("photo.reanalyze") : t("photo.analyze")}</span>
                 </Button>
               </motion.div>
             </div>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { format, isToday, isYesterday, isThisWeek, subDays, differenceInDays } from "date-fns";
+import { isToday, isYesterday, isThisWeek, subDays, differenceInDays } from "date-fns";
+import type { SupportedLocale } from "@/lib/i18n/translations";
 import { 
   Lightbulb, 
   TrendingUp, 
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Goal, DailyLogEntry } from "@/types";
+import { useLanguage } from "@/lib/i18n/provider";
 
 interface SmartInsightsProps {
   goals: Goal | null;
@@ -34,7 +36,9 @@ const generateInsights = (
   goals: Goal | null,
   dailyLog: DailyLogEntry | null,
   previousLogs: DailyLogEntry[],
-  currentSelectedDate: Date | null
+  currentSelectedDate: Date | null,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  locale: SupportedLocale
 ) => {
   const insights: {
     id: string;
@@ -56,10 +60,13 @@ const generateInsights = (
   // Get basic insights for current day
   const isCurrentDay = isToday(currentSelectedDate);
   const dayText = isCurrentDay 
-    ? "today" 
+    ? t("insights.today") 
     : isYesterday(currentSelectedDate) 
-      ? "yesterday" 
-      : format(currentSelectedDate, "MMM d");
+      ? t("insights.yesterday") 
+      : new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric",
+        }).format(currentSelectedDate);
 
   // Calculate percentage of goals
   let caloriePercentage = 0;
@@ -81,19 +88,19 @@ const generateInsights = (
       if (caloriePercentage < 50 && isCurrentDay) {
         insights.push({
           id: "calories-low",
-          title: `Only ${caloriePercentage}% of your calorie goal consumed`,
-          description: `You've only consumed ${calories} out of ${goals.calories} calories ${dayText}. Consider adding a nutritious meal.`,
+          title: t("insights.caloriesLowTitle", { caloriePercentage }),
+          description: t("insights.caloriesLowDesc", { calories, goalCalories: goals.calories, dayText }),
           type: "warning",
           icon: AlertCircle,
           priority: 90,
-          actionText: "Log meal",
+          actionText: t("insights.logMeal"),
           actionLink: "/log-food/manual"
         });
       } else if (caloriePercentage > 100) {
         insights.push({
           id: "calories-exceeded",
-          title: `Calorie goal exceeded by ${caloriePercentage - 100}%`,
-          description: `You've consumed ${calories} calories, which is above your ${goals.calories} calorie goal ${dayText}.`,
+          title: t("insights.caloriesExceededTitle", { value: caloriePercentage - 100 }),
+          description: t("insights.caloriesExceededDesc", { calories, goalCalories: goals.calories, dayText }),
           type: caloriePercentage > 130 ? "warning" : "info",
           icon: caloriePercentage > 130 ? AlertCircle : CheckCircle2,
           priority: caloriePercentage > 130 ? 80 : 50,
@@ -101,8 +108,8 @@ const generateInsights = (
       } else if (caloriePercentage >= 90 && caloriePercentage <= 100) {
         insights.push({
           id: "calories-perfect",
-          title: "Perfect calorie intake!",
-          description: `You've hit ${caloriePercentage}% of your calorie goal ${dayText}. Great job staying on target!`,
+          title: t("insights.caloriesPerfectTitle"),
+          description: t("insights.caloriesPerfectDesc", { caloriePercentage, dayText }),
           type: "success",
           icon: Award,
           priority: 70,
@@ -110,8 +117,8 @@ const generateInsights = (
       } else if (caloriePercentage >= 75 && caloriePercentage < 90 && isCurrentDay) {
         insights.push({
           id: "calories-almost",
-          title: "Almost there!",
-          description: `You're at ${caloriePercentage}% of your calorie goal. Just ${goals.calories - calories} more calories to reach your target.`,
+          title: t("insights.caloriesAlmostTitle"),
+          description: t("insights.caloriesAlmostDesc", { caloriePercentage, remainingCalories: goals.calories - calories }),
           type: "info",
           icon: Target,
           priority: 60,
@@ -125,8 +132,8 @@ const generateInsights = (
       if (proteinPercentage < 70 && calories > goals.calories * 0.7) {
         insights.push({
           id: "protein-low",
-          title: "Protein intake is low",
-          description: `Your protein intake is only ${proteinPercentage}% of your goal while you've consumed ${caloriePercentage}% of your calorie goal. Consider adding more protein-rich foods.`,
+          title: t("insights.proteinLowTitle"),
+          description: t("insights.proteinLowDesc", { proteinPercentage, caloriePercentage }),
           type: "warning",
           icon: TrendingDown,
           priority: 75,
@@ -134,8 +141,8 @@ const generateInsights = (
       } else if (proteinPercentage > 120) {
         insights.push({
           id: "protein-high",
-          title: "High protein intake",
-          description: `You've consumed ${proteinPercentage}% of your protein goal. Great work prioritizing protein!`,
+          title: t("insights.proteinHighTitle"),
+          description: t("insights.proteinHighDesc", { proteinPercentage }),
           type: "success",
           icon: TrendingUp,
           priority: 55,
@@ -146,8 +153,8 @@ const generateInsights = (
       if (carbsPercentage > 130 && fatPercentage < 80 && proteinPercentage < 80) {
         insights.push({
           id: "carbs-imbalance",
-          title: "Carb-heavy diet detected",
-          description: `Your diet ${dayText} is high in carbs (${carbsPercentage}%) but lower in protein and fats. Consider a more balanced approach.`,
+          title: t("insights.carbsHeavyTitle"),
+          description: t("insights.carbsHeavyDesc", { dayText, carbsPercentage }),
           type: "info",
           icon: BarChart2,
           priority: 65,
@@ -169,8 +176,8 @@ const generateInsights = (
     if (Math.abs(calorieChange) > 20) {
       insights.push({
         id: "calorie-trend",
-        title: `${calorieChange > 0 ? "Higher" : "Lower"} calories than your average`,
-        description: `You're consuming ${Math.abs(calorieChange)}% ${calorieChange > 0 ? "more" : "less"} calories today compared to your average of ${Math.round(avgCalories)} calories.`,
+        title: t("insights.calorieTrendTitle", { direction: calorieChange > 0 ? t("insights.higher") : t("insights.lower") }),
+        description: t("insights.calorieTrendDesc", { percent: Math.abs(calorieChange), direction: calorieChange > 0 ? t("insights.more") : t("insights.less"), avgCalories: Math.round(avgCalories) }),
         type: calorieChange > 30 ? "warning" : "info",
         icon: calorieChange > 0 ? TrendingUp : TrendingDown,
         priority: 60,
@@ -180,8 +187,8 @@ const generateInsights = (
     if (Math.abs(proteinChange) > 25 && protein > 0) {
       insights.push({
         id: "protein-trend",
-        title: `${proteinChange > 0 ? "Higher" : "Lower"} protein intake than usual`,
-        description: `Your protein intake is ${Math.abs(proteinChange)}% ${proteinChange > 0 ? "higher" : "lower"} than your average of ${Math.round(avgProtein)}g.`,
+        title: t("insights.proteinTrendTitle", { direction: proteinChange > 0 ? t("insights.higher") : t("insights.lower") }),
+        description: t("insights.proteinTrendDesc", { percent: Math.abs(proteinChange), direction: proteinChange > 0 ? t("insights.higher") : t("insights.lower"), avgProtein: Math.round(avgProtein) }),
         type: proteinChange < -25 ? "warning" : "info",
         icon: proteinChange > 0 ? TrendingUp : TrendingDown,
         priority: 55,
@@ -197,8 +204,8 @@ const generateInsights = (
     if (consecutiveDays >= 3) {
       insights.push({
         id: "streak",
-        title: `${consecutiveDays} day tracking streak!`,
-        description: `You've been consistently tracking your nutrition for ${consecutiveDays} days. Keep up the great work!`,
+        title: t("insights.streakTitle", { consecutiveDays }),
+        description: t("insights.streakDesc", { consecutiveDays }),
         type: "success",
         icon: Award,
         priority: 85,
@@ -210,8 +217,8 @@ const generateInsights = (
   if (insights.length === 0 && calories > 0) {
     insights.push({
       id: "generic",
-      title: `Your nutrition data for ${dayText}`,
-      description: `You've logged ${calories} calories with ${protein}g protein, ${fat}g fat, and ${carbs}g carbs.`,
+      title: t("insights.genericTitle", { dayText }),
+      description: t("insights.genericDesc", { calories, protein, fat, carbs }),
       type: "neutral",
       icon: CheckCircle2,
       priority: 30,
@@ -222,12 +229,12 @@ const generateInsights = (
   if (calories === 0 && isCurrentDay) {
     insights.push({
       id: "no-data",
-      title: "No meals logged yet today",
-      description: "Track your first meal of the day to get personalized insights!",
+      title: t("insights.noDataTitle"),
+      description: t("insights.noDataDesc"),
       type: "neutral",
       icon: Clock,
       priority: 100,
-      actionText: "Log meal",
+      actionText: t("insights.logMeal"),
       actionLink: "/log-food/manual"
     });
   }
@@ -243,15 +250,16 @@ export default function SmartInsights({
   previousLogs,
   loading
 }: SmartInsightsProps) {
+  const { t, locale } = useLanguage();
   const [insights, setInsights] = useState<ReturnType<typeof generateInsights>>([]);
   const [activeTab, setActiveTab] = useState<string>("all");
   
   useEffect(() => {
     if (!loading) {
-      const newInsights = generateInsights(goals, dailyLog, previousLogs, currentSelectedDate);
+      const newInsights = generateInsights(goals, dailyLog, previousLogs, currentSelectedDate, t, locale);
       setInsights(newInsights);
     }
-  }, [goals, dailyLog, previousLogs, currentSelectedDate, loading]);
+  }, [goals, dailyLog, previousLogs, currentSelectedDate, loading, t, locale]);
   
   const filteredInsights = activeTab === "all" 
     ? insights 
@@ -274,18 +282,18 @@ export default function SmartInsights({
       {insights.length > 0 && (
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-4 mb-2">
-            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+            <TabsTrigger value="all" className="text-xs">{t("insights.tabs.all")}</TabsTrigger>
             <TabsTrigger value="success" className="text-xs">
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-              Good
+              {t("insights.tabs.good")}
             </TabsTrigger>
             <TabsTrigger value="warning" className="text-xs">
               <AlertCircle className="h-3.5 w-3.5 mr-1" />
-              Alerts
+              {t("insights.tabs.alerts")}
             </TabsTrigger>
             <TabsTrigger value="info" className="text-xs">
               <Lightbulb className="h-3.5 w-3.5 mr-1" />
-              Tips
+              {t("insights.tabs.tips")}
             </TabsTrigger>
           </TabsList>
           
@@ -376,7 +384,7 @@ export default function SmartInsights({
                   animate={{ opacity: 1 }}
                   className="text-center py-6 text-muted-foreground"
                 >
-                  No insights available in this category
+                  {t("insights.noCategoryInsights")}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -388,13 +396,13 @@ export default function SmartInsights({
         <Card className="shadow-lg rounded-xl overflow-hidden">
           <CardContent className="p-6 text-center">
             <Lightbulb className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-            <h3 className="text-lg font-semibold">No insights available</h3>
+            <h3 className="text-lg font-semibold">{t("insights.noneTitle")}</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Start logging your meals to receive personalized nutrition insights.
+              {t("insights.noneDesc")}
             </p>
             <Button className="mt-4" asChild>
               <a href="/log-food/manual">
-                Log your first meal
+                {t("insights.logFirstMeal")}
               </a>
             </Button>
           </CardContent>

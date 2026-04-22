@@ -2,6 +2,7 @@
 
 import React, { type FC } from 'react'; // Ensure React is imported
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Label, type TooltipProps } from 'recharts';
+import { useLanguage } from "@/lib/i18n/provider";
 
 interface CalorieDonutChartProps {
   chartData: Array<{ name: string; value: number; fill: string }>;
@@ -15,6 +16,7 @@ interface CaloriesCenterLabelProps {
 }
 
 const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) => {
+  const { t } = useLanguage();
   if (!viewBox || typeof viewBox.cx !== 'number' || typeof viewBox.cy !== 'number') {
     return null;
   }
@@ -22,7 +24,7 @@ const CaloriesCenterLabel: FC<CaloriesCenterLabelProps> = ({ viewBox, value }) =
   return (
     <text x={cx} y={cy} fill="hsl(var(--foreground))" textAnchor="middle" dominantBaseline="central">
       <tspan x={cx} y={cy - 8} fontSize="1.75rem" fontWeight="bold">{`${Math.round(value)}`}</tspan>
-      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">Calories</tspan>
+      <tspan x={cx} y={cy + 12} fontSize="0.75rem" fill="hsl(var(--muted-foreground))">{t("home.calories")}</tspan>
     </text>
   );
 };
@@ -32,6 +34,7 @@ interface CustomDonutTooltipProps extends TooltipProps<number, string> {
 }
 
 const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goalCalories }) => {
+  const { t } = useLanguage();
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const value = payload[0].value || 0; 
@@ -39,16 +42,16 @@ const CustomDonutTooltip: FC<CustomDonutTooltipProps> = ({ active, payload, goal
 
     let displayName = name;
     if (name === 'ConsumedNoGoal') {
-      displayName = 'Consumed';
+      displayName = t("home.tooltip.consumed");
     } else if (name === 'Empty') {
-      displayName = goalCalories > 0 ? 'Goal Not Reached' : 'Goal Not Set';
+      displayName = goalCalories > 0 ? t("home.tooltip.goalNotReached") : t("home.tooltip.goalNotSet");
     } else if (name === 'Remaining' && goalCalories > 0) {
-      displayName = 'Remaining in Goal';
+      displayName = t("home.tooltip.remainingInGoal");
     }
 
     const displayValue = (name === 'Empty' && value === 1 && goalCalories === 0 && data.value === 1)
-      ? '0 kcal'
-      : `${Math.round(value)} kcal`;
+      ? t("units.kcalValue", { value: 0 })
+      : t("units.kcalValue", { value: Math.round(value) });
 
     return (
       <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md" style={{backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))"}}>

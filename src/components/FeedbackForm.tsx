@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/provider";
 
 export interface FeedbackSubmission {
   id: string;
@@ -26,6 +27,7 @@ export interface FeedbackSubmission {
 }
 
 export function FeedbackForm() {
+  const { t } = useLanguage();
   const [feedbackType, setFeedbackType] = useState<'bug' | 'feature' | 'general' | 'rating'>('general');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -37,8 +39,8 @@ export function FeedbackForm() {
   const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
+        title: t("feedback.missingInfoTitle"),
+        description: t("feedback.missingInfoDesc"),
         variant: "destructive",
       });
       return;
@@ -64,8 +66,8 @@ export function FeedbackForm() {
 
       // Show success message
       toast({
-        title: "Thank You!",
-        description: "Your feedback has been submitted successfully. We appreciate your input!",
+        title: t("feedback.thankYouTitle"),
+        description: t("feedback.thankYouDesc"),
       });
 
       setIsSubmitted(true);
@@ -76,8 +78,8 @@ export function FeedbackForm() {
 
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to submit feedback. Please try again.",
+        title: t("error.title"),
+        description: t("feedback.submitFailed"),
         variant: "destructive",
       });
       console.error('Feedback submission error:', error);
@@ -100,7 +102,7 @@ export function FeedbackForm() {
       <div className="space-y-3">
         <div className="text-center">
           <p className="text-sm font-medium text-muted-foreground mb-2">
-            Rate your experience with Calorie Tracker
+            {t("feedback.rateExperience")}
           </p>
           <div className="flex justify-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -117,7 +119,7 @@ export function FeedbackForm() {
             ))}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            {rating}/5 stars
+            {t("feedback.ratingValue", { rating })}
           </p>
         </div>
       </div>
@@ -130,10 +132,10 @@ export function FeedbackForm() {
         <CardContent className="p-6 text-center">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-green-800 mb-2">
-            Feedback Submitted!
+            {t("feedback.submittedTitle")}
           </h3>
           <p className="text-green-700">
-            Thank you for your valuable input. We'll review your feedback and use it to improve Calorie Tracker.
+            {t("feedback.submittedDesc")}
           </p>
         </CardContent>
       </Card>
@@ -145,23 +147,23 @@ export function FeedbackForm() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5 text-primary" />
-          <CardTitle>Share Your Feedback</CardTitle>
+          <CardTitle>{t("feedback.shareTitle")}</CardTitle>
         </div>
         <CardDescription>
-          Help us improve Calorie Tracker by sharing your thoughts, reporting bugs, or suggesting new features.
+          {t("feedback.shareDesc")}
         </CardDescription>
       </CardHeader>
       
       <CardContent className="space-y-6">
         {/* Feedback Type Selection */}
         <div className="space-y-3">
-          <label className="text-sm font-medium">Feedback Type</label>
+          <label className="text-sm font-medium">{t("feedback.typeLabel")}</label>
           <div className="grid grid-cols-2 gap-2">
             {([
-              { type: 'bug', label: 'Bug Report', icon: Bug, color: 'bg-red-100 text-red-700 border-red-200' },
-              { type: 'feature', label: 'Feature Request', icon: Lightbulb, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-              { type: 'general', label: 'General Feedback', icon: MessageSquare, color: 'bg-green-100 text-green-700 border-green-200' },
-              { type: 'rating', label: 'App Rating', icon: Star, color: 'bg-yellow-100 text-yellow-700 border-yellow-200' }
+              { type: 'bug', label: t("feedback.typeBug"), icon: Bug, color: 'bg-red-100 text-red-700 border-red-200' },
+              { type: 'feature', label: t("feedback.typeFeature"), icon: Lightbulb, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+              { type: 'general', label: t("feedback.typeGeneral"), icon: MessageSquare, color: 'bg-green-100 text-green-700 border-green-200' },
+              { type: 'rating', label: t("feedback.typeRating"), icon: Star, color: 'bg-yellow-100 text-yellow-700 border-yellow-200' }
             ] as const).map(({ type, label, icon: Icon, color }) => (
               <button
                 key={type}
@@ -187,16 +189,16 @@ export function FeedbackForm() {
         {/* Title Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            {feedbackType === 'bug' ? 'Brief description of the issue:' :
-             feedbackType === 'feature' ? 'Feature name:' :
-             feedbackType === 'rating' ? 'What would you like to rate?' :
-             'Subject:'}
+            {feedbackType === 'bug' ? t("feedback.bugBrief") :
+             feedbackType === 'feature' ? t("feedback.featureName") :
+             feedbackType === 'rating' ? t("feedback.rateWhat") :
+             t("feedback.subject")}
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter a title for your feedback"
+            placeholder={t("feedback.titlePlaceholder")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             maxLength={100}
           />
@@ -205,21 +207,21 @@ export function FeedbackForm() {
         {/* Description Input */}
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            {feedbackType === 'bug' ? 'Detailed description (steps to reproduce, expected vs actual behavior):' :
-             feedbackType === 'feature' ? 'Describe the feature and why it would be useful:' :
-             feedbackType === 'rating' ? 'Additional comments (optional):' :
-             'Your feedback:'}
+            {feedbackType === 'bug' ? t("feedback.bugDetailed") :
+             feedbackType === 'feature' ? t("feedback.featureDescPrompt") :
+             feedbackType === 'rating' ? t("feedback.additionalComments") :
+             t("feedback.yourFeedback")}
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Provide detailed information..."
+            placeholder={t("feedback.descriptionPlaceholder")}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
             rows={4}
             maxLength={1000}
           />
           <div className="text-xs text-muted-foreground text-right">
-            {description.length}/1000 characters
+            {t("feedback.characterCount", { count: description.length })}
           </div>
         </div>
 
@@ -233,12 +235,12 @@ export function FeedbackForm() {
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-              Submitting...
+              {t("feedback.submitting")}
             </>
           ) : (
             <>
               <Send className="h-4 w-4 mr-2" />
-              Submit Feedback
+              {t("feedback.submit")}
             </>
           )}
         </Button>

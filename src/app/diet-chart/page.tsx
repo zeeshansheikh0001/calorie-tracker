@@ -92,6 +92,7 @@ import {
 } from "@/components/ui/dialog";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/provider";
 
 
 // Type definitions for html2pdf.js
@@ -138,78 +139,67 @@ const gridWhiteStyle = {
 
 // Activity level options
 const activityLevels = [
-  { value: "sedentary", label: "Sedentary (little or no exercise)" },
+  { value: "sedentary" },
   {
     value: "lightly_active",
-    label: "Lightly Active (light exercise/sports 1-3 days/week)",
   },
   {
     value: "moderately_active",
-    label: "Moderately Active (moderate exercise/sports 3-5 days/week)",
   },
   {
     value: "very_active",
-    label: "Very Active (hard exercise/sports 6-7 days a week)",
   },
   {
     value: "extra_active",
-    label: "Extra Active (very hard exercise/sports & physical job)",
   },
 ];
 
 // Fitness goal options
 const fitnessGoals = [
-  { value: "weight_loss", label: "Lose Weight" },
-  { value: "maintain_weight", label: "Maintain Weight" },
-  { value: "muscle_gain", label: "Gain Muscle" },
-  { value: "general_health", label: "Improve General Health" },
+  { value: "weight_loss" },
+  { value: "maintain_weight" },
+  { value: "muscle_gain" },
+  { value: "general_health" },
 ];
 
 // Dietary preferences - Kept for the form UI
 const indianDietaryPreferences = [
   {
     id: "vegetarian",
-    label: "Vegetarian",
     icon: <Salad className="h-3 w-3 mr-1" />,
   },
   {
     id: "non_vegetarian",
-    label: "Non-Vegetarian",
     icon: <ChefHat className="h-3 w-3 mr-1" />,
   },
-  { id: "eggetarian", label: "Eggetarian", icon: <Egg className="h-3 w-3 mr-1" /> },
-  { id: "vegan", label: "Vegan", icon: <Leaf className="h-3 w-3 mr-1" /> },
-  { id: "jain", label: "Jain", icon: <Salad className="h-3 w-3 mr-1" /> },
+  { id: "eggetarian", icon: <Egg className="h-3 w-3 mr-1" /> },
+  { id: "vegan", icon: <Leaf className="h-3 w-3 mr-1" /> },
+  { id: "jain", icon: <Salad className="h-3 w-3 mr-1" /> },
   {
     id: "gluten_free",
-    label: "Gluten-Free",
     icon: <Sandwich className="h-3 w-3 mr-1" />,
   },
   {
     id: "dairy_free",
-    label: "Dairy-Free",
     icon: <Package className="h-3 w-3 mr-1" />,
   },
-  { id: "nut_free", label: "Nut-Free", icon: <Tag className="h-3 w-3 mr-1" /> },
+  { id: "nut_free", icon: <Tag className="h-3 w-3 mr-1" /> },
   {
     id: "low_carb",
-    label: "Low Carb",
     icon: <Salad className="h-3 w-3 mr-1" />,
   },
-  { id: "keto", label: "Keto", icon: <Sandwich className="h-3 w-3 mr-1" /> },
-  { id: "paleo", label: "Paleo", icon: <Salad className="h-3 w-3 mr-1" /> },
+  { id: "keto", icon: <Sandwich className="h-3 w-3 mr-1" /> },
+  { id: "paleo", icon: <Salad className="h-3 w-3 mr-1" /> },
 ];
 
 // Plan duration options
 const planDurations = [
   {
     value: "daily",
-    label: "Daily Plan",
     icon: <Calendar className="h-4 w-4" />,
   },
   {
     value: "weekly",
-    label: "Weekly Plan",
     icon: <Calendar className="h-4 w-4" />,
   },
 ];
@@ -537,6 +527,7 @@ const calculateMacroPercentages = (
 
 export default function DietChartPage() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [dietChart, setDietChart] =
     useState<GenerateIndianDietChartOutput | null>(null);
@@ -592,13 +583,13 @@ export default function DietChartPage() {
           setCollapsibleStates(initialCollapsibleStates);
           
           toast({
-            title: "Diet Chart Loaded",
-            description: `Loaded: ${savedChart.name}`,
+            title: t("diet.loadedTitle"),
+            description: t("diet.loadedDesc", { name: savedChart.name }),
           });
         } else {
           toast({
-            title: "Chart Not Found",
-            description: "The requested diet chart could not be found.",
+            title: t("diet.notFoundTitle"),
+            description: t("diet.notFoundDesc"),
             variant: "destructive",
           });
         }
@@ -666,8 +657,8 @@ export default function DietChartPage() {
       !formData.duration
     ) {
       toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
+        title: t("diet.missingInfoTitle"),
+        description: t("diet.missingInfoDesc"),
         variant: "destructive",
       });
       return;
@@ -703,18 +694,18 @@ export default function DietChartPage() {
       setActiveTab("results");
 
       toast({
-        title: "Indian Diet Chart Generated",
-        description: "Your personalized Indian diet chart is ready!",
+        title: t("diet.generatedTitle"),
+        description: t("diet.generatedDesc"),
         variant: "default",
       });
     } catch (error: any) {
       console.error("Error generating Indian diet chart:", error);
-      let description = "Failed to generate Indian diet chart. Please try again.";
+      let description = t("diet.generateFailedDesc");
       if (error.message && (error.message.includes("503") || error.message.toLowerCase().includes("service unavailable") || error.message.toLowerCase().includes("model is overloaded"))) {
-        description = "The AI service is currently experiencing high demand. Please try again in a few minutes.";
+        description = t("diet.serviceBusyDesc");
       }
       toast({
-        title: "Error",
+        title: t("error.title"),
         description: description,
         variant: "destructive",
       });
@@ -729,8 +720,8 @@ export default function DietChartPage() {
     const element = document.getElementById('dietChartPdfArea');
     if (!element) {
       toast({
-        title: "Error",
-        description: "Could not find chart content to download.",
+        title: t("error.title"),
+        description: t("diet.downloadNotFound"),
         variant: "destructive"
       });
       return;
@@ -753,14 +744,14 @@ export default function DietChartPage() {
       await html2pdf.default().from(element).set(opt).save();
       
       toast({
-        title: "Downloaded",
-        description: "Indian diet chart has been downloaded as PDF.",
+        title: t("diet.downloadCompleteTitle"),
+        description: t("diet.downloadCompleteDesc"),
       });
     } catch (err) {
       console.error("PDF generation error:", err);
       toast({
-        title: "PDF Error",
-        description: "Failed to generate PDF. Please try again.",
+        title: t("diet.pdfErrorTitle"),
+        description: t("diet.pdfErrorDesc"),
         variant: "destructive"
       });
     }
@@ -769,14 +760,14 @@ export default function DietChartPage() {
   const handleSave = () => {
     if (!dietChart) {
       toast({ 
-        title: "No diet chart to save", 
-        description: "Please generate a diet chart first.",
+        title: t("diet.noChartToSaveTitle"), 
+        description: t("diet.noChartToSaveDesc"),
         variant: "destructive"
       });
       return;
     }
     
-    setDietChartName(`Diet Chart - ${new Date().toLocaleDateString()}`);
+    setDietChartName(`${t("diet.chartNamePrefix")} - ${new Date().toLocaleDateString()}`);
     setShowSaveDialog(true);
   };
 
@@ -789,16 +780,16 @@ export default function DietChartPage() {
       saveDietChart(dietChartName, dietChart);
       
       toast({ 
-        title: "Diet Chart Saved", 
-        description: "Your diet chart has been saved to your profile."
+        title: t("diet.savedTitle"), 
+        description: t("diet.savedDesc")
       });
       
       setShowSaveDialog(false);
     } catch (error) {
       console.error("Error saving diet chart:", error);
       toast({ 
-        title: "Error", 
-        description: "Failed to save diet chart. Please try again.",
+        title: t("error.title"), 
+        description: t("diet.saveFailedDesc"),
         variant: "destructive" 
       });
     } finally {
@@ -901,14 +892,14 @@ export default function DietChartPage() {
               <div className="space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between">
                   <p className="text-sm sm:text-base font-medium text-white/80 dark:text-white/80">
-                    Macronutrient Breakdown
+                    {t("diet.macroBreakdown")}
                   </p>
                   <motion.div 
                     className="text-xs text-primary px-2 sm:px-3 py-1 sm:py-1.5 bg-primary/10 rounded-full border border-primary/20"
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <span className="font-medium">Balanced Diet</span>
+                    <span className="font-medium">{t("diet.balancedDiet")}</span>
                   </motion.div>
                 </div>
                 
@@ -1193,9 +1184,9 @@ export default function DietChartPage() {
           <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
             1
           </div>
-          <span>Basic Information</span>
+          <span>{t("diet.step1Title")}</span>
         </h2>
-        <p className="text-muted-foreground text-sm">Tell us about yourself</p>
+        <p className="text-muted-foreground text-sm">{t("diet.step1Desc")}</p>
       </div>
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
@@ -1205,51 +1196,51 @@ export default function DietChartPage() {
       >
         <motion.div className="space-y-2" variants={itemVariants}>
           <Label htmlFor="age" className="flex items-center">
-            Age
+            {t("profile.age")}
           </Label>
           <Input
             id="age"
             name="age"
             type="number"
-            placeholder="Enter age"
+            placeholder={t("onboarding.agePlaceholder")}
             value={formData.age || ""}
             onChange={handleInputChange}
           />
         </motion.div>
         <motion.div className="space-y-2" variants={itemVariants}>
-          <Label htmlFor="gender">Gender</Label>
+          <Label htmlFor="gender">{t("onboarding.gender")}</Label>
           <Select
             value={formData.gender}
             onValueChange={(value) => handleSelectChange("gender", value)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
+              <SelectValue placeholder={t("diet.selectGender")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="male">{t("profile.gender.male")}</SelectItem>
+              <SelectItem value="female">{t("profile.gender.female")}</SelectItem>
+              <SelectItem value="other">{t("profile.gender.other")}</SelectItem>
             </SelectContent>
           </Select>
         </motion.div>
         <motion.div className="space-y-2" variants={itemVariants}>
-          <Label htmlFor="weight">Weight (kg)</Label>
+          <Label htmlFor="weight">{t("diet.weightKg")}</Label>
           <Input
             id="weight"
             name="weight"
             type="number"
-            placeholder="Enter weight"
+            placeholder={t("onboarding.weightPlaceholder")}
             value={formData.weight || ""}
             onChange={handleInputChange}
           />
         </motion.div>
         <motion.div className="space-y-2" variants={itemVariants}>
-          <Label htmlFor="height">Height (cm)</Label>
+          <Label htmlFor="height">{t("diet.heightCm")}</Label>
           <Input
             id="height"
             name="height"
             type="number"
-            placeholder="Enter height"
+            placeholder={t("onboarding.heightPlaceholder")}
             value={formData.height || ""}
             onChange={handleInputChange}
           />
@@ -1272,7 +1263,7 @@ export default function DietChartPage() {
           }
         >
           <span className="relative z-10 flex items-center">
-            Next Step{" "}
+            {t("onboarding.next")}{" "}
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         </Button>
@@ -1287,10 +1278,10 @@ export default function DietChartPage() {
           <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
             2
           </div>
-          <span>Fitness & Activity</span>
+          <span>{t("diet.step2Title")}</span>
         </h2>
         <p className="text-muted-foreground text-sm">
-          Your activity level and goals
+          {t("diet.step2Desc")}
         </p>
       </div>
       <motion.div
@@ -1300,7 +1291,7 @@ export default function DietChartPage() {
         animate="show"
       >
         <motion.div className="space-y-3" variants={itemVariants}>
-          <Label htmlFor="activityLevel">Activity Level</Label>
+          <Label htmlFor="activityLevel">{t("ai.activityLevel")}</Label>
           <div className="grid grid-cols-1 gap-2 pt-1">
             {activityLevels.map((level, index) => (
               <motion.div
@@ -1337,14 +1328,14 @@ export default function DietChartPage() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium">{level.label}</p>
+                  <p className="font-medium">{t(`ai.option.activity.${level.value}`)}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         </motion.div>
         <motion.div className="space-y-3 pt-2" variants={itemVariants}>
-          <Label htmlFor="fitnessGoal">Fitness Goal</Label>
+          <Label htmlFor="fitnessGoal">{t("diet.fitnessGoal")}</Label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             {fitnessGoals.map((goal, index) => (
               <motion.div
@@ -1362,7 +1353,7 @@ export default function DietChartPage() {
                 onClick={() => handleSelectChange("fitnessGoal", goal.value)}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{goal.label}</span>
+                  <span className="font-medium">{t(`ai.option.weightGoal.${goal.value}`)}</span>
                   {formData.fitnessGoal === goal.value ? (
                     <motion.div
                       initial={{ scale: 0 }}
@@ -1391,7 +1382,7 @@ export default function DietChartPage() {
         transition={{ delay: 0.5 }}
       >
         <Button variant="outline" onClick={handlePrevStep} className="group">
-          Previous
+          {t("onboarding.back")}
         </Button>
         <Button
           onClick={handleNextStep}
@@ -1399,7 +1390,7 @@ export default function DietChartPage() {
           disabled={!formData.activityLevel || !formData.fitnessGoal}
         >
           <span className="relative z-10 flex items-center">
-            Next Step{" "}
+            {t("onboarding.next")}{" "}
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         </Button>
@@ -1421,10 +1412,10 @@ export default function DietChartPage() {
           <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
             3
           </div>
-          Dietary Preferences
+          {t("diet.step3Title")}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Select your primary dietary preference.
+          {t("diet.step3Desc")}
         </p>
       </div>
       <div className="space-y-4">
@@ -1452,7 +1443,7 @@ export default function DietChartPage() {
              >
                <RadioGroupItem value={preference.id} id={`diet-${preference.id}`} />
                {preference.icon}{" "}
-               <span className="text-sm">{preference.label}</span>
+              <span className="text-sm">{t(`diet.option.preference.${preference.id}`)}</span>
              </Label>
            </motion.div>
           ))}
@@ -1465,11 +1456,11 @@ export default function DietChartPage() {
             animate="show"
             transition={{ delay: 0.3 }}
           >
-            <Label htmlFor="allergies">Allergies (comma separated)</Label>
+            <Label htmlFor="allergies">{t("diet.allergiesLabel")}</Label>
             <Textarea
               id="allergies"
               name="allergies"
-              placeholder="e.g., peanuts, shellfish"
+              placeholder={t("diet.allergiesPlaceholder")}
               value={(formData.allergies || []).join(", ")}
               onChange={(e) => handleListChange("allergies", e.target.value)}
             />
@@ -1482,12 +1473,12 @@ export default function DietChartPage() {
             transition={{ delay: 0.4 }}
           >
             <Label htmlFor="medicalConditions">
-              Medical Conditions (comma separated)
+              {t("diet.conditionsLabel")}
             </Label>
             <Textarea
               id="medicalConditions"
               name="medicalConditions"
-              placeholder="e.g., diabetes, hypertension"
+              placeholder={t("diet.conditionsPlaceholder")}
               value={(formData.medicalConditions || []).join(", ")}
               onChange={(e) =>
                 handleListChange("medicalConditions", e.target.value)
@@ -1503,11 +1494,11 @@ export default function DietChartPage() {
         transition={{ delay: 0.5 }}
       >
         <Button variant="outline" onClick={handlePrevStep} className="group">
-          Previous
+          {t("onboarding.back")}
         </Button>
         <Button onClick={handleNextStep} className="group">
           <span className="relative z-10 flex items-center">
-            Next Step{" "}
+            {t("onboarding.next")}{" "}
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
           </span>
         </Button>
@@ -1530,15 +1521,15 @@ export default function DietChartPage() {
           <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium">
             4
           </div>
-          Plan Configuration
+          {t("diet.step4Title")}
         </h2>
         <p className="text-muted-foreground text-sm">
-          Customize your diet chart plan
+          {t("diet.step4Desc")}
         </p>
       </div>
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="duration">Plan Duration</Label>
+          <Label htmlFor="duration">{t("diet.planDuration")}</Label>
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2"
             variants={containerVariants}
@@ -1584,11 +1575,11 @@ export default function DietChartPage() {
                   >
                     {duration.icon}
                   </motion.div>
-                  <span className="font-medium">{duration.label}</span>
+                  <span className="font-medium">{duration.value === "daily" ? t("diet.duration.daily") : t("diet.duration.weekly")}</span>
                   <p className="text-xs text-muted-foreground">
                     {duration.value === "daily"
-                      ? "Detailed plan for a single day"
-                      : "Varied plan for an entire week"}
+                      ? t("diet.duration.dailyDesc")
+                      : t("diet.duration.weeklyDesc")}
                   </p>
                 </div>
               </motion.div>
@@ -1604,7 +1595,7 @@ export default function DietChartPage() {
           <h3 className="font-medium mb-3 flex items-center">
             <CheckCircle2 className="h-4 w-4 text-primary mr-2" />
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500">
-              Summary of Your Selections
+              {t("diet.summaryTitle")}
             </span>
           </h3>
           <motion.div
@@ -1614,36 +1605,36 @@ export default function DietChartPage() {
             animate="show"
           >
             <motion.p variants={itemVariants}>
-              <span className="text-muted-foreground">Basic Info:</span>{" "}
-              {formData.age} years, {formData.gender}, {formData.weight}kg,{" "}
+              <span className="text-muted-foreground">{t("diet.summaryBasicInfo")}:</span>{" "}
+              {formData.age} {t("diet.yearsShort")}, {formData.gender}, {formData.weight}kg,{" "}
               {formData.height}cm
             </motion.p>
             <motion.p variants={itemVariants}>
-              <span className="text-muted-foreground">Fitness:</span>{" "}
-              {formData.activityLevel?.replace("_", " ")}, Goal:{" "}
-              {formData.fitnessGoal?.replace("_", " ")}
+              <span className="text-muted-foreground">{t("diet.summaryFitness")}:</span>{" "}
+              {formData.activityLevel ? t(`ai.option.activity.${formData.activityLevel}`) : "-"}, {t("diet.goalLabel")}:{" "}
+              {formData.fitnessGoal ? t(`ai.option.weightGoal.${formData.fitnessGoal}`) : "-"}
             </motion.p>
             {formData.dietaryPreference && (
               <motion.p variants={itemVariants}>
-                <span className="text-muted-foreground">Preference:</span>{" "}
+                <span className="text-muted-foreground">{t("diet.summaryPreference")}:</span>{" "}
                 {formData.dietaryPreference.charAt(0).toUpperCase() + formData.dietaryPreference.slice(1)}
               </motion.p>
             )}
             {(formData.allergies || []).length > 0 && (
               <motion.p variants={itemVariants}>
-                <span className="text-muted-foreground">Allergies:</span>{" "}
+                <span className="text-muted-foreground">{t("diet.summaryAllergies")}:</span>{" "}
                 {formData.allergies?.join(", ")}
               </motion.p>
             )}
             {(formData.medicalConditions || []).length > 0 && (
               <motion.p variants={itemVariants}>
-                <span className="text-muted-foreground">Conditions:</span>{" "}
+                <span className="text-muted-foreground">{t("diet.summaryConditions")}:</span>{" "}
                 {formData.medicalConditions?.join(", ")}
               </motion.p>
             )}
             <motion.p variants={itemVariants}>
-              <span className="text-muted-foreground">Plan Type:</span>{" "}
-              {formData.duration === "daily" ? "Daily Plan" : "Weekly Plan"}
+              <span className="text-muted-foreground">{t("diet.summaryPlanType")}:</span>{" "}
+              {formData.duration === "daily" ? t("diet.duration.daily") : t("diet.duration.weekly")}
             </motion.p>
           </motion.div>
         </motion.div>
@@ -1655,7 +1646,7 @@ export default function DietChartPage() {
         transition={{ delay: 0.5 }}
       >
         <Button variant="outline" onClick={handlePrevStep} className="group">
-          Previous
+          {t("onboarding.back")}
         </Button>
         <Button
           onClick={handleGenerateDietChart}
@@ -1666,12 +1657,12 @@ export default function DietChartPage() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                {t("ai.generating")}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4 group-hover:animate-pulse" />
-                Generate Diet Chart
+                {t("diet.generateButton")}
               </>
             )}
           </span>
@@ -1698,11 +1689,11 @@ export default function DietChartPage() {
             transition={{ delay: 0.1 }}
           >
             <ChefHat className="h-4 w-4 mr-1.5" />
-            AI Diet Planner
+            {t("diet.badge")}
           </motion.div>
           <h1 className="text-4xl font-bold tracking-tight">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-500">
-              AI Diet Chart
+              {t("diet.pageTitle")}
             </span>
           </h1>
           <motion.p
@@ -1711,8 +1702,7 @@ export default function DietChartPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Create a personalized Indian diet plan based on your health data and
-            preferences.
+            {t("diet.pageSubtitle")}
           </motion.p>
         </motion.div>
 
@@ -1728,7 +1718,7 @@ export default function DietChartPage() {
               className="flex items-center gap-2 rounded-full transition-all duration-300 data-[state=active]:bg-white data-[state=active]:dark:bg-black/60 data-[state=active]:text-primary data-[state=active]:shadow-sm"
             >
               <Sparkles className="h-4 w-4" />
-              Generate Plan
+              {t("diet.generateTab")}
             </TabsTrigger>
             <TabsTrigger
               value="results"
@@ -1736,7 +1726,7 @@ export default function DietChartPage() {
               disabled={!dietChart}
             >
               <Utensils className="h-4 w-4" />
-              View Results
+              {t("diet.resultsTab")}
             </TabsTrigger>
           </TabsList>
 
@@ -1753,14 +1743,14 @@ export default function DietChartPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-xl">
                     <GanttChart className="h-5 w-5 text-primary" />
-                    Create Your Diet Chart
+                    {t("diet.createTitle")}
                   </CardTitle>
                   <Badge
                     variant="outline"
                     className="bg-primary/5 border-primary/20 flex items-center gap-1 rounded-full px-3 py-1.5"
                   >
                     <Activity className="h-3 w-3" />
-                    Step {currentStep} of 4
+                    {t("diet.stepOf", { step: currentStep })}
                   </Badge>
                 </div>
                 <div className="pt-4">
@@ -1838,10 +1828,10 @@ export default function DietChartPage() {
                           </div>
                     <div className="space-y-2">
                       <h3 className="text-xl font-semibold tracking-tight">
-                        Generating Your Diet Chart
+                        {t("diet.generatingTitle")}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        We're crafting a personalized nutrition plan just for you...
+                        {t("diet.generatingDesc")}
                       </p>
                             </div>
                           </div>
@@ -1859,7 +1849,7 @@ export default function DietChartPage() {
                     <Button variant="outline" size="sm" asChild>
                       <Link href="/profile">
                         <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                        Back to Profile
+                        {t("profileEdit.back")}
                       </Link>
                     </Button>
                   </div>
@@ -1867,9 +1857,9 @@ export default function DietChartPage() {
                 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
                   <div>
-                    <h2 className="text-xl sm:text-2xl font-bold">Your Diet Chart</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold">{t("diet.yourChartTitle")}</h2>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      A personalized nutrition plan for your needs
+                      {t("diet.yourChartDesc")}
                             </p>
                           </div>
                   <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
@@ -1879,7 +1869,7 @@ export default function DietChartPage() {
                       className="flex-1 sm:flex-auto flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2 h-auto"
                     >
                       <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-                      Download as PDF
+                      {t("diet.downloadPdf")}
                     </Button>
                     {!isViewingSaved && (
                       <Button
@@ -1887,7 +1877,7 @@ export default function DietChartPage() {
                         className="flex-1 sm:flex-auto flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm py-1.5 sm:py-2 h-auto"
                       >
                         <Save className="h-3 w-3 sm:h-4 sm:w-4" />
-                        Save
+                        {t("common.save")}
                       </Button>
                                     )}
                                   </div>
@@ -1903,13 +1893,13 @@ export default function DietChartPage() {
                       <Utensils className="h-8 w-8 text-primary" />
                                           </div>
                     <h3 className="text-xl font-semibold tracking-tight">
-                      No Diet Chart Generated
+                      {t("diet.noChartTitle")}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Fill out the form and click "Generate Diet Chart" to create your personalized nutrition plan.
+                      {t("diet.noChartDesc")}
                     </p>
                     <Button onClick={() => setActiveTab("generate")}>
-                      Create Diet Chart
+                      {t("diet.createButton")}
                     </Button>
                                           </div>
                 </Card>
@@ -1923,19 +1913,19 @@ export default function DietChartPage() {
       <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
         <DialogContent className="sm:max-w-md max-w-[90%] rounded-lg p-4 sm:p-6">
           <DialogHeader className="space-y-1 sm:space-y-2">
-            <DialogTitle className="text-lg sm:text-xl">Save Diet Chart</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">{t("diet.saveDialogTitle")}</DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
-              Give your diet chart a name to save it to your profile.
+              {t("diet.saveDialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
             <div className="space-y-1 sm:space-y-2">
-              <Label htmlFor="dietChartName" className="text-xs sm:text-sm">Diet Chart Name</Label>
+              <Label htmlFor="dietChartName" className="text-xs sm:text-sm">{t("diet.chartNameLabel")}</Label>
               <Input
                 id="dietChartName"
                 value={dietChartName}
                 onChange={(e) => setDietChartName(e.target.value)}
-                placeholder="Enter a name for your diet chart"
+                placeholder={t("diet.chartNamePlaceholder")}
                 className="text-xs sm:text-sm p-2 sm:p-3 h-8 sm:h-10"
               />
                                         </div>
@@ -1946,7 +1936,7 @@ export default function DietChartPage() {
               onClick={() => setShowSaveDialog(false)}
               className="w-full sm:w-auto text-xs sm:text-sm h-8 sm:h-10"
                     >
-              Cancel
+              {t("common.cancel")}
                     </Button>
                     <Button
               onClick={handleSaveConfirm} 
@@ -1956,12 +1946,12 @@ export default function DietChartPage() {
               {isSaving ? (
                 <>
                   <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                  Saving...
+                  {t("common.saving")}
                 </>
               ) : (
                 <>
                   <Save className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                  Save
+                  {t("common.save")}
                 </>
               )}
             </Button>
