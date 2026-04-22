@@ -135,8 +135,18 @@ function isGeminiQuotaOrRateLimitError(err: unknown): boolean {
   return status === 429 || message.includes('quota') || message.includes('rate limit');
 }
 
+function isJsonModeUnsupportedError(err: unknown): boolean {
+  const status = getStatusCode(err);
+  const message = getErrorMessage(err).toLowerCase();
+  return status === 400 && message.includes('json mode is not enabled');
+}
+
 function shouldTryNextModel(err: unknown): boolean {
-  return isGeminiModelNotFoundError(err) || isGeminiQuotaOrRateLimitError(err);
+  return (
+    isGeminiModelNotFoundError(err) ||
+    isGeminiQuotaOrRateLimitError(err) ||
+    isJsonModeUnsupportedError(err)
+  );
 }
 
 function toUserFacingGeminiError(err: unknown): Error {
@@ -153,6 +163,12 @@ function toUserFacingGeminiError(err: unknown): Error {
 
   if (isGeminiQuotaOrRateLimitError(err)) {
     return new Error('Gemini quota/rate limit reached.');
+  }
+
+  if (isJsonModeUnsupportedError(err)) {
+    return new Error(
+      'Selected model does not support JSON mode for structured nutrition output. Use a Gemini model (for example gemini-2.0-flash or gemini-2.0-flash-lite), or include one in AI_MODEL_CANDIDATES.'
+    );
   }
 
   if (err instanceof Error) return err;

@@ -12,6 +12,7 @@ You need **at least one** AI provider for “Analyze with AI” and related feat
 - **AI_MODEL_CANDIDATES** (optional): Comma-separated model retry list for manual analysis. Example: `gemini-2.0-flash,gemini-2.0-flash-lite,gemma-3-27b-it`.
   - The app now retries across this list when a model is unavailable (404) or quota-limited (429).
   - You can include Gemma model IDs here if your Google key/project has access to them.
+  - For this manual nutrition flow, the model must support JSON mode (structured output). Some Gemma models return `400 JSON mode is not enabled`, so keep a Gemini model in the candidate list.
 
 ## AI – Option B: OpenAI (for “Analyze with AI” only)
 
@@ -54,5 +55,5 @@ If you see **429 Too Many Requests** or “quota exceeded”:
 
 1. **Wait ~1 minute** and try again (per-minute limit resets quickly).
 2. **Check usage:** [Google AI Studio](https://aistudio.google.com/) or [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
-3. Set **AI_MODEL_CANDIDATES** to rotate free Google models on failure (example: `gemini-2.0-flash,gemini-2.0-flash-lite,gemma-3-27b-it`). The app tries the next model on 404/429 errors.
+3. Set **AI_MODEL_CANDIDATES** to rotate free Google models on failure (example: `gemini-2.0-flash,gemini-2.0-flash-lite,gemma-3-27b-it`). The app tries the next model on 404/429 and JSON-mode-incompatible model errors.
 4. If you need more quota: enable **billing** in Google Cloud (pay-as-you-go) for the project that owns the API key, or wait until the next day (Pacific) for the free daily quota to reset.
