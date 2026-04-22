@@ -142,8 +142,11 @@ export default function ProfilePage() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isFeedbackStatsOpen, setIsFeedbackStatsOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
-  // QR-only support mode (Razorpay temporarily disabled).
-  const supportQrUrl = process.env.NEXT_PUBLIC_SUPPORT_QR_URL || "/images/qr.jpeg";
+  const [selectedSupportQr, setSelectedSupportQr] = useState<"gpay" | "international">("gpay");
+  // QR-only support mode with separate local and international QR codes.
+  const gpayQrUrl = process.env.NEXT_PUBLIC_SUPPORT_GPAY_QR_URL || "/images/qr.jpeg";
+  const internationalQrUrl = process.env.NEXT_PUBLIC_SUPPORT_AIRTM_QR_URL || "/images/airtm-qr.jpeg";
+  const supportQrUrl = selectedSupportQr === "international" ? internationalQrUrl : gpayQrUrl;
   
   const handleLanguageChange = (value: string) => {
     const nextLocale = value as "en" | "ar" | "es" | "fr" | "de";
@@ -621,12 +624,34 @@ export default function ProfilePage() {
               <DialogDescription>{t("profile.supportDialogDescription")}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={selectedSupportQr === "gpay" ? "default" : "outline"}
+                  onClick={() => setSelectedSupportQr("gpay")}
+                >
+                  GPay QR
+                </Button>
+                <Button
+                  type="button"
+                  variant={selectedSupportQr === "international" ? "default" : "outline"}
+                  onClick={() => setSelectedSupportQr("international")}
+                >
+                  International QR
+                </Button>
+              </div>
               {/* Razorpay button intentionally commented for QR-only mode.
                   Re-enable once international Razorpay account is active. */}
               <div className="rounded-lg border p-3 text-center">
                 <p className="text-sm font-medium mb-2">{t("profile.scanQr")}</p>
                 {supportQrUrl ? (
-                  <Image src={supportQrUrl} alt="Support QR" width={220} height={220} className="mx-auto rounded-md" />
+                  <Image
+                    src={supportQrUrl}
+                    alt={selectedSupportQr === "international" ? "International support QR" : "GPay support QR"}
+                    width={220}
+                    height={220}
+                    className="mx-auto rounded-md"
+                  />
                 ) : (
                   <p className="text-xs text-muted-foreground">{t("profile.qrUnavailable")}</p>
                 )}
