@@ -252,64 +252,63 @@ interface ContinueButtonProps {
   isLoading?: boolean;
 }
 
-const ContinueButton = memo(({ onClick, text = "Continue", isLoading = false }: ContinueButtonProps) => (
-  {
-    const { t } = useLanguage();
-    return (
-      <motion.div
-        whileHover={{ scale: 1.02, translateY: -2 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+const ContinueButton = memo(({ onClick, text = "Continue", isLoading = false }: ContinueButtonProps) => {
+  const { t } = useLanguage();
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, translateY: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+    >
+      <Button
+        onClick={onClick}
+        disabled={isLoading}
+        className="gap-4 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
       >
-        <Button 
-          onClick={onClick} 
-          disabled={isLoading}
-          className="gap-4 h-12 px-8 rounded-xl relative overflow-hidden bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium shadow-lg shadow-primary/20"
-        >
-          <span className="relative z-10">
-            {isLoading ? t("onboarding.processing") : text}
-          </span>
-          {isLoading ? (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-              className="relative z-10"
-            >
-              <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </motion.div>
-          ) : (
-            <motion.div
-              className="relative z-10 ml-1"
-              animate={{ x: [0, 5, 0] }}
-              transition={{ 
-                duration: 1,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "easeInOut",
-                repeatDelay: 1,
-              }}
-            >
-              <ArrowRight className="h-4 w-4" />
-            </motion.div>
-          )}
+        <span className="relative z-10">
+          {isLoading ? t("onboarding.processing") : text}
+        </span>
+        {isLoading ? (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
-            initial={{ x: '-100%' }}
-            animate={{ x: '100%' }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity, 
-              repeatDelay: 2
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            className="relative z-10"
+          >
+            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </motion.div>
+        ) : (
+          <motion.div
+            className="relative z-10 ml-1"
+            animate={{ x: [0, 5, 0] }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              repeatType: "loop",
+              ease: "easeInOut",
+              repeatDelay: 1,
             }}
-          />
-        </Button>
-      </motion.div>
-    );
-  }
-);
+          >
+            <ArrowRight className="h-4 w-4" />
+          </motion.div>
+        )}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-foreground/10 to-transparent"
+          initial={{ x: '-100%' }}
+          animate={{ x: '100%' }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatDelay: 2
+          }}
+        />
+      </Button>
+    </motion.div>
+  );
+});
 
 ContinueButton.displayName = "ContinueButton";
 
