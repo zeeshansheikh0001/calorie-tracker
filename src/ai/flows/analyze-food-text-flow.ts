@@ -5,7 +5,7 @@
  * Supports Google Gemini (Genkit) or OpenAI via AI_PROVIDER env (openai = use OPENAI_API_KEY).
  */
 
-import {ai, GEMINI_MODEL_CANDIDATES} from '@/ai/genkit';
+import {ai, GEMINI_MODEL_FALLBACKS} from '@/ai/genkit';
 import {z} from 'genkit';
 import OpenAI from 'openai';
 
@@ -135,18 +135,8 @@ function isGeminiQuotaOrRateLimitError(err: unknown): boolean {
   return status === 429 || message.includes('quota') || message.includes('rate limit');
 }
 
-function isJsonModeUnsupportedError(err: unknown): boolean {
-  const status = getStatusCode(err);
-  const message = getErrorMessage(err).toLowerCase();
-  return status === 400 && message.includes('json mode is not enabled');
-}
-
 function shouldTryNextModel(err: unknown): boolean {
-  return (
-    isGeminiModelNotFoundError(err) ||
-    isGeminiQuotaOrRateLimitError(err) ||
-    isJsonModeUnsupportedError(err)
-  );
+  return isGeminiModelNotFoundError(err) || isGeminiQuotaOrRateLimitError(err);
 }
 
 function toUserFacingGeminiError(err: unknown): Error {
@@ -165,11 +155,7 @@ function toUserFacingGeminiError(err: unknown): Error {
     return new Error('Gemini quota/rate limit reached.');
   }
 
-  if (isJsonModeUnsupportedError(err)) {
-    return new Error(
-      'Selected model does not support JSON mode for structured nutrition output. Use a Gemini model (for example gemini-2.0-flash or gemini-2.0-flash-lite), or include one in AI_MODEL_CANDIDATES.'
-    );
-  }
+  if (status === 400) return new Error('AI is temporarily unavailable. Please try again later.');
 
   if (err instanceof Error) return err;
   return new Error('AI estimation failed due to an unexpected server error.');
@@ -246,9 +232,14 @@ const analyzeFoodTextFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodTextOutputSchema,
   },
   async input => {
+    const [primaryModel, fallbackModel] = GEMINI_MODEL_FALLBACKS;
+    const modelCandidates =
+      fallbackModel && fallbackModel !== primaryModel
+        ? [primaryModel, fallbackModel]
+        : [primaryModel];
     let lastError: unknown;
 
-    for (const model of GEMINI_MODEL_CANDIDATES) {
+    for (const model of modelCandidates) {
       try {
         return await runAnalyzePromptWithModel(input, model);
       } catch (err) {
