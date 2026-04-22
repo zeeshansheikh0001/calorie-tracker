@@ -5,7 +5,7 @@
  * Supports Google Gemini (Genkit) or OpenAI via AI_PROVIDER env (openai = use OPENAI_API_KEY).
  */
 
-import {ai, GEMINI_MODEL_FALLBACKS} from '@/ai/genkit';
+import {ai, GEMINI_MODEL_CANDIDATES} from '@/ai/genkit';
 import {z} from 'genkit';
 import OpenAI from 'openai';
 
@@ -129,6 +129,16 @@ function isGeminiModelNotFoundError(err: unknown): boolean {
   );
 }
 
+function isGeminiQuotaOrRateLimitError(err: unknown): boolean {
+  const status = getStatusCode(err);
+  const message = getErrorMessage(err).toLowerCase();
+  return status === 429 || message.includes('quota') || message.includes('rate limit');
+}
+
+function shouldTryNextModel(err: unknown): boolean {
+  return isGeminiModelNotFoundError(err) || isGeminiQuotaOrRateLimitError(err);
+}
+
 function toUserFacingGeminiError(err: unknown): Error {
   const status = getStatusCode(err);
   const message = getErrorMessage(err).toLowerCase();
@@ -141,7 +151,7 @@ function toUserFacingGeminiError(err: unknown): Error {
     return new Error('Gemini key invalid/disabled.');
   }
 
-  if (status === 429 || message.includes('quota') || message.includes('rate limit')) {
+  if (isGeminiQuotaOrRateLimitError(err)) {
     return new Error('Gemini quota/rate limit reached.');
   }
 
@@ -220,20 +230,18 @@ const analyzeFoodTextFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodTextOutputSchema,
   },
   async input => {
-    const [primaryModel, fallbackModel] = GEMINI_MODEL_FALLBACKS;
+    let lastError: unknown;
 
-    try {
-      return await runAnalyzePromptWithModel(input, primaryModel);
-    } catch (primaryError) {
-      if (fallbackModel && fallbackModel !== primaryModel && isGeminiModelNotFoundError(primaryError)) {
-        try {
-          return await runAnalyzePromptWithModel(input, fallbackModel);
-        } catch (fallbackError) {
-          throw toUserFacingGeminiError(fallbackError);
-        }
+    for (const model of GEMINI_MODEL_CANDIDATES) {
+      try {
+        return await runAnalyzePromptWithModel(input, model);
+      } catch (err) {
+        lastError = err;
+        if (!shouldTryNextModel(err)) break;
       }
-      throw toUserFacingGeminiError(primaryError);
     }
+
+    throw toUserFacingGeminiError(lastError);
   }
 );
 

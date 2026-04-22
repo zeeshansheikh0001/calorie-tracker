@@ -8,7 +8,10 @@ You need **at least one** AI provider for “Analyze with AI” and related feat
 |----------|----------|----------------------------|
 | **GEMINI_API_KEY** (or **GOOGLE_API_KEY** or **GOOGLE_GENAI_API_KEY**) | All AI: food text/photo analysis, diet chart, health schedule, daily log summary | **Google AI Studio** (free tier): https://aistudio.google.com/apikey — Create a key. No credit card for free tier. |
 
-- **AI_MODEL** (optional): Override the Gemini model. Default is `gemini-2.0-flash`. Examples: `gemini-2.5-flash`, `gemini-2.0-flash-lite`. Avoid `gemini-1.5-flash` (can 404 on some API versions).
+- **AI_MODEL** (optional): Primary Google model for manual analysis. Default is `gemini-2.0-flash`.
+- **AI_MODEL_CANDIDATES** (optional): Comma-separated model retry list for manual analysis. Example: `gemini-2.0-flash,gemini-2.0-flash-lite,gemma-3-27b-it`.
+  - The app now retries across this list when a model is unavailable (404) or quota-limited (429).
+  - You can include Gemma model IDs here if your Google key/project has access to them.
 
 ## AI – Option B: OpenAI (for “Analyze with AI” only)
 
@@ -51,5 +54,5 @@ If you see **429 Too Many Requests** or “quota exceeded”:
 
 1. **Wait ~1 minute** and try again (per-minute limit resets quickly).
 2. **Check usage:** [Google AI Studio](https://aistudio.google.com/) or [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
-3. You can set **AI_MODEL** to another Gemini model (e.g. `gemini-2.5-flash`, `gemini-2.0-flash-lite`) for a separate quota pool, or use **AI_PROVIDER=openai** and **OPENAI_API_KEY** to switch to OpenAI for manual food analysis.
+3. Set **AI_MODEL_CANDIDATES** to rotate free Google models on failure (example: `gemini-2.0-flash,gemini-2.0-flash-lite,gemma-3-27b-it`). The app tries the next model on 404/429 errors.
 4. If you need more quota: enable **billing** in Google Cloud (pay-as-you-go) for the project that owns the API key, or wait until the next day (Pacific) for the free daily quota to reset.
