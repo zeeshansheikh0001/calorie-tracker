@@ -10,6 +10,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {analyzeFoodPhotoWithNvidia, getNvidiaRuntimeConfig, isNvidiaConfigured, NvidiaError} from '@/ai/providers/nvidia';
 import {z} from 'genkit';
 
 const GEMINI_API_KEY_ENV_NAMES = ['GEMINI_API_KEY', 'GOOGLE_API_KEY', 'GOOGLE_GENAI_API_KEY'] as const;
@@ -23,6 +24,13 @@ function getGeminiApiKey(): string | undefined {
 }
 
 function getSafePhotoAnalysisErrorMessage(error: unknown): string {
+  if (error instanceof NvidiaError) {
+    if (error.statusCode === 401 || error.statusCode === 403) {
+      return 'NVIDIA rejected the request (auth/model access). Verify NVIDIA_API_KEY and NVIDIA_VISION_MODEL permissions.';
+    }
+    return 'Unable to analyze the photo right now. Please try again.';
+  }
+
   if (!(error instanceof Error)) {
     return 'Photo analysis failed. Please try again.';
   }
@@ -74,20 +82,7 @@ const AnalyzeFoodPhotoOutputSchema = z.object({
 });
 export type AnalyzeFoodPhotoOutput = z.infer<typeof AnalyzeFoodPhotoOutputSchema>;
 
-export async function analyzeFoodPhoto(input: AnalyzeFoodPhotoInput): Promise<AnalyzeFoodPhotoOutput> {
-  if (!getGeminiApiKey()) {
-    throw new Error(
-      'AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY / GOOGLE_GENAI_API_KEY) and restart the server.'
-    );
-  }
-  return analyzeFoodPhotoFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'analyzeFoodPhotoPrompt',
-  input: {schema: AnalyzeFoodPhotoInputSchema},
-  output: {schema: AnalyzeFoodPhotoOutputSchema},
-  prompt: `You are an expert nutritionist and a highly precise nutritional calculator. Your primary goal is to provide the most accurate and consistent possible estimates for the food shown in the image. When re-analyzing an image that appears identical or very similar to a previous one, strive for maximal consistency in your estimations.
+const PHOTO_ANALYSIS_SYSTEM_PROMPT = `You are an expert nutritionist and a highly precise nutritional calculator. Your primary goal is to provide the most accurate and consistent possible estimates for the food shown in the image. When re-analyzing an image that appears identical or very similar to a previous one, strive for maximal consistency in your estimations.
 
 Analyze the provided image with the HIGHEST POSSIBLE PRECISION. Your estimations for calories, protein, fat, and carbohydrates MUST be as accurate as your knowledge allows.
 
@@ -106,18 +101,86 @@ If the image IS NOT a food item:
 - Set 'ingredients' to an empty array.
 - Set 'estimatedQuantityNote' to "Not a food item." or an empty string.
 
-Analyze the following photo: {{media url=photoDataUri}}
+Respond with ONLY a valid JSON object with keys:
+isFoodItem (boolean), calorieEstimate (number), proteinEstimate (number), fatEstimate (number), carbEstimate (number), ingredients (array of strings), estimatedQuantityNote (string).`;
 
-Format your response as a JSON object:
-{
-  "isFoodItem": boolean,
-  "calorieEstimate": number,  // Strive for highest precision
-  "proteinEstimate": number, // Strive for highest precision
-  "fatEstimate": number,     // Strive for highest precision
-  "carbEstimate": number,    // Strive for highest precision
-  "ingredients": string[],
-  "estimatedQuantityNote": string
-}`,
+function getStatusCode(error: unknown): number | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const withStatus = error as {status?: unknown};
+  return typeof withStatus.status === 'number' ? withStatus.status : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+function isGeminiRetryablePhotoError(error: unknown): boolean {
+  const status = getStatusCode(error);
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    status === 408 ||
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    message.includes('quota') ||
+    message.includes('rate limit') ||
+    message.includes('timeout') ||
+    message.includes('temporar') ||
+    message.includes('unavailable')
+  );
+}
+
+function isGeminiAuthOrConfigPhotoError(error: unknown): boolean {
+  const status = getStatusCode(error);
+  const message = getErrorMessage(error).toLowerCase();
+  return status === 401 || status === 403 || message.includes('permission denied') || message.includes('api key');
+}
+
+function coercePhotoOutput(parsed: Record<string, unknown>): AnalyzeFoodPhotoOutput {
+  return {
+    isFoodItem: Boolean(parsed.isFoodItem),
+    calorieEstimate: Number(parsed.calorieEstimate) || 0,
+    proteinEstimate: Number(parsed.proteinEstimate) || 0,
+    fatEstimate: Number(parsed.fatEstimate) || 0,
+    carbEstimate: Number(parsed.carbEstimate) || 0,
+    ingredients: Array.isArray(parsed.ingredients) ? parsed.ingredients.map(String) : [],
+    estimatedQuantityNote: String(parsed.estimatedQuantityNote ?? ''),
+  };
+}
+
+async function analyzeFoodPhotoUsingNvidia(input: AnalyzeFoodPhotoInput): Promise<AnalyzeFoodPhotoOutput> {
+  const parsed = await analyzeFoodPhotoWithNvidia({
+    photoDataUri: input.photoDataUri,
+    systemPrompt: PHOTO_ANALYSIS_SYSTEM_PROMPT,
+  });
+  return coercePhotoOutput(parsed);
+}
+
+export async function analyzeFoodPhoto(input: AnalyzeFoodPhotoInput): Promise<AnalyzeFoodPhotoOutput> {
+  if (!getGeminiApiKey()) {
+    if (isNvidiaConfigured()) {
+      try {
+        return await analyzeFoodPhotoUsingNvidia(input);
+      } catch (nvidiaError) {
+        throw new Error(getSafePhotoAnalysisErrorMessage(nvidiaError));
+      }
+    }
+    throw new Error('AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY), or configure NVIDIA_API_KEY.');
+  }
+  return analyzeFoodPhotoFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'analyzeFoodPhotoPrompt',
+  input: {schema: AnalyzeFoodPhotoInputSchema},
+  output: {schema: AnalyzeFoodPhotoOutputSchema},
+  prompt: `${PHOTO_ANALYSIS_SYSTEM_PROMPT}
+
+Analyze the following photo: {{media url=photoDataUri}}
+`,
 });
 
 const analyzeFoodPhotoFlow = ai.defineFlow(
@@ -127,6 +190,7 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodPhotoOutputSchema,
   },
   async input => {
+    let geminiError: unknown;
     try {
       const {output} = await prompt(input);
       if (!output) {
@@ -134,8 +198,34 @@ const analyzeFoodPhotoFlow = ai.defineFlow(
       }
       return output;
     } catch (error) {
-      console.error('analyzeFoodPhotoFlow failed:', error);
-      throw new Error(getSafePhotoAnalysisErrorMessage(error));
+      geminiError = error;
+      if ((isGeminiRetryablePhotoError(error) || isGeminiAuthOrConfigPhotoError(error)) && isNvidiaConfigured()) {
+        const nvidia = getNvidiaRuntimeConfig();
+        console.info('[AI][photo] attempting NVIDIA fallback', {
+          geminiError: getErrorMessage(error),
+          nvidiaBaseUrl: nvidia.baseUrl,
+          nvidiaVisionModel: nvidia.visionModel,
+        });
+        try {
+          return await analyzeFoodPhotoUsingNvidia(input);
+        } catch (nvidiaError) {
+          console.error('[AI][photo] NVIDIA fallback failed', {
+            error: getErrorMessage(nvidiaError),
+          });
+          if (getGeminiApiKey()) {
+            try {
+              const {output} = await prompt(input);
+              if (output) return output;
+            } catch {
+              // Keep most relevant fallback error.
+            }
+          }
+          console.error('analyzeFoodPhotoFlow failed on Gemini and NVIDIA:', nvidiaError);
+          throw new Error(getSafePhotoAnalysisErrorMessage(nvidiaError));
+        }
+      }
+      console.error('analyzeFoodPhotoFlow failed on Gemini:', geminiError);
+      throw new Error(getSafePhotoAnalysisErrorMessage(geminiError));
     }
   }
 );

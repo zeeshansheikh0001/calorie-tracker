@@ -6,6 +6,7 @@
  */
 
 import {ai, GEMINI_MODEL_FALLBACKS} from '@/ai/genkit';
+import {analyzeFoodTextWithNvidia, getNvidiaRuntimeConfig, isNvidiaConfigured, NvidiaError} from '@/ai/providers/nvidia';
 import {z} from 'genkit';
 import OpenAI from 'openai';
 
@@ -106,6 +107,33 @@ async function analyzeFoodTextWithOpenAI(input: AnalyzeFoodTextInput): Promise<A
   };
 }
 
+function coerceNutritionOutput(parsed: Record<string, unknown>): AnalyzeFoodTextOutput {
+  return {
+    calorieEstimate: Number(parsed.calorieEstimate) || 0,
+    proteinEstimate: Number(parsed.proteinEstimate) || 0,
+    fatEstimate: Number(parsed.fatEstimate) || 0,
+    saturatedFatEstimate: parsed.saturatedFatEstimate != null ? Number(parsed.saturatedFatEstimate) : undefined,
+    carbEstimate: Number(parsed.carbEstimate) || 0,
+    fiberEstimate: parsed.fiberEstimate != null ? Number(parsed.fiberEstimate) : undefined,
+    sugarEstimate: parsed.sugarEstimate != null ? Number(parsed.sugarEstimate) : undefined,
+    cholesterolEstimate: parsed.cholesterolEstimate != null ? Number(parsed.cholesterolEstimate) : undefined,
+    sodiumEstimate: parsed.sodiumEstimate != null ? Number(parsed.sodiumEstimate) : undefined,
+    estimatedQuantityNote: String(parsed.estimatedQuantityNote ?? ''),
+    commonIngredientsInfluence: parsed.commonIngredientsInfluence != null ? String(parsed.commonIngredientsInfluence) : undefined,
+    healthBenefits: Array.isArray(parsed.healthBenefits) ? parsed.healthBenefits.map(String) : [],
+    healthierTips: parsed.healthierTips != null ? String(parsed.healthierTips) : undefined,
+    estimationDisclaimer: parsed.estimationDisclaimer != null ? String(parsed.estimationDisclaimer) : undefined,
+  };
+}
+
+async function analyzeFoodTextUsingNvidia(input: AnalyzeFoodTextInput): Promise<AnalyzeFoodTextOutput> {
+  const parsed = await analyzeFoodTextWithNvidia({
+    description: input.description,
+    systemPrompt: NUTRITION_SYSTEM_PROMPT,
+  });
+  return coerceNutritionOutput(parsed);
+}
+
 function getStatusCode(err: unknown): number | undefined {
   if (typeof err !== 'object' || err === null) return undefined;
   const maybeStatus = (err as {status?: unknown}).status;
@@ -139,7 +167,22 @@ function shouldTryNextModel(err: unknown): boolean {
   return isGeminiModelNotFoundError(err) || isGeminiQuotaOrRateLimitError(err);
 }
 
+function isGeminiAuthOrConfigError(err: unknown): boolean {
+  const status = getStatusCode(err);
+  const message = getErrorMessage(err).toLowerCase();
+  return status === 401 || status === 403 || message.includes('permission denied') || message.includes('api key');
+}
+
 function toUserFacingGeminiError(err: unknown): Error {
+  if (err instanceof NvidiaError) {
+    if (err.statusCode === 401 || err.statusCode === 403) {
+      return new Error(
+        'NVIDIA rejected the request (auth/model access). Verify NVIDIA_API_KEY and NVIDIA_TEXT_MODEL permissions.'
+      );
+    }
+    return new Error('AI is temporarily unavailable. Please try again later.');
+  }
+
   const status = getStatusCode(err);
   const message = getErrorMessage(err).toLowerCase();
 
@@ -176,9 +219,14 @@ export async function analyzeFoodText(input: AnalyzeFoodTextInput): Promise<Anal
   const provider = getAiProvider();
   if (provider === 'openai') return analyzeFoodTextWithOpenAI(input);
   if (!getGeminiApiKey()) {
-    throw new Error(
-      'AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY) for Gemini, or set AI_PROVIDER=openai and OPENAI_API_KEY for OpenAI. Then redeploy.'
-    );
+    if (isNvidiaConfigured()) {
+      try {
+        return await analyzeFoodTextUsingNvidia(input);
+      } catch (nvidiaError) {
+        throw toUserFacingGeminiError(nvidiaError);
+      }
+    }
+    throw new Error('AI is not configured. Set GEMINI_API_KEY (or GOOGLE_API_KEY), or configure NVIDIA_API_KEY. Then redeploy.');
   }
   return analyzeFoodTextFlow(input);
 }
@@ -245,6 +293,34 @@ const analyzeFoodTextFlow = ai.defineFlow(
       } catch (err) {
         lastError = err;
         if (!shouldTryNextModel(err)) break;
+      }
+    }
+
+    if (lastError && (shouldTryNextModel(lastError) || isGeminiAuthOrConfigError(lastError)) && isNvidiaConfigured()) {
+      const nvidia = getNvidiaRuntimeConfig();
+      console.info('[AI][text] attempting NVIDIA fallback', {
+        geminiError: getErrorMessage(lastError),
+        nvidiaBaseUrl: nvidia.baseUrl,
+        nvidiaTextModel: nvidia.textModel,
+      });
+      try {
+        return await analyzeFoodTextUsingNvidia(input);
+      } catch (nvidiaError) {
+        console.error('[AI][text] NVIDIA fallback failed', {
+          error: getErrorMessage(nvidiaError),
+        });
+        if (getGeminiApiKey()) {
+          try {
+            const [primaryModel] = GEMINI_MODEL_FALLBACKS;
+            console.info('[AI][text] retrying Gemini primary after NVIDIA failure', {
+              model: primaryModel,
+            });
+            return await runAnalyzePromptWithModel(input, primaryModel);
+          } catch {
+            // Surface the most recent fallback failure below.
+          }
+        }
+        lastError = nvidiaError;
       }
     }
 

@@ -1,6 +1,6 @@
 # API Keys & Environment Variables
 
-You need **at least one** AI provider for “Analyze with AI” and related features: **Gemini** (default) or **OpenAI** (optional).
+You need **at least one** AI provider for “Analyze with AI” and related features: **Gemini** (default), **NVIDIA NIM** (fallback), or **OpenAI** (optional for manual text flow).
 
 ## AI – Option A: Google Gemini (default)
 
@@ -22,6 +22,23 @@ To use **OpenAI** instead of Gemini for manual food analysis (log-food/manual), 
 
 - **Where to get OpenAI key:** https://platform.openai.com/api-keys — free tier has limited credits; then pay-as-you-go.
 - When **AI_PROVIDER=openai** and **OPENAI_API_KEY** are set, the app uses OpenAI for “Analyze with AI” and ignores Gemini for that flow. Other AI features (photo analysis, diet chart, etc.) still use Gemini if configured.
+
+## AI – Option C: NVIDIA NIM (automatic fallback for text + photo)
+
+If configured, Gemini remains primary and NVIDIA is used automatically when Gemini fails due to quota, transient provider issues, or auth/config issues.
+
+| Variable | Used for |
+|----------|----------|
+| **NVIDIA_API_KEY** | Auth key for NVIDIA NIM API |
+| **NVIDIA_BASE_URL** (optional) | Defaults to `https://integrate.api.nvidia.com/v1` |
+| **NVIDIA_MODEL** (optional) | Global fallback model override |
+| **NVIDIA_TEXT_MODEL** (optional) | Text analysis model override |
+| **NVIDIA_VISION_MODEL** (optional) | Photo/camera analysis model override |
+
+- Get key: https://build.nvidia.com/models
+- Example text model: `minimaxai/minimax-m2.7`
+- Example vision model: `meta/llama-3.2-90b-vision-instruct`
+- If `NVIDIA_API_KEY` is missing, the app keeps Gemini-only behavior.
 
 ## Other keys (optional, for other features)
 
@@ -52,4 +69,48 @@ If you see **429 Too Many Requests** or “quota exceeded”:
 1. **Wait ~1 minute** and try again (per-minute limit resets quickly).
 2. **Check usage:** [Google AI Studio](https://aistudio.google.com/) or [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits).
 3. This app uses **gemini-2.0-flash** by default, with fallback to **gemini-2.0-flash-lite** for model-availability issues.
-4. If you need more quota: enable **billing** in Google Cloud (pay-as-you-go) for the project that owns the API key, or wait until the next day (Pacific) for the free daily quota to reset.
+4. If `NVIDIA_API_KEY` is configured, text + photo analysis automatically fallback to NVIDIA when Gemini fails.
+5. If you need more quota: enable **billing** in Google Cloud (pay-as-you-go) for the project that owns the API key, or wait until the next day (Pacific) for the free daily quota to reset.
+
+## Fallback Order (text + photo + camera)
+
+1. Gemini primary model (`AI_MODEL` or default `gemini-2.0-flash`)
+2. Gemini fallback model (`gemini-2.0-flash-lite`) for text analysis
+3. NVIDIA NIM fallback (if `NVIDIA_API_KEY` is configured)
+4. User-friendly error message if both providers fail
+
+## NVIDIA Debug (curl)
+
+If you see `NVIDIA rejected the request (auth/model access)`, test your key/model directly first:
+
+```bash
+curl -i https://integrate.api.nvidia.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $NVIDIA_API_KEY" \
+  -d '{
+    "model": "minimaxai/minimax-m2.7",
+    "messages": [{"role":"user","content":"Reply with OK"}],
+    "temperature": 0.2,
+    "max_tokens": 16
+  }'
+```
+
+For photo/camera model access checks (vision):
+
+```bash
+curl -i https://integrate.api.nvidia.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $NVIDIA_API_KEY" \
+  -d '{
+    "model": "meta/llama-3.2-90b-vision-instruct",
+    "messages": [{"role":"user","content":[{"type":"text","text":"Reply with OK"}]}],
+    "max_tokens": 32
+  }'
+```
+
+Interpretation:
+
+- **200**: key + model are valid.
+- **401/403**: key invalid, expired, or your account is not entitled to that model.
+- **404**: model ID unsupported/typo.
+- **429**: rate limit/quota.
