@@ -56,7 +56,13 @@ export function AppLayout({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  // Avoid SSR/client hydration mismatches from Framer Motion transforms + Math.random()
+  const [mounted, setMounted] = useState(false);
   
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     // Check if we need to redirect to onboarding
     const shouldRedirect = needsOnboarding();
@@ -97,6 +103,28 @@ export function AppLayout({ children }: PropsWithChildren) {
   };
 
   if (isLoading) {
+    // Static splash until client mount — Framer Motion styles differ between SSR and client
+    if (!mounted) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background to-background/95">
+          <div className="relative w-32 h-32 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500/10 to-orange-500/5" />
+            <Image
+              src="/images/calorie-logo.png"
+              alt="Loading"
+              width={128}
+              height={128}
+              className="object-contain relative z-10"
+              priority
+            />
+          </div>
+          <p className="mt-10 text-xl font-semibold bg-gradient-to-r from-red-500 via-orange-400 to-red-500 bg-clip-text text-transparent">
+            Preparing your nutrition journey...
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-background to-background/95">
         <div className="relative w-56 h-56 flex items-center justify-center">
@@ -170,8 +198,8 @@ export function AppLayout({ children }: PropsWithChildren) {
                 key={`dot-${i}`}
                 className="absolute w-1.5 h-1.5 rounded-full bg-gradient-to-r from-red-500/70 to-orange-400/70"
                 style={{
-                  x: radius * Math.cos(angle),
-                  y: radius * Math.sin(angle),
+                  x: Number((radius * Math.cos(angle)).toFixed(3)),
+                  y: Number((radius * Math.sin(angle)).toFixed(3)),
                   boxShadow: "0 0 3px rgba(239,68,68,0.3)"
                 }}
                 animate={{
@@ -188,12 +216,14 @@ export function AppLayout({ children }: PropsWithChildren) {
             );
           })}
           
-          {/* Animated orbit particles - reducing glow */}
+          {/* Animated orbit particles — sizes/durations must be deterministic (no Math.random) */}
           {[...Array(12)].map((_, i) => {
             const angle = (i / 12) * Math.PI * 2;
             const radius = 70; // Further out for the particles
-            const size = 3 + Math.random() * 5;
-            const duration = 1.5 + Math.random() * 1.5;
+            const size = 3 + ((i * 7) % 5);
+            const duration = 1.5 + (i % 4) * 0.35;
+            const x = Number((radius * Math.cos(angle)).toFixed(3));
+            const y = Number((radius * Math.sin(angle)).toFixed(3));
             
             return (
               <motion.div
@@ -202,24 +232,24 @@ export function AppLayout({ children }: PropsWithChildren) {
                 style={{
                   width: size,
                   height: size,
-                  x: radius * Math.cos(angle),
-                  y: radius * Math.sin(angle),
+                  x,
+                  y,
                   background: i % 3 === 0 
-                    ? 'linear-gradient(45deg, rgb(239, 68, 68, 0.7), rgb(249, 115, 22, 0.7))' // red to orange
+                    ? 'linear-gradient(45deg, rgba(239, 68, 68, 0.7), rgba(249, 115, 22, 0.7))' // red to orange
                     : i % 3 === 1 
-                      ? 'linear-gradient(45deg, rgb(249, 115, 22, 0.7), rgb(250, 204, 21, 0.7))' // orange to yellow
-                      : 'linear-gradient(45deg, rgb(250, 204, 21, 0.7), rgb(239, 68, 68, 0.7))' // yellow to red
+                      ? 'linear-gradient(45deg, rgba(249, 115, 22, 0.7), rgba(250, 204, 21, 0.7))' // orange to yellow
+                      : 'linear-gradient(45deg, rgba(250, 204, 21, 0.7), rgba(239, 68, 68, 0.7))' // yellow to red
                 }}
                 animate={{
                   x: [
-                    radius * Math.cos(angle),
-                    radius * Math.cos(angle + Math.PI),
-                    radius * Math.cos(angle + Math.PI * 2),
+                    x,
+                    Number((radius * Math.cos(angle + Math.PI)).toFixed(3)),
+                    Number((radius * Math.cos(angle + Math.PI * 2)).toFixed(3)),
                   ],
                   y: [
-                    radius * Math.sin(angle),
-                    radius * Math.sin(angle + Math.PI),
-                    radius * Math.sin(angle + Math.PI * 2),
+                    y,
+                    Number((radius * Math.sin(angle + Math.PI)).toFixed(3)),
+                    Number((radius * Math.sin(angle + Math.PI * 2)).toFixed(3)),
                   ],
                   opacity: [0.3, 0.6, 0.3],
                   scale: [1, 1.2, 1]

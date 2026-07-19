@@ -1,8 +1,6 @@
-import { config } from 'dotenv';
-config();
+import { redirect } from "next/navigation";
 
-import '@/ai/flows/analyze-food-photo.ts';
-import '@/ai/flows/analyze-food-text-flow.ts';
-import '@/ai/flows/generate-health-schedule-flow.ts';
-import '@/ai/flows/summarize-daily-log-flow.ts';
-import '@/ai/flows/generateIndianDietChartFlow.ts'; // Ensure this is the correct name and path
+/** Legacy route — keep for bookmarks/SEO. */
+export default function IndianDietChartRedirectPage() {
+  redirect("/diet-chart");
+}
