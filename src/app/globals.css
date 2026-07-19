@@ -1,157 +1,33 @@
+@import "../styles/tokens.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 210 45% 98%; /* Slightly cooler white background */
-    --foreground: 225 30% 15%; /* Darker text for better contrast */
-    --card: 0 0% 100%; /* Pure white for cards */
-    --card-foreground: 225 30% 15%; /* Matching foreground for cards */
-    --popover: 0 0% 100%;
-    --popover-foreground: 225 30% 15%;
-    --primary: 245 76% 58%; /* Vibrant Blue-Purple */
-    --primary-hsl: 245, 76%, 58%; /* For direct HSL use, e.g. hsla(var(--primary-hsl), 0.1) */
-    --primary-foreground: 0 0% 100%; /* White */
-    --primary-foreground-hsl-raw: 0, 0%, 100%; /* Raw HSL for primary-foreground */
-    --primary-foreground-hsl: var(--primary-foreground-hsl-raw);
-    --secondary: 220 45% 92%; /* More saturated secondary for better visibility */
-    --secondary-foreground: 230 45% 35%; /* Darker text on secondary */
-    --muted: 220 25% 94%; /* Muted light blue/gray */
-    --muted-foreground: 220 25% 40%; /* Darker for better contrast */
-    --accent: 45 95% 55%; /* More vibrant accent color */
-    --accent-foreground: 225 30% 15%; /* Dark text on accent */
-    --destructive: 0 84.2% 60.2%; /* Standard red */
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 25% 85%; /* Slightly darker border for visibility */
-    --input: 220 25% 93%; /* Light input background */
-    --ring: 245 76% 65%; /* Slightly lighter primary for ring */
-    --radius: 0.8rem; /* Increased radius for more rounded look */
-
-    /* Custom gradient colors */
-    --gradient-start-rgb: 108, 99, 255; /* Approx 242, 100%, 69% */
-    --gradient-end-rgb: 79, 70, 229;   /* Approx 243, 70%, 59% */
-
-    /* Specific icon/text colors from image */
-    /* Storing raw HSL values for direct use where 'color: hsl(var(--text-kcal-raw))' is needed */
-    --text-kcal-raw: 350, 90%, 55%; /* More saturated for light mode */
-    --text-carbs-raw: 40, 95%, 50%;
-    --text-protein-raw: 180, 70%, 40%;
-    --text-fat-raw: 260, 70%, 60%;
-    
-    --text-kcal: hsl(var(--text-kcal-raw));
-    --text-carbs: hsl(var(--text-carbs-raw));
-    --text-protein: hsl(var(--text-protein-raw));
-    --text-fat: hsl(var(--text-fat-raw));
-    
-    --add-button-bg: 170 80% 40%; /* Darker teal for better visibility */
-
-
-    /* Sidebar specific colors */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 225 30% 15%;
-    --sidebar-primary: hsl(var(--primary));
-    --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--secondary));
-    --sidebar-accent-foreground: hsl(var(--secondary-foreground));
-    --sidebar-border: hsl(var(--border));
-    --sidebar-ring: hsl(var(--ring));
-
-    /* Chart colors */
-    --chart-1: 245 76% 58%; /* primary */
-    --chart-2: 45 95% 55%; /* accent */
-    --chart-3: 170 80% 40%; /* add-button-bg */
-    --chart-4: 350 90% 55%; /* text-kcal */
-    --chart-5: 180 70% 40%; /* text-protein */
-  }
-
-  .dark {
-    --background: 220 15% 10%; /* Dark blue-gray */
-    --foreground: 220 25% 90%; /* Light grayish blue */
-    --card: 220 15% 15%; /* Darker card */
-    --card-foreground: 220 25% 90%;
-    --popover: 220 15% 15%;
-    --popover-foreground: 220 25% 90%;
-    --primary: 245 70% 65%; /* Lighter vibrant Blue-Purple */
-    --primary-hsl: 245, 70%, 65%;
-    --primary-foreground: 0 0% 100%;
-    --primary-foreground-hsl-raw: 0, 0%, 100%;
-    --primary-foreground-hsl: var(--primary-foreground-hsl-raw);
-    --secondary: 220 20% 25%; /* Darker secondary */
-    --secondary-foreground: 220 30% 80%;
-    --muted: 220 15% 20%;
-    --muted-foreground: 220 20% 65%;
-    --accent: 45 100% 65%; /* Lighter Yellow/Orange */
-    --accent-foreground: 220 15% 10%;
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 15% 25%;
-    --input: 220 15% 22%;
-    --ring: 245 70% 70%;
-    
-    --gradient-start-rgb: 129, 140, 248; /* Lighter purple for dark mode gradient */
-    --gradient-end-rgb: 99, 102, 241;   /* Lighter blue for dark mode gradient */
-
-    /* Specific icon/text colors for dark mode - adjust if needed */
-    --text-kcal-raw: 350, 80%, 70%;
-    --text-carbs-raw: 40, 90%, 70%;
-    --text-protein-raw: 180, 60%, 60%;
-    --text-fat-raw: 260, 60%, 75%;
-
-    --text-kcal: hsl(var(--text-kcal-raw));
-    --text-carbs: hsl(var(--text-carbs-raw));
-    --text-protein: hsl(var(--text-protein-raw));
-    --text-fat: hsl(var(--text-fat-raw));
-    
-    --add-button-bg: 170 70% 55%;
-
-    /* Sidebar specific colors for dark mode */
-    --sidebar-background: hsl(var(--card));
-    --sidebar-foreground: hsl(var(--card-foreground));
-    --sidebar-primary: hsl(var(--primary));
-    --sidebar-primary-foreground: hsl(var(--primary-foreground));
-    --sidebar-accent: hsl(var(--secondary));
-    --sidebar-accent-foreground: hsl(var(--secondary-foreground));
-    --sidebar-border: hsl(var(--border));
-    --sidebar-ring: hsl(var(--ring));
-
-    /* Chart colors for dark mode */
-    --chart-1: 245 70% 65%; 
-    --chart-2: 45 100% 65%;
-    --chart-3: 170 70% 55%;
-    --chart-4: 350 80% 70%;
-    --chart-5: 180 60% 60%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01" on, "cv11" on;
+    text-rendering: optimizeLegibility;
   }
-  /* Apply Poppins to headings by default */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-poppins font-semibold;
+    @apply tracking-tight text-foreground;
   }
-  h1 {
-    @apply text-3xl font-bold tracking-tight;
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
   }
-  h2 {
-    @apply text-2xl font-bold;
-  }
-  h3 {
-    @apply text-xl font-semibold;
-  }
-  h4 {
-    @apply text-lg font-semibold;
-  }
-  h5 {
-    @apply text-base font-semibold;
-  }
-  h6 {
-    @apply text-sm font-semibold;
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display), Georgia, serif;
+    font-optical-sizing: auto;
   }
 }
 
