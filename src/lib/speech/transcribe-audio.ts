@@ -1,5 +1,8 @@
+"use client";
+
 /**
  * Browser-side Whisper (tiny.en) — no Chrome cloud speech service required.
+ * Must stay client-only so onnxruntime-node is never traced into Vercel functions.
  */
 
 type AsrResult = { text?: string } | string;
@@ -11,9 +14,17 @@ let pipelinePromise: Promise<AsrPipeline> | null = null;
 async function getPipeline(): Promise<AsrPipeline> {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
+      // Client-only: WASM backend (never onnxruntime-node / native).
       const { env, pipeline } = await import("@huggingface/transformers");
       env.allowLocalModels = false;
       env.useBrowserCache = true;
+      try {
+        // Prefer WASM so Node native bindings are never required.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (env as any).backends?.onnx?.setPriority?.(["wasm"]);
+      } catch {
+        /* older transformers builds may not expose backends */
+      }
 
       // q8 is broken on transformers.js 4.2 + ORT 1.25 (MatMulNBits scale error).
       // fp32 loads reliably for whisper-tiny.en in the browser.
