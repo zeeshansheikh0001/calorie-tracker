@@ -26,6 +26,7 @@ import { useAddFoodEntry } from "@/features/calorie/hooks/use-daily-log-query";
 import { ScanEngagementOverlay } from "@/features/tracker/components/scan-engagement-overlay";
 import { formatLogDate } from "@/services/calorie/daily-log.service";
 import { useToast } from "@/hooks/use-toast";
+import { analytics } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 type Estimate = {
@@ -206,6 +207,7 @@ export function PhotoLogScreen() {
           72 + Math.min(result.ingredients.length * 4, 20)
         ),
       });
+      analytics.nutritionEstimated("photo");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Photo analysis failed.";
@@ -273,6 +275,7 @@ export function PhotoLogScreen() {
       },
       {
         onSuccess: () => {
+          analytics.mealLogged("photo", { calories: scaled.calories });
           toast({ title: "Meal logged", description: scaled.name });
           router.push("/");
         },

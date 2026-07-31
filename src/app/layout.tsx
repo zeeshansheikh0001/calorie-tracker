@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
 import { applicationSchema } from "@/lib/schema";
-import GoogleAnalytics from "@/lib/analytics";
-import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { AppProviders } from "@/providers/app-providers";
 
 const display = Fraunces({
@@ -103,13 +102,14 @@ export const metadata: Metadata = {
       },
     ],
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f3faf4" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d1410" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1613" },
   ],
 };
 
@@ -129,7 +129,7 @@ export default function RootLayout({
     .join(" ");
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-3014018771524962" />
         <script
@@ -141,7 +141,6 @@ export default function RootLayout({
       </head>
       <body className={bodyClassNames}>
         <GoogleAnalytics />
-        <ServiceWorkerRegistrar />
         <AppProviders>
           <AppShell>{children}</AppShell>
           <Toaster />

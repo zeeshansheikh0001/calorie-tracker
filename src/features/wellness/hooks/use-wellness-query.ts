@@ -93,6 +93,13 @@ export function useStreakQuery() {
   });
 }
 
+export function useTotalMealsQuery() {
+  return useQuery({
+    queryKey: QUERY_KEYS.totalMeals,
+    queryFn: () => Promise.resolve(wellnessService.countTotalMeals()),
+  });
+}
+
 export function useWellnessMetaQuery() {
   return useQuery({
     queryKey: QUERY_KEYS.wellnessMeta,

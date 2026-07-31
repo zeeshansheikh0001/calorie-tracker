@@ -18,6 +18,7 @@ import {
   type GoalsFormValues,
 } from "@/features/goals/schemas/goals-schema";
 import { useToast } from "@/hooks/use-toast";
+import { analytics } from "@/lib/analytics";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const fields: {
@@ -55,6 +56,7 @@ export function GoalsScreen() {
   const onSubmit = form.handleSubmit((values) => {
     saveGoals.mutate(values, {
       onSuccess: () => {
+        analytics.goalsUpdated();
         toast({
           title: "Goals saved",
           description: "Your daily targets were updated.",

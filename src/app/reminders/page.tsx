@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -9,28 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useNotificationService } from "@/lib/notification-service";
-
-// Utility function to convert VAPID public key to Uint8Array
-const urlBase64ToUint8Array = (base64String: string) => {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, '+')
-    .replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-};
-
-// VAPID public key from environment variables
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-import { 
-  BellRing, Save, CheckCircle, Clock, Droplets, Scale, 
-  CalendarCheck, RefreshCw, BellDot, Bell, BellOff, 
-  Sparkles, AlarmCheck, Calendar, Smartphone, Globe, TestTube
+import { STORAGE_KEYS } from "@/constants/storage";
+import { readJson, writeJson } from "@/lib/storage/browser-storage";
+import {
+  DEFAULT_REMINDER_SETTINGS,
+  type ReminderSettings,
+} from "@/lib/reminders/types";
+import {
+  BellRing, Save, CheckCircle, Clock, Droplets, Scale,
+  RefreshCw, Bell, Sparkles, AlarmCheck, Calendar,
 } from "lucide-react";
 import {
   Select,
@@ -42,27 +28,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
-interface ReminderSettings {
-  logMeals: boolean;
-  logMealsTime: string;
-  drinkWater: boolean;
-  drinkWaterFrequency: string; // e.g., "every_2_hours"
-  weighIn: boolean;
-  weighInDay: string; // e.g., "monday"
-  weighInTime: string;
-}
-
-const initialSettings: ReminderSettings = {
-  logMeals: true,
-  logMealsTime: "19:00",
-  drinkWater: false,
-  drinkWaterFrequency: "every_2_hours",
-  weighIn: false,
-  weighInDay: "monday",
-  weighInTime: "08:00",
-};
-
-// For rendering time in a more human-readable format
 const formatTime = (time: string) => {
   const [hours, minutes] = time.split(':');
   const hour = parseInt(hours);
@@ -71,54 +36,21 @@ const formatTime = (time: string) => {
   return `${hour12}:${minutes} ${ampm}`;
 };
 
-// For rendering day of week with proper capitalization
 const formatDay = (day: string) => {
   return day.charAt(0).toUpperCase() + day.slice(1);
 };
 
 export default function RemindersPage() {
-  const [settings, setSettings] = useState<ReminderSettings>(initialSettings);
+  const [settings, setSettings] = useState<ReminderSettings>(DEFAULT_REMINDER_SETTINGS);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { isSupported, permission, requestPermission, sendTestNotification } = useNotificationService();
-  const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const fetchUserAndSettings = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (user) {
-        const { data, error } = await supabase
-          .from('user_reminders')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-          console.error('Error fetching reminder settings:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load reminder settings.",
-            variant: "destructive",
-          });
-        } else if (data) {
-          setSettings({
-            logMeals: data.log_meals,
-            logMealsTime: data.log_meals_time,
-            drinkWater: data.drink_water,
-            drinkWaterFrequency: data.drink_water_frequency,
-            weighIn: data.weigh_in,
-            weighInDay: data.weigh_in_day,
-            weighInTime: data.weigh_in_time,
-          });
-        }
-      }
-    };
-
-    fetchUserAndSettings();
-  }, [supabase, toast]);
+    const stored = readJson<ReminderSettings>(STORAGE_KEYS.reminders);
+    if (stored) {
+      setSettings({ ...DEFAULT_REMINDER_SETTINGS, ...stored });
+    }
+  }, []);
 
   const handleSwitchChange = (checked: boolean, name: keyof ReminderSettings) => {
     setSettings((prev) => ({ ...prev, [name]: checked }));
@@ -135,63 +67,15 @@ export default function RemindersPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to save reminders.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
 
     try {
-      const { error } = await supabase
-        .from('user_reminders')
-        .upsert({
-          user_id: user.id,
-          log_meals: settings.logMeals,
-          log_meals_time: settings.logMealsTime,
-          drink_water: settings.drinkWater,
-          drink_water_frequency: settings.drinkWaterFrequency,
-          weigh_in: settings.weighIn,
-          weigh_in_day: settings.weighInDay,
-          weigh_in_time: settings.weighInTime,
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-
+      writeJson(STORAGE_KEYS.reminders, settings);
       toast({
         title: "Reminders Updated!",
-        description: "Your reminder preferences have been saved.",
+        description: "Your reminder preferences have been saved on this device.",
         variant: "default",
         action: <CheckCircle className="text-green-500" />,
       });
-      
-      // Send an immediate notification to confirm reminders are set
-      if (permission === 'granted') {
-        try {
-          const response = await fetch('/api/notifications/send', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              title: "Reminders Activated",
-              body: "Your reminder settings have been saved and are now active.",
-              type: "reminder_confirmation"
-            }),
-          });
-          
-          const result = await response.json();
-          if (!result.success) {
-            console.log('Notification might not have been sent:', result);
-          }
-        } catch (error) {
-          console.error('Error sending confirmation notification:', error);
-          // Don't show an error to the user as this is not critical
-        }
-      }
     } catch (error) {
       console.error('Error saving reminder settings:', error);
       toast({
@@ -204,70 +88,8 @@ export default function RemindersPage() {
     }
   };
 
-  const handleEnableNotifications = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      toast({
-        title: "Push Notifications Not Supported",
-        description: "Your browser does not support push notifications.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      toast({
-        title: "Notifications Blocked",
-        description: "Please enable notifications in your browser settings to receive reminders.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const registration = await navigator.serviceWorker.ready;
-    if (!VAPID_PUBLIC_KEY) {
-      throw new Error("VAPID_PUBLIC_KEY is not defined. Please set NEXT_PUBLIC_VAPID_PUBLIC_KEY in your environment variables.");
-    }
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
-
-    try {
-      await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription),
-      });
-      toast({
-        title: "Notifications Enabled",
-        description: "You will now receive notifications for your reminders.",
-        variant: "default",
-        action: <CheckCircle className="text-green-500" />,
-      });
-    } catch (error) {
-      console.error('Error saving push subscription:', error);
-      toast({
-        title: "Error",
-        description: "Failed to enable notifications. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleTestNotification = () => {
-    sendTestNotification();
-    toast({
-      title: "Test Notification Sent",
-      description: "If notifications are enabled, you should see a test notification.",
-      variant: "default",
-    });
-  };
-
   const resetToDefaults = () => {
-    setSettings(initialSettings);
+    setSettings(DEFAULT_REMINDER_SETTINGS);
   };
 
   return (
@@ -299,25 +121,8 @@ export default function RemindersPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">Smart Reminders</h1>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Set up personalized notifications to help you stay on track with your health and nutrition goals.
+            Set personalized reminder preferences to help you stay on track with your health and nutrition goals.
           </p>
-          <div className="flex justify-center mt-6 space-x-4">
-            <Button
-              onClick={handleEnableNotifications}
-              variant="default"
-              disabled={!isSupported || permission === 'granted'}
-            >
-              {permission === 'granted' ? 'Notifications Enabled' : 'Enable Notifications'}
-            </Button>
-            {permission === 'granted' && (
-              <Button
-                onClick={handleTestNotification}
-                variant="outline"
-              >
-                Send Test Notification
-              </Button>
-            )}
-          </div>
         </motion.div>
 
         <Card className="overflow-hidden border border-border/40 shadow-lg bg-gradient-to-b from-background to-muted/10">
@@ -340,7 +145,6 @@ export default function RemindersPage() {
           
           <CardContent className="py-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Evening Meal Reminder */}
               <motion.div 
                 className={`p-5 rounded-xl border ${settings.logMeals ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
@@ -395,7 +199,6 @@ export default function RemindersPage() {
             </AnimatePresence>
               </motion.div>
               
-              {/* Drink Water Reminder */}
               <motion.div 
                 className={`p-5 rounded-xl border ${settings.drinkWater ? 'border-blue-500/30 bg-blue-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
@@ -410,7 +213,7 @@ export default function RemindersPage() {
                     </div>
                     <div>
                       <h3 className="text-base font-medium">Hydration Reminders</h3>
-                      <p className="text-sm text-muted-foreground">Regular water drinking notifications</p>
+                      <p className="text-sm text-muted-foreground">Regular water drinking reminders</p>
                     </div>
             </div>
 
@@ -453,7 +256,7 @@ export default function RemindersPage() {
                         
                         <div className="flex items-center mt-3 text-xs text-muted-foreground">
                           <Droplets className="h-3 w-3 mr-1.5" />
-                          <span>We'll remind you to stay hydrated during waking hours</span>
+                          <span>We&apos;ll remind you to stay hydrated during waking hours (8am–10pm)</span>
                         </div>
                       </div>
                     </motion.div>
@@ -461,7 +264,6 @@ export default function RemindersPage() {
                 </AnimatePresence>
               </motion.div>
               
-              {/* Weekly Weigh-In Reminder */}
               <motion.div 
                 className={`p-5 rounded-xl border ${settings.weighIn ? 'border-green-500/30 bg-green-500/5' : 'border-border/50 bg-background/80'} relative overflow-hidden transition-colors duration-300`}
                 initial={{ opacity: 0, y: 20 }}
@@ -546,7 +348,7 @@ export default function RemindersPage() {
                         
                         <div className="flex items-center mt-3 text-xs text-muted-foreground">
                           <AlarmCheck className="h-3 w-3 mr-1.5" />
-                          <span>You'll be reminded every {formatDay(settings.weighInDay)} at {formatTime(settings.weighInTime)}</span>
+                          <span>You&apos;ll be reminded every {formatDay(settings.weighInDay)} at {formatTime(settings.weighInTime)}</span>
                   </div>
                 </div>
                     </motion.div>

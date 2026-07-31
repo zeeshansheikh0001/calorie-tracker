@@ -16,7 +16,7 @@ const toneClass = {
   water:
     "bg-gradient-to-br from-[hsl(198_70%_44%)] to-[hsl(205_65%_32%)] text-white border-transparent",
   gold: "bg-gradient-to-br from-[hsl(38_55%_52%)] to-[hsl(32_50%_38%)] text-gold-foreground border-transparent",
-  ink: "bg-gradient-to-br from-[hsl(160_24%_12%)] to-[hsl(160_28%_8%)] text-[hsl(140_20%_96%)] border-transparent",
+  ink: "bg-gradient-to-br from-[hsl(158_22%_16%)] to-[hsl(160_26%_9%)] text-[hsl(130_18%_96%)] border-transparent dark:from-[hsl(158_20%_18%)] dark:to-[hsl(160_24%_10%)]",
 } as const;
 
 export function SurfaceCard({
@@ -32,7 +32,9 @@ export function SurfaceCard({
     <div
       className={cn(
         "relative overflow-hidden rounded-[1.35rem] border border-border/60 backdrop-blur-xl transition-shadow duration-300",
-        glass && tone === "default" && "border-white/50 dark:border-white/10",
+        glass &&
+          tone === "default" &&
+          "border-white/50 dark:border-[hsl(150_14%_22%)] dark:bg-[hsl(var(--card)/0.88)]",
         toneClass[tone],
         elevated ? "shadow-[var(--shadow-md)]" : "shadow-[var(--shadow-sm)]",
         padded && "p-5 sm:p-6",

@@ -17,6 +17,10 @@ const AnalyzeFoodTextInputSchema = z.object({
 export type AnalyzeFoodTextInput = z.infer<typeof AnalyzeFoodTextInputSchema>;
 
 const AnalyzeFoodTextOutputSchema = z.object({
+  mealName: z
+    .string()
+    .optional()
+    .describe("Short display title for the meal, 2–6 words."),
   calorieEstimate: z.number(),
   proteinEstimate: z.number(),
   fatEstimate: z.number(),
@@ -48,11 +52,12 @@ export async function analyzeFoodText(
 Food Description: ${description}
 
 Rules:
-1. If quantity is specified, use it. Otherwise assume a standard serving and say so in estimatedQuantityNote.
-2. Numeric fields: calorieEstimate, proteinEstimate, fatEstimate, carbEstimate required. Optional nutrients default to 0 if unknown.
-3. healthBenefits: 2-4 short strings (or empty array).
-4. Include estimationDisclaimer about approximate values.
-5. If too vague, set numbers to 0 and explain in estimatedQuantityNote.
+1. mealName: short, human-friendly title (e.g. "Eggs & avocado toast").
+2. If quantity is specified, use it. Otherwise assume a standard serving and say so in estimatedQuantityNote.
+3. Numeric fields: calorieEstimate, proteinEstimate, fatEstimate, carbEstimate required. Optional nutrients default to 0 if unknown.
+4. healthBenefits: 2-4 short strings (or empty array).
+5. Include estimationDisclaimer about approximate values.
+6. If too vague, set numbers to 0 and explain in estimatedQuantityNote.
 
 Return JSON matching the schema exactly.`,
   });

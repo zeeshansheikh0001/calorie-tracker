@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   activity: (date: string) => `wellness_activity_${date}`,
   weightHistory: "wellness_weight_history",
   wellnessMeta: "wellness_meta",
+  reminders: "reminderSettings",
 } as const;
 
 export const QUERY_KEYS = {
@@ -17,6 +18,7 @@ export const QUERY_KEYS = {
   dailyLog: (date: string) => ["dailyLog", date] as const,
   foodEntries: (date: string) => ["foodEntries", date] as const,
   weekLogs: (endDate: string) => ["weekLogs", endDate] as const,
+  totalMeals: ["totalMeals"] as const,
   water: (date: string) => ["water", date] as const,
   sleep: (date: string) => ["sleep", date] as const,
   activity: (date: string) => ["activity", date] as const,

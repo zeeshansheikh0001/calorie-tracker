@@ -106,7 +106,7 @@ export function HeroTodayCard({ consumed, goal, macros }: HeroTodayCardProps) {
                       {Math.round(macro.value)}/{macro.goal}g
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-black/25">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/70 dark:bg-white/10">
                     <div
                       className={cn("h-full rounded-full", toneDot[macro.tone])}
                       style={{ width: `${macroPct}%` }}

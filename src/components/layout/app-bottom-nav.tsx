@@ -26,7 +26,7 @@ export function AppBottomNav() {
       aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.85rem,env(safe-area-inset-bottom))] pt-2"
     >
-      <ul className="mx-auto flex h-[4.5rem] max-w-lg items-end justify-around rounded-[1.75rem] border border-white/50 bg-white/80 px-2 pb-2 pt-1 shadow-[var(--shadow-lg)] backdrop-blur-2xl dark:border-white/10 dark:bg-[hsl(var(--glass))]">
+      <ul className="mx-auto flex h-[4.5rem] max-w-lg items-end justify-around rounded-[1.75rem] border border-white/50 bg-white/80 px-2 pb-2 pt-1 shadow-[var(--shadow-lg)] backdrop-blur-2xl dark:border-[hsl(150_14%_24%)] dark:bg-[hsl(158_18%_10%/0.88)] dark:shadow-[var(--shadow-md)]">
         {items.map((item) => {
           const isActive =
             item.href === "/"

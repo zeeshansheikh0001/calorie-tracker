@@ -1,19 +1,19 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ["@huggingface/transformers"],
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '**', // Matches any domain over HTTPS
-        pathname: '/**', // Matches all paths
+        protocol: "https",
+        hostname: "**",
+        pathname: "/**",
       },
     ],
   },

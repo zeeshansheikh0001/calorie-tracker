@@ -19,7 +19,7 @@ import {
   XAxis,
 } from "recharts";
 import { format, parseISO } from "date-fns";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PageContainer } from "@/components/layout/page-container";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
   useWeightHistoryQuery,
 } from "@/features/wellness/hooks/use-wellness-query";
 import { wellnessService } from "@/services/wellness/wellness.service";
+import type { SavedDietChart } from "@/types/domain";
 
 const links = [
   {
@@ -62,7 +63,7 @@ const links = [
   {
     href: "/reminders",
     label: "Reminders",
-    description: "Meal & water nudges",
+    description: "Meal & water preferences",
     icon: Bell,
   },
 ] as const;
@@ -78,6 +79,8 @@ export function ProfileScreen() {
   const { data: goals } = useGoalsQuery();
   const { data: streak = 0 } = useStreakQuery();
   const { data: weightHistory = [] } = useWeightHistoryQuery();
+  const [openChartId, setOpenChartId] = useState<string | null>(null);
+  const savedCharts = profile?.savedDietCharts ?? [];
 
   const currentWeight =
     weightHistory[weightHistory.length - 1]?.kg ?? profile?.weight;
@@ -241,6 +244,68 @@ export function ProfileScreen() {
           <Link href="/progress">View detailed analytics</Link>
         </Button>
       </SurfaceCard>
+
+      {savedCharts.length > 0 ? (
+        <SurfaceCard className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-base font-bold tracking-tight">Saved diet plans</h2>
+            <Button asChild size="sm" variant="outline" className="rounded-full">
+              <Link href="/diet-chart">New plan</Link>
+            </Button>
+          </div>
+          <ul className="space-y-2">
+            {savedCharts
+              .slice()
+              .reverse()
+              .map((chart: SavedDietChart) => {
+                const open = openChartId === chart.id;
+                const summary =
+                  typeof chart.dietChart?.summary === "string"
+                    ? chart.dietChart.summary
+                    : typeof chart.dietChart?.overview === "string"
+                      ? chart.dietChart.overview
+                      : null;
+                return (
+                  <li
+                    key={chart.id}
+                    className="rounded-2xl border border-border/50 bg-muted/30"
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
+                      onClick={() =>
+                        setOpenChartId(open ? null : chart.id)
+                      }
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-bold">
+                          {chart.name}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                          {format(parseISO(chart.createdAt), "MMM d, yyyy")}
+                        </span>
+                      </span>
+                      <ChevronRight
+                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
+                          open ? "rotate-90" : ""
+                        }`}
+                      />
+                    </button>
+                    {open ? (
+                      <div className="border-t border-border/40 px-3.5 py-3 text-sm text-muted-foreground">
+                        {summary ||
+                          "Open Diet Plan to generate a fresh chart — this save stores the full AI payload locally."}
+                        <pre className="mt-2 max-h-48 overflow-auto rounded-xl bg-background/80 p-3 text-[11px] leading-relaxed text-foreground/80">
+                          {JSON.stringify(chart.dietChart, null, 2)}
+                        </pre>
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
+          </ul>
+        </SurfaceCard>
+      ) : null}
 
       <SurfaceCard padded={false} className="overflow-hidden">
         <ul className="divide-y divide-border/50">

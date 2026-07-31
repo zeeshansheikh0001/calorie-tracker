@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { QUERY_KEYS } from "@/constants/storage";
+import { analytics } from "@/lib/analytics";
 import {
   useDailyLogQuery,
   useDeleteFoodEntry,
   useSelectedLogDate,
+  useWeekLogsQuery,
 } from "@/features/calorie/hooks/use-daily-log-query";
 import { AchievementsRow } from "@/features/dashboard/components/achievements-row";
 import { CoachPanel } from "@/features/dashboard/components/coach-panel";
@@ -29,12 +31,17 @@ import {
   useProfileQuery,
   useUpdateProfile,
 } from "@/features/profile/hooks/use-profile-query";
+import { LifestyleWidgets } from "@/features/dashboard/components/lifestyle-widgets";
 import {
   useActivityQuery,
+  useAddActivity,
   useAddSteps,
   useAddWater,
   useLogWeight,
+  useSetSleep,
+  useSleepQuery,
   useStreakQuery,
+  useTotalMealsQuery,
   useWaterQuery,
   useWeightHistoryQuery,
   useWellnessMetaQuery,
@@ -50,7 +57,6 @@ import {
   recommendMeals,
   sortMealsTimeline,
 } from "@/lib/wellness/scores";
-import { dailyLogService } from "@/services/calorie/daily-log.service";
 import { wellnessService } from "@/services/wellness/wellness.service";
 import { UtensilsCrossed } from "lucide-react";
 
@@ -74,7 +80,12 @@ export function DashboardScreen() {
   const addWater = useAddWater(dateKey);
   const { data: activity } = useActivityQuery(dateKey);
   const addSteps = useAddSteps(dateKey);
+  const addActivity = useAddActivity(dateKey);
+  const { data: sleep } = useSleepQuery(dateKey);
+  const setSleep = useSetSleep(dateKey);
   const { data: streak = 0 } = useStreakQuery();
+  const { data: totalMealsLogged = 0 } = useTotalMealsQuery();
+  const { data: weekLogs = [] } = useWeekLogsQuery(7);
   const { data: weightHistory = [] } = useWeightHistoryQuery();
   const { data: meta } = useWellnessMetaQuery();
   const logWeight = useLogWeight();
@@ -92,6 +103,8 @@ export function DashboardScreen() {
   const waterGoal = water?.goalMl ?? 2500;
   const mealCount = foodEntries.length;
   const steps = activity?.steps ?? 0;
+  const activityMinutes = activity?.minutes ?? 0;
+  const sleepHours = sleep?.hours ?? 0;
 
   const scores = useMemo(() => {
     if (!goals) return { health: 0, protein: 0, calorie: 0 };
@@ -107,11 +120,6 @@ export function DashboardScreen() {
       calorie: Math.round(calorieScore(log.calories, goalCalories)),
     };
   }, [goals, log, mealCount, waterMl, waterGoal, goalCalories]);
-
-  const weekLogs = useMemo(
-    () => dailyLogService.getWeekSummaries(new Date(), 7),
-    [dailyLog, foodEntries]
-  );
 
   const insights = useMemo(() => {
     if (!goals) return [];
@@ -138,10 +146,10 @@ export function DashboardScreen() {
         streak,
         mealCount,
         healthScore: scores.health,
-        totalMealsLogged: wellnessService.countTotalMeals(),
+        totalMealsLogged,
         waterHit: waterMl >= waterGoal && waterGoal > 0,
       }),
-    [streak, mealCount, scores.health, waterMl, waterGoal]
+    [streak, mealCount, scores.health, totalMealsLogged, waterMl, waterGoal]
   );
 
   const xp = estimateXp({
@@ -166,6 +174,14 @@ export function DashboardScreen() {
 
   const latestWeight =
     weightHistory[weightHistory.length - 1]?.kg ?? profile?.weight;
+  const previousWeight =
+    weightHistory.length >= 2
+      ? weightHistory[weightHistory.length - 2]?.kg
+      : undefined;
+  const weightDelta =
+    latestWeight != null && previousWeight != null
+      ? Math.round((latestWeight - previousWeight) * 10) / 10
+      : null;
 
   const handleDelete = (id: string) => {
     deleteEntry.mutate(id, {
@@ -291,24 +307,32 @@ export function DashboardScreen() {
         waterGoalMl={waterGoal}
         pending={addWater.isPending || addSteps.isPending}
         onAddSteps={() => addSteps.mutate(1000)}
-        onAddWater={() => addWater.mutate(250)}
+        onAddWater={() => {
+          addWater.mutate(250);
+          analytics.waterLogged(250);
+        }}
       />
 
-      <div className="grid grid-cols-3 gap-3">
+      <LifestyleWidgets
+        sleepHours={sleepHours}
+        activityMinutes={activityMinutes}
+        weightKg={latestWeight}
+        weightDelta={weightDelta}
+        onSleepAdjust={(delta) =>
+          setSleep.mutate(Math.max(0, Math.min(24, sleepHours + delta)))
+        }
+        onActivityAdd={() => addActivity.mutate(15)}
+        onWeightLog={handleWeightLog}
+      />
+
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: "Health", value: scores.health },
           { label: "Protein", value: scores.protein },
-          {
-            label: "Weight",
-            value: latestWeight ? Math.round(latestWeight) : "—",
-            action: handleWeightLog,
-          },
         ].map((item) => (
-          <button
+          <div
             key={item.label}
-            type="button"
-            onClick={"action" in item ? item.action : undefined}
-            className="rounded-[1.35rem] border border-border/50 bg-card p-3.5 text-left shadow-[var(--shadow-sm)] transition-transform active:scale-[0.98]"
+            className="rounded-[1.35rem] border border-border/50 bg-card p-3.5 text-left shadow-[var(--shadow-sm)]"
           >
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
               {item.label}
@@ -316,7 +340,7 @@ export function DashboardScreen() {
             <p className="mt-1.5 text-2xl font-bold tabular-nums tracking-tight">
               {item.value}
             </p>
-          </button>
+          </div>
         ))}
       </div>
 
@@ -339,12 +363,20 @@ export function DashboardScreen() {
               {mealCount} logged · tap scan to add
             </p>
           </div>
-          <Link
-            href="/log-food/photo"
-            className="text-xs font-bold text-primary hover:underline"
-          >
-            Scan food
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/log-food/barcode"
+              className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline"
+            >
+              Barcode
+            </Link>
+            <Link
+              href="/log-food/photo"
+              className="text-xs font-bold text-primary hover:underline"
+            >
+              Scan food
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
@@ -356,11 +388,19 @@ export function DashboardScreen() {
           <EmptyState
             icon={UtensilsCrossed}
             title="No meals yet"
-            description="Scan a plate or describe what you ate — AI fills nutrition in seconds."
+            description="Scan a plate, scan a barcode, or describe what you ate — AI fills nutrition in seconds."
             action={
-              <Button asChild size="sm">
-                <Link href="/log-food/photo">Scan a meal</Link>
-              </Button>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button asChild size="sm">
+                  <Link href="/log-food/photo">Scan a meal</Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/log-food/barcode">Barcode</Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/log-food/manual">Describe</Link>
+                </Button>
+              </div>
             }
           />
         ) : (
@@ -381,7 +421,7 @@ export function DashboardScreen() {
       <AchievementsRow
         items={achievements}
         streak={streak}
-        level={meta?.level ?? Math.max(1, Math.floor(xp / 500) + 1)}
+        level={Math.max(1, meta?.level ?? Math.floor(xp / 500) + 1)}
         xp={Math.max(meta?.xp ?? 0, xp)}
       />
     </PageContainer>

@@ -37,6 +37,15 @@ export function useDailyLogQuery(dateKey: string) {
   };
 }
 
+export function useWeekLogsQuery(days = 7) {
+  const endKey = formatLogDate(new Date());
+  return useQuery({
+    queryKey: QUERY_KEYS.weekLogs(endKey),
+    queryFn: () =>
+      Promise.resolve(dailyLogService.getWeekSummaries(new Date(), days)),
+  });
+}
+
 export function useAddFoodEntry(dateKey: string) {
   const queryClient = useQueryClient();
 
@@ -47,6 +56,8 @@ export function useAddFoodEntry(dateKey: string) {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyLog(dateKey) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.foodEntries(dateKey) });
       void queryClient.invalidateQueries({ queryKey: ["weekLogs"] });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.totalMeals });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.streak });
     },
   });
 }
@@ -61,6 +72,8 @@ export function useDeleteFoodEntry(dateKey: string) {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dailyLog(dateKey) });
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.foodEntries(dateKey) });
       void queryClient.invalidateQueries({ queryKey: ["weekLogs"] });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.totalMeals });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.streak });
     },
   });
 }

@@ -96,66 +96,70 @@
   --mesh-c: hsl(90 55% 70% / 0.14);
 }
 
+/**
+ * Dark — Midnight Grove
+ * Lifted charcoal canvas, mint accents, clearer card depth (not flat black).
+ */
 .dark {
-  --background: 150 18% 6%;
-  --foreground: 120 20% 96%;
-  --card: 150 14% 10%;
-  --card-solid: 150 14% 10%;
-  --card-foreground: 120 20% 96%;
-  --popover: 150 14% 10%;
-  --popover-foreground: 120 20% 96%;
+  --background: 160 22% 7%;
+  --foreground: 130 18% 96%;
+  --card: 158 16% 11%;
+  --card-solid: 158 16% 11%;
+  --card-foreground: 130 18% 96%;
+  --popover: 158 18% 12%;
+  --popover-foreground: 130 18% 96%;
 
-  --primary: 142 65% 52%;
-  --primary-hsl: 142, 65%, 52%;
-  --primary-foreground: 150 30% 8%;
-  --primary-foreground-hsl-raw: 150, 30%, 8%;
+  --primary: 146 68% 48%;
+  --primary-hsl: 146, 68%, 48%;
+  --primary-foreground: 160 40% 6%;
+  --primary-foreground-hsl-raw: 160, 40%, 6%;
   --primary-foreground-hsl: var(--primary-foreground-hsl-raw);
 
-  --secondary: 150 12% 14%;
-  --secondary-foreground: 120 14% 92%;
-  --muted: 150 12% 14%;
-  --muted-foreground: 140 10% 64%;
-  --accent: 142 22% 14%;
-  --accent-foreground: 142 50% 78%;
+  --secondary: 156 14% 15%;
+  --secondary-foreground: 130 14% 92%;
+  --muted: 156 12% 14%;
+  --muted-foreground: 145 10% 68%;
+  --accent: 148 24% 16%;
+  --accent-foreground: 146 55% 78%;
 
-  --destructive: 4 68% 54%;
+  --destructive: 4 72% 58%;
   --destructive-foreground: 0 0% 100%;
-  --success: 142 55% 48%;
-  --success-foreground: 150 30% 8%;
-  --warning: 38 90% 54%;
-  --warning-foreground: 30 40% 10%;
-  --info: 200 80% 58%;
-  --info-foreground: 200 40% 8%;
+  --success: 146 60% 48%;
+  --success-foreground: 160 40% 6%;
+  --warning: 38 92% 56%;
+  --warning-foreground: 30 40% 8%;
+  --info: 198 86% 58%;
+  --info-foreground: 200 45% 8%;
 
-  --gold: 40 70% 56%;
-  --gold-foreground: 36 40% 10%;
-  --water: 199 85% 58%;
-  --water-foreground: 200 40% 8%;
-  --sleep: 250 35% 66%;
-  --activity: 142 60% 52%;
+  --gold: 40 72% 58%;
+  --gold-foreground: 36 40% 8%;
+  --water: 198 88% 60%;
+  --water-foreground: 200 45% 8%;
+  --sleep: 252 42% 70%;
+  --activity: 146 62% 52%;
 
-  --hero: 142 22% 14%;
-  --hero-foreground: 120 20% 96%;
+  --hero: 150 20% 13%;
+  --hero-foreground: 130 18% 96%;
 
-  --border: 150 12% 18%;
-  --input: 150 12% 16%;
-  --ring: 142 65% 52%;
+  --border: 155 12% 20%;
+  --input: 155 14% 15%;
+  --ring: 146 68% 48%;
 
-  --glass: 150 14% 12% / 0.72;
-  --glass-border: 120 20% 100% / 0.08;
+  --glass: 158 18% 12% / 0.78;
+  --glass-border: 140 20% 100% / 0.1;
 
-  --text-kcal-raw: 8, 70%, 64%;
-  --text-carbs-raw: 38, 80%, 58%;
-  --text-protein-raw: 142, 60%, 56%;
-  --text-fat-raw: 280, 35%, 70%;
+  --text-kcal-raw: 6, 78%, 68%;
+  --text-carbs-raw: 38, 86%, 62%;
+  --text-protein-raw: 146, 62%, 58%;
+  --text-fat-raw: 278, 40%, 74%;
   --text-kcal: hsl(var(--text-kcal-raw));
   --text-carbs: hsl(var(--text-carbs-raw));
   --text-protein: hsl(var(--text-protein-raw));
   --text-fat: hsl(var(--text-fat-raw));
 
-  --add-button-bg: 142 65% 52%;
-  --gradient-start-rgb: 74, 222, 128;
-  --gradient-end-rgb: 34, 197, 94;
+  --add-button-bg: 146 68% 48%;
+  --gradient-start-rgb: 52, 211, 128;
+  --gradient-end-rgb: 16, 185, 104;
 
   --sidebar-background: hsl(var(--card-solid));
   --sidebar-foreground: hsl(var(--card-foreground));
@@ -166,23 +170,32 @@
   --sidebar-border: hsl(var(--border));
   --sidebar-ring: hsl(var(--ring));
 
-  --chart-1: 142 65% 52%;
-  --chart-2: 199 85% 58%;
-  --chart-3: 40 70% 56%;
-  --chart-4: 8 70% 62%;
-  --chart-5: 280 35% 68%;
+  --chart-1: 146 68% 48%;
+  --chart-2: 198 88% 60%;
+  --chart-3: 40 72% 58%;
+  --chart-4: 6 78% 64%;
+  --chart-5: 278 40% 70%;
 
-  --shadow-sm: 0 2px 8px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 12px 32px rgb(0 0 0 / 0.5);
-  --shadow-lg: 0 28px 56px rgb(0 0 0 / 0.6);
-  --shadow-glow: 0 0 0 1px rgb(74 222 128 / 0.16), 0 14px 36px rgb(74 222 128 / 0.18);
+  --shadow-sm:
+    0 1px 0 rgb(160 255 200 / 0.04),
+    0 2px 10px rgb(0 0 0 / 0.35);
+  --shadow-md:
+    0 1px 0 rgb(160 255 200 / 0.05),
+    0 14px 36px rgb(0 0 0 / 0.45);
+  --shadow-lg:
+    0 1px 0 rgb(160 255 200 / 0.06),
+    0 28px 60px rgb(0 0 0 / 0.55);
+  --shadow-glow:
+    0 0 0 1px rgb(52 211 128 / 0.22),
+    0 12px 40px rgb(16 185 104 / 0.22);
 
   --hero-glow: radial-gradient(
-    100% 70% at 50% 0%,
-    hsl(142 50% 28% / 0.45) 0%,
-    transparent 60%
+    120% 80% at 50% -10%,
+    hsl(148 55% 32% / 0.5) 0%,
+    hsl(160 30% 12% / 0.2) 42%,
+    transparent 70%
   );
-  --mesh-a: hsl(142 50% 28% / 0.35);
-  --mesh-b: hsl(160 40% 28% / 0.22);
-  --mesh-c: hsl(90 40% 28% / 0.16);
+  --mesh-a: hsl(148 50% 36% / 0.28);
+  --mesh-b: hsl(190 45% 32% / 0.18);
+  --mesh-c: hsl(120 40% 30% / 0.14);
 }

@@ -20,6 +20,7 @@ import {
 } from "@/features/calorie/hooks/use-daily-log-query";
 import { useGoalsQuery } from "@/features/profile/hooks/use-profile-query";
 import { useToast } from "@/hooks/use-toast";
+import { analytics } from "@/lib/analytics";
 
 export function AiFeaturesScreen() {
   const { toast } = useToast();
@@ -59,6 +60,7 @@ export function AiFeaturesScreen() {
         activityLevel: activity,
       });
       setSchedule(result);
+      analytics.aiFeatureUsed("schedule");
     } catch (err) {
       toast({
         title: "Schedule failed",
@@ -97,6 +99,7 @@ export function AiFeaturesScreen() {
         },
       });
       setSummary(result);
+      analytics.aiFeatureUsed("summary");
     } catch (err) {
       toast({
         title: "Summary failed",
