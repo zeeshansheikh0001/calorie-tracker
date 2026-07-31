@@ -1,4 +1,4 @@
-import { Award, Lock } from "lucide-react";
+import { Icon3D } from "@/components/icons/icon-3d";
 import type { Achievement } from "@/lib/wellness/scores";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ export function AchievementsRow({
             {xp} XP · {streak}-day streak · {unlocked}/{items.length} badges
           </p>
         </div>
-        <Award className="h-6 w-6 text-white/90" strokeWidth={1.5} />
+        <Icon3D name="trophy" size={28} alt="" />
       </div>
 
       <ul className="mt-5 flex gap-2 overflow-x-auto pb-1">
@@ -44,11 +44,12 @@ export function AchievementsRow({
             )}
           >
             <div className="mb-2 flex h-7 w-7 items-center justify-center rounded-xl bg-white/15">
-              {item.unlocked ? (
-                <Award className="h-3.5 w-3.5 text-white" />
-              ) : (
-                <Lock className="h-3.5 w-3.5 text-white/60" />
-              )}
+              <Icon3D
+                name={item.unlocked ? "trophy" : "target"}
+                size={18}
+                className={cn(!item.unlocked && "opacity-50 grayscale")}
+                alt=""
+              />
             </div>
             <p className="text-xs font-bold tracking-tight">{item.title}</p>
             <p className="mt-1 text-[10px] leading-snug text-white/70">

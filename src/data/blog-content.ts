@@ -1,13 +1,26 @@
-import { BlogPost } from "@/types";
+import type { BlogPost } from "@/types";
+
+export function getBlogPost(slugOrId: string): BlogPost | undefined {
+  return blogData.find(
+    (post) => post.slug === slugOrId || post.id === slugOrId
+  );
+}
+
+export function getBlogAuthorName(post: BlogPost): string {
+  if (typeof post.author === "object" && post.author?.name) return post.author.name;
+  if (typeof post.author === "string") return post.author;
+  return "Calorie Tracker AI Editorial";
+}
 
 export const blogData: BlogPost[] = [
   {
     id: "1",
+    slug: "calorie-deficit-for-healthy-weight-loss",
     title: "Understanding Calorie Deficit for Healthy Weight Loss",
     excerpt: "Learn how to create a sustainable calorie deficit that leads to healthy weight loss without compromising nutrition or metabolism. Discover practical strategies for Indian diets.",
     imageUrl: "https://images.unsplash.com/photo-1599058917765-a780eda07a3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80",
     imageHint: "healthy balanced Indian meal",
-    readMoreLink: "/blog/1",
+    readMoreLink: "/blog/calorie-deficit-for-healthy-weight-loss",
     author: {
       name: "Dr. Anita Sharma",
       role: "Nutritionist",
@@ -57,11 +70,12 @@ export const blogData: BlogPost[] = [
   },
   {
     id: "2",
+    slug: "regional-indian-superfoods",
     title: "Regional Indian Superfoods for Optimal Nutrition",
     excerpt: "Discover nutritional powerhouses from different regions of India that can enhance your diet. Learn how to incorporate these traditional foods into modern, balanced meal plans.",
     imageUrl: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
     imageHint: "Indian spices and superfoods",
-    readMoreLink: "/blog/2",
+    readMoreLink: "/blog/regional-indian-superfoods",
     author: {
       name: "Vikram Mehta",
       role: "Clinical Dietitian",
@@ -122,11 +136,12 @@ export const blogData: BlogPost[] = [
   },
   {
     id: "3",
+    slug: "macros-for-indian-vegetarian-diets",
     title: "Balancing Macronutrients for Indian Vegetarian Diets",
     excerpt: "Learn how to optimize protein, carbs, and fats in a vegetarian Indian diet. Discover plant-based protein sources and balanced meal planning strategies for optimal health and fitness.",
     imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
     imageHint: "vegetarian Indian meal with protein sources",
-    readMoreLink: "/blog/3",
+    readMoreLink: "/blog/macros-for-indian-vegetarian-diets",
     author: {
       name: "Priya Singh",
       role: "Sports Nutritionist",
@@ -222,11 +237,12 @@ export const blogData: BlogPost[] = [
   },
   {
     id: "4",
+    slug: "exercise-strategies-for-weight-management",
     title: "Effective Exercise Strategies for Weight Management",
     excerpt: "Discover the most effective workout approaches for weight loss and maintenance. Learn how to combine cardio, strength training, and recovery for optimal results.",
     imageUrl: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80",
     imageHint: "person exercising with weights",
-    readMoreLink: "/blog/4",
+    readMoreLink: "/blog/exercise-strategies-for-weight-management",
     author: {
       name: "Rahul Verma",
       role: "Fitness Coach",

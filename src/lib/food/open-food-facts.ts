@@ -37,7 +37,7 @@ export async function lookupBarcodeProduct(
     `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`,
     {
       headers: {
-        "User-Agent": "NourishCalorieTracker/1.0 (local-dev)",
+        "User-Agent": "CalorieTrackerAI/1.0 (https://calorietracker.in)",
       },
       cache: "force-cache",
     }

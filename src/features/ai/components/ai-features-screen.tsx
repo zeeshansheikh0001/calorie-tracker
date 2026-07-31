@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { generateHealthSchedule } from "@/ai/flows/generate-health-schedule-flow";
 import { summarizeDailyLog } from "@/ai/flows/summarize-daily-log-flow";
+import { Icon3D } from "@/components/icons/icon-3d";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -115,7 +116,7 @@ export function AiFeaturesScreen() {
     <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6">
       <header className="mb-7">
         <p className="font-display text-sm font-medium tracking-[0.08em] text-primary">
-          nourish
+          Calorie Tracker AI
         </p>
         <h1 className="font-display mt-2 text-[2rem] font-medium tracking-tight">
           AI coach
@@ -183,7 +184,7 @@ export function AiFeaturesScreen() {
             </>
           ) : (
             <>
-              <Sparkles /> Generate schedule
+              <Icon3D name="ai" size={18} alt="" /> Generate schedule
             </>
           )}
         </Button>

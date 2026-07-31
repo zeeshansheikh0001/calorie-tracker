@@ -77,7 +77,7 @@ export type MealLogMethod = "describe" | "photo" | "barcode";
 export type EstimateSource = "text" | "photo" | "barcode";
 export type AiFeature = "schedule" | "summary";
 
-/** Typed product analytics for Nourish */
+/** Typed product analytics for Calorie Tracker AI */
 export const analytics = {
   pageView: trackPageView,
   event: trackEvent,

@@ -12,38 +12,77 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01" on, "cv11" on;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--font-lato), system-ui, sans-serif;
     text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight text-foreground;
+    font-family: var(--font-lato), system-ui, sans-serif;
   }
   ::selection {
     background: hsl(var(--primary) / 0.18);
+  }
+
+  /* Smooth theme morph (fallback when View Transitions API is unavailable) */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition:
+      background-color 0.4s ease,
+      border-color 0.4s ease,
+      color 0.35s ease,
+      fill 0.35s ease,
+      stroke 0.35s ease,
+      box-shadow 0.4s ease,
+      opacity 0.35s ease !important;
+  }
+
+  /* Circular wipe for light ↔ dark */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 2147483646;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html.theme-transition,
+    html.theme-transition *,
+    html.theme-transition *::before,
+    html.theme-transition *::after {
+      transition: none !important;
+    }
   }
 }
 
 @layer utilities {
   .font-display {
-    font-family: var(--font-display), Georgia, serif;
-    font-optical-sizing: auto;
+    font-family: var(--font-lato), system-ui, sans-serif;
   }
 }
 
 @layer components {
-  /* Basic Poppins classes */
+  /* Legacy aliases → Lato */
   .text-poppins {
-    font-family: var(--font-poppins);
+    font-family: var(--font-lato), system-ui, sans-serif;
   }
-  
+
   .heading-poppins {
-    font-family: var(--font-poppins);
+    font-family: var(--font-lato), system-ui, sans-serif;
     font-weight: 600;
   }
-  
+
   .title-poppins {
-    font-family: var(--font-poppins);
+    font-family: var(--font-lato), system-ui, sans-serif;
     font-weight: 700;
   }
 

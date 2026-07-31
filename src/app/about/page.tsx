@@ -7,18 +7,22 @@ import { faqSchema } from '@/lib/schema';
 
 // Metadata for SEO optimization
 export const metadata: Metadata = {
-  title: 'About Calorie Tracker | #1 Nutrition Tracking App in India',
-  description: 'Learn about Calorie Tracker, India\'s leading AI-powered nutrition tracking app. Track your calories, macros, and achieve your fitness goals with personalized insights.',
-  keywords: 'calorie tracker India, Indian nutrition app, diet tracking India, fitness app India, weight loss app India, macro tracking, Indian diet plan',
+  title: "About Calorie Tracker AI | Nutrition Tracking for India",
+  description:
+    "Learn about Calorie Tracker AI — an AI-powered nutrition companion for Indian foods. Track calories, macros, and daily wellness with a calm, premium experience.",
+  keywords:
+    "Calorie Tracker AI, calorie tracker India, Indian nutrition app, diet tracking India, macro tracking, Indian diet plan",
   alternates: {
-    canonical: 'https://calorietracker.in/about',
+    canonical: "https://calorietracker.in/about",
   },
   openGraph: {
-    title: 'About Calorie Tracker | #1 Nutrition Tracking App in India',
-    description: 'India\'s leading AI-powered nutrition tracking app. Track your calories and achieve your fitness goals.',
-    url: 'https://calorietracker.in/about',
-    type: 'website',
-  }
+    title: "About Calorie Tracker AI | Nutrition Tracking for India",
+    description:
+      "AI-powered nutrition tracking for Indian foods, calories, and macros.",
+    url: "https://calorietracker.in/about",
+    type: "website",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+  },
 };
 
 export default function AboutPage() {
@@ -48,7 +52,7 @@ export default function AboutPage() {
             <div>
               <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
               <p className="text-muted-foreground mb-6">
-                At Calorie Tracker, we're committed to helping Indians achieve their health and fitness goals through smart nutrition tracking that understands local food habits, regional cuisines, and the unique nutritional challenges faced by our community.
+                At Calorie Tracker AI, we're committed to helping Indians achieve their health and fitness goals through smart nutrition tracking that understands local food habits, regional cuisines, and the unique nutritional challenges faced by our community.
               </p>
               
               <h2 className="text-2xl font-bold mb-4">What Sets Us Apart</h2>
@@ -82,7 +86,7 @@ export default function AboutPage() {
               
               <div className="p-4 bg-muted rounded-lg mb-6">
                 <p className="italic text-muted-foreground">
-                  "As a nutritionist working with Indian clients, I find Calorie Tracker's database of Indian foods incredibly valuable. It's the only app that accurately captures the nutritional profile of our regional cuisines."
+                  "As a nutritionist working with Indian clients, I find Calorie Tracker AI's database of Indian foods incredibly valuable. It's the only app that accurately captures the nutritional profile of our regional cuisines."
                 </p>
                 <p className="mt-2 font-medium">— Dr. Meera Sharma, Clinical Nutritionist</p>
               </div>
@@ -116,7 +120,7 @@ export default function AboutPage() {
             <div className="order-1 md:order-2">
               <h2 className="text-3xl font-bold mb-6">Our Story</h2>
               <p className="text-muted-foreground mb-4">
-                Calorie Tracker was founded in 2021 by a team of nutritionists, fitness experts, and software developers who recognized a significant gap in the market: most nutrition apps failed to understand Indian dietary habits and regional cuisines.
+                Calorie Tracker AI was founded in 2021 by a team of nutritionists, fitness experts, and software developers who recognized a significant gap in the market: most nutrition apps failed to understand Indian dietary habits and regional cuisines.
               </p>
               <p className="text-muted-foreground mb-4">
                 As health-conscious Indians ourselves, we struggled with international apps that didn't recognize our staple foods or provide accurate nutritional information for Indian dishes. We set out to build a solution specifically designed for the Indian population.
@@ -193,14 +197,14 @@ export default function AboutPage() {
                 location: "Mumbai",
                 achievement: "Lost 15kg and reversed pre-diabetes",
                 image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3",
-                quote: "I tried several international apps before, but none understood my vegetarian diet needs. Calorie Tracker made it easy to log my home-cooked meals and provided actionable insights that helped me lose weight while still enjoying my favorite foods."
+                quote: "I tried several international apps before, but none understood my vegetarian diet needs. Calorie Tracker AI made it easy to log my home-cooked meals and provided actionable insights that helped me lose weight while still enjoying my favorite foods."
               },
               {
                 name: "Vikram Singh",
                 location: "Delhi",
                 achievement: "Gained 10kg of muscle mass",
                 image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?ixlib=rb-4.0.3",
-                quote: "As someone looking to build muscle on a vegetarian diet, I struggled to meet my protein goals. The personalized recommendations from Calorie Tracker helped me discover new protein sources and optimize my nutrition for muscle growth."
+                quote: "As someone looking to build muscle on a vegetarian diet, I struggled to meet my protein goals. The personalized recommendations from Calorie Tracker AI helped me discover new protein sources and optimize my nutrition for muscle growth."
               },
               {
                 name: "Priya Nair",
@@ -287,7 +291,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold mb-6">Ready to Transform Your Nutrition Journey?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of Indians who have already improved their health, achieved their fitness goals, and developed better eating habits with Calorie Tracker.
+            Join thousands of Indians who have already improved their health, achieved their fitness goals, and developed better eating habits with Calorie Tracker AI.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -305,7 +309,7 @@ export default function AboutPage() {
           </div>
           
           <p className="text-xs text-muted-foreground mt-6">
-            Calorie Tracker is committed to your privacy. Read our <Link href="/privacy" className="underline">Privacy Policy</Link> and <Link href="/terms" className="underline">Terms of Service</Link>.
+            Calorie Tracker AI is committed to your privacy. Read our <Link href="/privacy" className="underline">Privacy Policy</Link> and <Link href="/terms" className="underline">Terms of Service</Link>.
           </p>
         </div>
       </section>

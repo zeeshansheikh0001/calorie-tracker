@@ -21,6 +21,30 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/blog/1",
+        destination: "/blog/calorie-deficit-for-healthy-weight-loss",
+        permanent: true,
+      },
+      {
+        source: "/blog/2",
+        destination: "/blog/regional-indian-superfoods",
+        permanent: true,
+      },
+      {
+        source: "/blog/3",
+        destination: "/blog/macros-for-indian-vegetarian-diets",
+        permanent: true,
+      },
+      {
+        source: "/blog/4",
+        destination: "/blog/exercise-strategies-for-weight-management",
+        permanent: true,
+      },
+    ];
+  },
   outputFileTracingExcludes: {
     "/**": [
       "node_modules/onnxruntime-node/**",

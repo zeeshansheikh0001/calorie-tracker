@@ -1,15 +1,24 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
+      userAgent: "*",
+      allow: ["/", "/about", "/blog", "/welcome", "/privacy", "/terms", "/diet-chart"],
       disallow: [
-        '/api/',
-        '/private/',
+        "/api/",
+        "/dashboard",
+        "/progress",
+        "/goals",
+        "/profile",
+        "/profile/",
+        "/log-food/",
+        "/onboarding",
+        "/reminders",
+        "/ai-features",
       ],
     },
-    sitemap: 'https://calorietracker.in/sitemap.xml',
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
-} 
+}

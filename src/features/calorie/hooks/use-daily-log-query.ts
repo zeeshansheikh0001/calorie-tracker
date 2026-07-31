@@ -40,7 +40,7 @@ export function useDailyLogQuery(dateKey: string) {
 export function useWeekLogsQuery(days = 7) {
   const endKey = formatLogDate(new Date());
   return useQuery({
-    queryKey: QUERY_KEYS.weekLogs(endKey),
+    queryKey: [...QUERY_KEYS.weekLogs(endKey), days],
     queryFn: () =>
       Promise.resolve(dailyLogService.getWeekSummaries(new Date(), days)),
   });

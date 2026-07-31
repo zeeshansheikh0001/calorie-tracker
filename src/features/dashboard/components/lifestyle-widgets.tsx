@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Moon, Scale } from "lucide-react";
+import { Icon3D } from "@/components/icons/icon-3d";
 import { Button } from "@/components/ui/button";
 import { SurfaceCard } from "@/components/ui/surface-card";
 
@@ -10,9 +10,49 @@ type LifestyleWidgetsProps = {
   weightKg?: number;
   weightDelta?: number | null;
   onSleepAdjust: (delta: number) => void;
-  onActivityAdd: () => void;
+  onActivityAdjust: (delta: number) => void;
   onWeightLog: () => void;
 };
+
+function AdjustPair({
+  onDecrease,
+  onIncrease,
+  decreaseLabel,
+  increaseLabel,
+  canDecrease,
+}: {
+  onDecrease: () => void;
+  onIncrease: () => void;
+  decreaseLabel: string;
+  increaseLabel: string;
+  canDecrease: boolean;
+}) {
+  return (
+    <div className="mt-auto flex gap-1">
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-7 flex-1 rounded-lg px-0 text-xs"
+        onClick={onDecrease}
+        disabled={!canDecrease}
+        aria-label={decreaseLabel}
+      >
+        −
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-7 flex-1 rounded-lg px-0 text-xs"
+        onClick={onIncrease}
+        aria-label={increaseLabel}
+      >
+        +
+      </Button>
+    </div>
+  );
+}
 
 export function LifestyleWidgets({
   sleepHours,
@@ -20,84 +60,67 @@ export function LifestyleWidgets({
   weightKg,
   weightDelta,
   onSleepAdjust,
-  onActivityAdd,
+  onActivityAdjust,
   onWeightLog,
 }: LifestyleWidgetsProps) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      <SurfaceCard className="p-3.5 sm:p-4">
-        <Moon
-          className="mb-3 h-4 w-4 text-[hsl(var(--sleep))]"
-          strokeWidth={1.75}
-        />
+      <SurfaceCard className="flex h-full flex-col p-3.5 sm:p-4">
+        <Icon3D name="sleep" size={22} className="mb-3" alt="" />
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Sleep
         </p>
-        <p className="font-display mt-1 text-2xl font-medium tabular-nums">
+        <p className="font-display mt-1 text-2xl font-medium tabular-nums leading-none">
           {sleepHours || "—"}
           {sleepHours ? (
             <span className="text-sm text-muted-foreground">h</span>
           ) : null}
         </p>
-        <div className="mt-3 flex gap-1">
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="h-7 flex-1 rounded-lg px-0 text-xs"
-            onClick={() => onSleepAdjust(-0.5)}
-            aria-label="Decrease sleep"
-          >
-            −
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="h-7 flex-1 rounded-lg px-0 text-xs"
-            onClick={() => onSleepAdjust(0.5)}
-            aria-label="Increase sleep"
-          >
-            +
-          </Button>
-        </div>
+        <p className="mt-1 min-h-[1rem] text-[10px] text-muted-foreground">
+          ±0.5 h
+        </p>
+        <AdjustPair
+          onDecrease={() => onSleepAdjust(-0.5)}
+          onIncrease={() => onSleepAdjust(0.5)}
+          decreaseLabel="Decrease sleep by 0.5 hours"
+          increaseLabel="Increase sleep by 0.5 hours"
+          canDecrease={sleepHours > 0}
+        />
       </SurfaceCard>
 
-      <SurfaceCard className="p-3.5 sm:p-4">
-        <Activity
-          className="mb-3 h-4 w-4 text-[hsl(var(--activity))]"
-          strokeWidth={1.75}
-        />
+      <SurfaceCard className="flex h-full flex-col p-3.5 sm:p-4">
+        <Icon3D name="move" size={22} className="mb-3" alt="" />
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Move
         </p>
-        <p className="font-display mt-1 text-2xl font-medium tabular-nums">
+        <p className="font-display mt-1 text-2xl font-medium tabular-nums leading-none">
           {activityMinutes}
           <span className="text-sm text-muted-foreground">m</span>
         </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="mt-3 h-7 w-full rounded-lg text-xs"
-          onClick={onActivityAdd}
-        >
-          +15 min
-        </Button>
+        <p className="mt-1 min-h-[1rem] text-[10px] text-muted-foreground">
+          ±15 min
+        </p>
+        <AdjustPair
+          onDecrease={() => onActivityAdjust(-15)}
+          onIncrease={() => onActivityAdjust(15)}
+          decreaseLabel="Decrease activity by 15 minutes"
+          increaseLabel="Increase activity by 15 minutes"
+          canDecrease={activityMinutes > 0}
+        />
       </SurfaceCard>
 
-      <SurfaceCard className="p-3.5 sm:p-4">
-        <Scale className="mb-3 h-4 w-4 text-primary" strokeWidth={1.75} />
+      <SurfaceCard className="flex h-full flex-col p-3.5 sm:p-4">
+        <Icon3D name="weight" size={22} className="mb-3" alt="" />
         <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           Weight
         </p>
-        <p className="font-display mt-1 text-2xl font-medium tabular-nums">
+        <p className="font-display mt-1 text-2xl font-medium tabular-nums leading-none">
           {weightKg ? Math.round(weightKg * 10) / 10 : "—"}
           {weightKg ? (
             <span className="text-sm text-muted-foreground">kg</span>
           ) : null}
         </p>
-        <p className="mt-1 text-[10px] text-muted-foreground">
+        <p className="mt-1 min-h-[1rem] text-[10px] text-muted-foreground">
           {weightDelta == null
             ? "Tap to log"
             : `${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} kg`}
@@ -106,7 +129,7 @@ export function LifestyleWidgets({
           type="button"
           size="sm"
           variant="outline"
-          className="mt-2 h-7 w-full rounded-lg text-xs"
+          className="mt-auto h-7 w-full rounded-lg text-xs"
           onClick={onWeightLog}
         >
           Update

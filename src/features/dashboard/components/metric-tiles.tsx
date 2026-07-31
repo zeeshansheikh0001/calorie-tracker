@@ -1,6 +1,7 @@
 "use client";
 
-import { Droplets, Footprints, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
+import { Icon3D } from "@/components/icons/icon-3d";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,9 +11,54 @@ type MetricTilesProps = {
   waterMl: number;
   waterGoalMl: number;
   onAddSteps: () => void;
+  onRemoveSteps: () => void;
   onAddWater: () => void;
+  onRemoveWater: () => void;
   pending?: boolean;
 };
+
+function AdjustButtons({
+  onDecrease,
+  onIncrease,
+  decreaseLabel,
+  increaseLabel,
+  canDecrease,
+  pending,
+}: {
+  onDecrease: () => void;
+  onIncrease: () => void;
+  decreaseLabel: string;
+  increaseLabel: string;
+  canDecrease: boolean;
+  pending?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-0.5">
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="h-8 w-8 rounded-full"
+        aria-label={decreaseLabel}
+        disabled={pending || !canDecrease}
+        onClick={onDecrease}
+      >
+        <Minus className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="h-8 w-8 rounded-full"
+        aria-label={increaseLabel}
+        disabled={pending}
+        onClick={onIncrease}
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 export function MetricTiles({
   steps,
@@ -20,7 +66,9 @@ export function MetricTiles({
   waterMl,
   waterGoalMl,
   onAddSteps,
+  onRemoveSteps,
   onAddWater,
+  onRemoveWater,
   pending,
 }: MetricTilesProps) {
   const stepsPct = Math.min(100, Math.round((steps / stepsGoal) * 100));
@@ -33,20 +81,17 @@ export function MetricTiles({
     <div className="grid grid-cols-2 gap-3">
       <article className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-card p-4 shadow-[var(--shadow-sm)]">
         <div className="flex items-start justify-between">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Footprints className="h-5 w-5" strokeWidth={1.75} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10">
+            <Icon3D name="steps" size={26} alt="" />
           </span>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full"
-            aria-label="Add 1000 steps"
-            disabled={pending}
-            onClick={onAddSteps}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <AdjustButtons
+            onDecrease={onRemoveSteps}
+            onIncrease={onAddSteps}
+            decreaseLabel="Remove 1000 steps"
+            increaseLabel="Add 1000 steps"
+            canDecrease={steps > 0}
+            pending={pending}
+          />
         </div>
         <p className="mt-4 text-xs font-medium text-muted-foreground">Steps</p>
         <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight">
@@ -65,20 +110,17 @@ export function MetricTiles({
 
       <article className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-card p-4 shadow-[var(--shadow-sm)]">
         <div className="flex items-start justify-between">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-water/15 text-water">
-            <Droplets className="h-5 w-5" strokeWidth={1.75} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-water/15">
+            <Icon3D name="water" size={26} alt="" />
           </span>
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full"
-            aria-label="Add 250ml water"
-            disabled={pending}
-            onClick={onAddWater}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <AdjustButtons
+            onDecrease={onRemoveWater}
+            onIncrease={onAddWater}
+            decreaseLabel="Remove 250ml water"
+            increaseLabel="Add 250ml water"
+            canDecrease={waterMl > 0}
+            pending={pending}
+          />
         </div>
         <p className="mt-4 text-xs font-medium text-muted-foreground">Water</p>
         <p className="mt-1 text-2xl font-bold tabular-nums tracking-tight">

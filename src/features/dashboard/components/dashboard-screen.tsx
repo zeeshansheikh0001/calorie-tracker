@@ -1,12 +1,12 @@
 "use client";
 
 import { format, isToday } from "date-fns";
-import { Bell, Flame, Moon, Quote, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Icon3D } from "@/components/icons/icon-3d";
 import { PageContainer } from "@/components/layout/page-container";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -19,6 +19,7 @@ import {
   useWeekLogsQuery,
 } from "@/features/calorie/hooks/use-daily-log-query";
 import { AchievementsRow } from "@/features/dashboard/components/achievements-row";
+import { BlogSpotlight } from "@/features/dashboard/components/blog-spotlight";
 import { CoachPanel } from "@/features/dashboard/components/coach-panel";
 import { DateStrip } from "@/features/dashboard/components/date-strip";
 import { HeroTodayCard } from "@/features/dashboard/components/hero-today-card";
@@ -58,7 +59,6 @@ import {
   sortMealsTimeline,
 } from "@/lib/wellness/scores";
 import { wellnessService } from "@/services/wellness/wellness.service";
-import { UtensilsCrossed } from "lucide-react";
 
 const QUOTES = [
   "Small bites of consistency beat perfect plans.",
@@ -68,7 +68,6 @@ const QUOTES = [
 
 export function DashboardScreen() {
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
   const { selectedDate, setSelectedDate, dateKey } = useSelectedLogDate();
   const { dailyLog, foodEntries, isLoading } = useDailyLogQuery(dateKey);
   const { data: goals, isLoading: goalsLoading } = useGoalsQuery();
@@ -231,20 +230,10 @@ export function DashboardScreen() {
         <div className="flex items-center gap-2">
           {streak > 0 ? (
             <span className="hidden items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary sm:inline-flex">
-              <Flame className="h-3.5 w-3.5" /> {streak}d
+              <Icon3D name="streak" size={16} alt="" /> {streak}d
             </span>
           ) : null}
-          <Button
-            type="button"
-            size="icon"
-            variant="outline"
-            className="relative h-11 w-11 rounded-full"
-            aria-label="Toggle theme"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          </Button>
+          <ThemeToggle />
           <Button
             asChild
             size="icon"
@@ -253,7 +242,7 @@ export function DashboardScreen() {
             aria-label="Open profile"
           >
             <Link href="/profile">
-              <UserRound className="h-4 w-4" />
+              <Icon3D name="profile" size={20} alt="" />
             </Link>
           </Button>
           <Button
@@ -264,7 +253,7 @@ export function DashboardScreen() {
             aria-label="Reminders"
           >
             <Link href="/reminders">
-              <Bell className="h-4 w-4" />
+              <Icon3D name="bell" size={20} alt="" />
             </Link>
           </Button>
         </div>
@@ -307,10 +296,12 @@ export function DashboardScreen() {
         waterGoalMl={waterGoal}
         pending={addWater.isPending || addSteps.isPending}
         onAddSteps={() => addSteps.mutate(1000)}
+        onRemoveSteps={() => addSteps.mutate(-1000)}
         onAddWater={() => {
           addWater.mutate(250);
           analytics.waterLogged(250);
         }}
+        onRemoveWater={() => addWater.mutate(-250)}
       />
 
       <LifestyleWidgets
@@ -321,7 +312,7 @@ export function DashboardScreen() {
         onSleepAdjust={(delta) =>
           setSleep.mutate(Math.max(0, Math.min(24, sleepHours + delta)))
         }
-        onActivityAdd={() => addActivity.mutate(15)}
+        onActivityAdjust={(delta) => addActivity.mutate(delta)}
         onWeightLog={handleWeightLog}
       />
 
@@ -345,7 +336,7 @@ export function DashboardScreen() {
       </div>
 
       <SurfaceCard className="flex items-start gap-3 border-none bg-secondary/80 p-4">
-        <Quote className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <Icon3D name="quote" size={18} className="mt-0.5 shrink-0" alt="" />
         <p className="text-sm font-medium leading-relaxed text-secondary-foreground">
           {quote}
         </p>
@@ -355,27 +346,41 @@ export function DashboardScreen() {
 
       <Recommendations items={suggestions} />
 
-      <section>
-        <div className="mb-3 flex items-end justify-between">
+      <section aria-labelledby="daily-meals-heading">
+        <div className="mb-4 flex items-end justify-between gap-3">
           <div>
-            <h2 className="text-lg font-bold tracking-tight">Daily meals</h2>
-            <p className="text-xs text-muted-foreground">
-              {mealCount} logged · tap scan to add
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Today
+            </p>
+            <h2
+              id="daily-meals-heading"
+              className="font-display text-xl font-medium tracking-tight"
+            >
+              Daily meals
+            </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {mealCount === 0
+                ? "Nothing logged yet"
+                : `${mealCount} meal${mealCount === 1 ? "" : "s"} · ${Math.round(log.calories)} kcal`}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/log-food/barcode"
-              className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline"
+          <div className="flex items-center gap-2">
+            <Button
+              asChild
+              size="icon"
+              variant="outline"
+              className="h-10 w-10 rounded-2xl"
             >
-              Barcode
-            </Link>
-            <Link
-              href="/log-food/photo"
-              className="text-xs font-bold text-primary hover:underline"
-            >
-              Scan food
-            </Link>
+              <Link href="/log-food/barcode" aria-label="Scan barcode">
+                <Icon3D name="barcode" size={20} alt="" />
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="h-10 rounded-2xl px-3.5">
+              <Link href="/log-food/photo">
+                <Icon3D name="scan" size={18} alt="" />
+                Scan
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -386,7 +391,7 @@ export function DashboardScreen() {
           </div>
         ) : meals.length === 0 ? (
           <EmptyState
-            icon={UtensilsCrossed}
+            icon="meal"
             title="No meals yet"
             description="Scan a plate, scan a barcode, or describe what you ate — AI fills nutrition in seconds."
             action={
@@ -405,18 +410,21 @@ export function DashboardScreen() {
           />
         ) : (
           <ul className="space-y-3">
-            {meals.map((entry) => (
+            {meals.map((entry, index) => (
               <li key={entry.id}>
                 <MealCard
                   entry={entry}
                   onDelete={handleDelete}
                   isDeleting={deleteEntry.isPending}
+                  isLast={index === meals.length - 1}
                 />
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <BlogSpotlight />
 
       <AchievementsRow
         items={achievements}

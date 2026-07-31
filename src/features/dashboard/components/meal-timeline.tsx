@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Trash2, UtensilsCrossed } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -23,7 +23,7 @@ export function MealTimeline({
   if (entries.length === 0) {
     return (
       <EmptyState
-        icon={UtensilsCrossed}
+        icon="meal"
         title="Your meal timeline is waiting"
         description="Log breakfast in under 10 seconds — photo or a quick description."
         action={

@@ -1,22 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Lato } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
-import { applicationSchema } from "@/lib/schema";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { AppProviders } from "@/providers/app-providers";
+import {
+  GOOGLE_SITE_VERIFICATION,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/seo/site";
 
-const display = Fraunces({
-  variable: "--font-display",
+const lato = Lato({
+  variable: "--font-lato",
   subsets: ["latin"],
-});
-
-const sans = Plus_Jakarta_Sans({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "700", "900"],
 });
 
 const mono = Geist_Mono({
@@ -25,21 +26,30 @@ const mono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nourish | Intelligent Nutrition Tracking",
-  description:
-    "A calm, AI-first nutrition companion. Track calories, macros, hydration, and daily health with a premium coaching experience.",
-  keywords:
-    "calorie tracker, nutrition app, meal tracking, diet planner, fitness goals, AI nutrition coach, macro tracking",
-  authors: [{ name: "Nourish" }],
-  creator: "Nourish",
-  publisher: "Nourish",
-  applicationName: "Nourish",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "Calorie Tracker AI",
+    "calorie tracker",
+    "nutrition app India",
+    "meal tracking",
+    "macro tracking",
+    "Indian diet",
+    "AI nutrition coach",
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  applicationName: SITE_NAME,
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://calorietracker.in"),
   alternates: {
     canonical: "/",
   },
@@ -56,26 +66,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
-    url: "https://calorietracker.in",
-    title: "Nourish | Intelligent Nutrition Tracking",
-    description:
-      "A calm, AI-first nutrition companion for calories, macros, and daily wellness.",
-    siteName: "Nourish",
+    locale: "en_IN",
+    url: SITE_URL,
+    title: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Nourish nutrition app",
+        alt: `${SITE_NAME} nutrition app`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nourish | Intelligent Nutrition Tracking",
-    description:
-      "A calm, AI-first nutrition companion for calories, macros, and daily wellness.",
+    title: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
     images: ["/twitter-image.jpg"],
     creator: "@calorietracker",
   },
@@ -102,6 +110,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  ...(GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export const viewport: Viewport = {
@@ -119,8 +130,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const bodyClassNames = [
-    display.variable.trim(),
-    sans.variable.trim(),
+    lato.variable.trim(),
     mono.variable.trim(),
     "font-sans",
     "antialiased",
@@ -129,15 +139,9 @@ export default function RootLayout({
     .join(" ");
 
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en-IN" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-3014018771524962" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(applicationSchema),
-          }}
-        />
       </head>
       <body className={bodyClassNames}>
         <GoogleAnalytics />

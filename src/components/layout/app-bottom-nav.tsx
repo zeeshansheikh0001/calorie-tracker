@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Home, ScanLine, Sparkles, UserRound } from "lucide-react";
+import { Icon3D, type Icon3DName } from "@/components/icons/icon-3d";
 import { cn } from "@/lib/utils";
 
-const items = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/progress", label: "Progress", icon: BarChart3 },
-  {
-    href: "/log-food/photo",
-    label: "Scan",
-    icon: ScanLine,
-    primary: true,
-  },
-  { href: "/diet-chart", label: "Plan", icon: Sparkles },
-  { href: "/profile", label: "Profile", icon: UserRound },
-] as const;
+const items: {
+  href: string;
+  label: string;
+  icon: Icon3DName;
+  primary?: boolean;
+}[] = [
+  { href: "/dashboard", label: "Home", icon: "home" },
+  { href: "/progress", label: "Progress", icon: "progress" },
+  { href: "/log-food/photo", label: "Scan", icon: "scan", primary: true },
+  { href: "/diet-chart", label: "Plan", icon: "plan" },
+  { href: "/profile", label: "Profile", icon: "profile" },
+];
 
 export function AppBottomNav() {
   const pathname = usePathname();
@@ -29,12 +29,11 @@ export function AppBottomNav() {
       <ul className="mx-auto flex h-[4.5rem] max-w-lg items-end justify-around rounded-[1.75rem] border border-white/50 bg-white/80 px-2 pb-2 pt-1 shadow-[var(--shadow-lg)] backdrop-blur-2xl dark:border-[hsl(150_14%_24%)] dark:bg-[hsl(158_18%_10%/0.88)] dark:shadow-[var(--shadow-md)]">
         {items.map((item) => {
           const isActive =
-            item.href === "/"
-              ? pathname === "/"
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
               : pathname.startsWith(item.href);
-          const Icon = item.icon;
 
-          if ("primary" in item && item.primary) {
+          if (item.primary) {
             return (
               <li key={item.href} className="-mt-8">
                 <Link
@@ -47,7 +46,12 @@ export function AppBottomNav() {
                     aria-hidden
                     className="absolute inset-0 rounded-full bg-gradient-to-b from-white/30 to-transparent"
                   />
-                  <Icon className="relative h-6 w-6" strokeWidth={2} aria-hidden />
+                  <Icon3D
+                    name={item.icon}
+                    size={30}
+                    className="relative"
+                    alt=""
+                  />
                 </Link>
               </li>
             );
@@ -71,7 +75,7 @@ export function AppBottomNav() {
                     isActive && "bg-primary/10"
                   )}
                 >
-                  <Icon className="h-[1.1rem] w-[1.1rem]" strokeWidth={1.75} aria-hidden />
+                  <Icon3D name={item.icon} size={22} alt="" />
                 </span>
                 <span>{item.label}</span>
               </Link>

@@ -165,7 +165,7 @@ export function BarcodeLogScreen() {
             title: "Meal logged",
             description: `${product.name} (per 100g)`,
           });
-          router.push("/");
+          router.push("/dashboard");
         },
         onError: () =>
           toast({ title: "Couldn't save meal", variant: "destructive" }),
@@ -177,7 +177,7 @@ export function BarcodeLogScreen() {
     <div className="mx-auto w-full max-w-lg px-4 py-6 sm:px-6">
       <div className="mb-7 flex items-start gap-3">
         <Button asChild size="icon" variant="outline" className="rounded-xl">
-          <Link href="/" aria-label="Back to dashboard">
+          <Link href="/dashboard" aria-label="Back to dashboard">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

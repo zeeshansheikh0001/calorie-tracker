@@ -240,7 +240,7 @@ export function ManualLogScreen() {
         onSuccess: () => {
           analytics.mealLogged("describe", { calories: scaled.calories });
           toast({ title: "Meal logged", description: scaled.name });
-          router.push("/");
+          router.push("/dashboard");
         },
         onError: () => {
           toast({
@@ -258,13 +258,13 @@ export function ManualLogScreen() {
     <div className="relative mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-5 sm:px-6">
       <header className="mb-5 flex items-start gap-3">
         <Button asChild size="icon" variant="outline" className="rounded-2xl">
-          <Link href="/" aria-label="Back to dashboard">
+          <Link href="/dashboard" aria-label="Back to dashboard">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div className="min-w-0 flex-1">
           <p className="font-display text-sm font-medium tracking-[0.08em] text-primary">
-            nourish
+            Calorie Tracker AI
           </p>
           <h1 className="font-display mt-1 text-[1.85rem] font-medium leading-tight tracking-tight">
             Describe meal

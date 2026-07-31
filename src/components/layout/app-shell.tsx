@@ -6,8 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { profileService } from "@/services/profile/profile.service";
 import { AppBottomNav } from "@/components/layout/app-bottom-nav";
 
-const PUBLIC_PATHS = new Set([
-  "/onboarding",
+const MARKETING_EXACT = new Set([
+  "/",
   "/welcome",
   "/about",
   "/privacy",
@@ -19,27 +19,39 @@ type AppShellProps = {
   children: ReactNode;
 };
 
+function isMarketingPath(pathname: string): boolean {
+  return MARKETING_EXACT.has(pathname) || pathname.startsWith("/blog/");
+}
+
+function isPublicPath(pathname: string): boolean {
+  return (
+    isMarketingPath(pathname) ||
+    pathname.startsWith("/onboarding")
+  );
+}
+
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
 
-  const isPublic =
-    PUBLIC_PATHS.has(pathname) || pathname.startsWith("/blog/");
+  const marketing = isMarketingPath(pathname);
+  const publicPath = isPublicPath(pathname);
 
   const showNav =
     ready &&
+    !marketing &&
     !pathname.startsWith("/onboarding") &&
     !pathname.startsWith("/log-food");
 
   useEffect(() => {
     setReady(true);
-    if (isPublic) return;
+    if (publicPath) return;
     if (!profileService.hasCompletedOnboarding()) {
       router.replace("/onboarding");
     }
-  }, [isPublic, pathname, router]);
+  }, [publicPath, pathname, router]);
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden bg-background text-foreground">

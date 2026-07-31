@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, UtensilsCrossed } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export function MealList({ entries, onDelete, isDeleting }: MealListProps) {
   if (entries.length === 0) {
     return (
       <EmptyState
-        icon={UtensilsCrossed}
+        icon="meal"
         title="No meals yet today"
         description="Log a photo or describe what you ate — AI estimates nutrition instantly."
         action={

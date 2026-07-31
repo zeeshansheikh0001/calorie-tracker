@@ -2,16 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import {
-  Activity,
-  Dumbbell,
-  Heart,
-  Scale,
-  Zap,
-} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Icon3D, type Icon3DName } from "@/components/icons/icon-3d";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -33,37 +27,37 @@ const GOALS: {
   value: OnboardingValues["fitnessGoal"];
   label: string;
   description: string;
-  icon: typeof Heart;
+  icon: Icon3DName;
 }[] = [
   {
     value: "weight_loss",
     label: "Lose weight",
     description: "Gentle calorie deficit",
-    icon: Scale,
+    icon: "weight",
   },
   {
     value: "muscle_gain",
     label: "Build muscle",
     description: "Protein-forward plan",
-    icon: Dumbbell,
+    icon: "dumbbell",
   },
   {
     value: "get_fit",
     label: "Get fitter",
     description: "Balanced everyday fuel",
-    icon: Activity,
+    icon: "move",
   },
   {
     value: "overall_health",
     label: "Stay healthy",
     description: "Maintain & feel good",
-    icon: Heart,
+    icon: "heart",
   },
   {
     value: "stamina",
     label: "Build stamina",
     description: "Energy for long days",
-    icon: Zap,
+    icon: "zap",
   },
 ];
 
@@ -151,7 +145,7 @@ export function OnboardingScreen() {
         title: "You're all set",
         description: "Your daily targets are ready.",
       });
-      router.replace("/");
+      router.replace("/dashboard");
     } catch {
       toast({
         title: "Couldn't save",
@@ -164,7 +158,7 @@ export function OnboardingScreen() {
   });
 
   const titles = [
-    firstName ? `Hey ${firstName}` : "Welcome to Nourish",
+    firstName ? `Hey ${firstName}` : "Welcome to Calorie Tracker AI",
     "Your measurements",
     "Choose your goal",
   ];
@@ -185,8 +179,8 @@ export function OnboardingScreen() {
       <div className="mx-auto flex min-h-dvh w-full max-w-lg flex-col px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-6 sm:px-6">
         {/* Top bar */}
         <div className="mb-6 flex items-center justify-between">
-          <p className="font-display text-sm font-medium tracking-[0.14em] text-primary">
-            nourish
+          <p className="font-display text-sm font-medium tracking-[0.08em] text-primary">
+            Calorie Tracker AI
           </p>
           <div className="flex items-center gap-1.5" aria-label="Progress">
             {STEPS.map((label, i) => (
@@ -365,7 +359,6 @@ export function OnboardingScreen() {
                 <div className="space-y-4">
                   <div className="space-y-2.5">
                     {GOALS.map((goal) => {
-                      const Icon = goal.icon;
                       const active = values.fitnessGoal === goal.value;
                       return (
                         <button
@@ -386,12 +379,10 @@ export function OnboardingScreen() {
                           <span
                             className={cn(
                               "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                              active
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-primary"
+                              active ? "bg-primary/15" : "bg-secondary"
                             )}
                           >
-                            <Icon className="h-4 w-4" strokeWidth={1.75} />
+                            <Icon3D name={goal.icon} size={22} alt="" />
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-sm font-bold tracking-tight">

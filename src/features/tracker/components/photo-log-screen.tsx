@@ -277,7 +277,7 @@ export function PhotoLogScreen() {
         onSuccess: () => {
           analytics.mealLogged("photo", { calories: scaled.calories });
           toast({ title: "Meal logged", description: scaled.name });
-          router.push("/");
+          router.push("/dashboard");
         },
       }
     );
@@ -301,7 +301,7 @@ export function PhotoLogScreen() {
           variant="ghost"
           className="h-11 w-11 rounded-full bg-white/10 text-white backdrop-blur-xl hover:bg-white/15 hover:text-white"
         >
-          <Link href="/" aria-label="Back to home" onClick={stopCamera}>
+          <Link href="/dashboard" aria-label="Back to home" onClick={stopCamera}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

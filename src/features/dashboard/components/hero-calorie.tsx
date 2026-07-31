@@ -38,7 +38,7 @@ export function HeroCalorie({ consumed, goal, healthScore }: HeroCalorieProps) {
           cy="120"
           r={radius}
           fill="none"
-          stroke="url(#nourishRing)"
+          stroke="url(#calorieRing)"
           strokeWidth="14"
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -47,7 +47,7 @@ export function HeroCalorie({ consumed, goal, healthScore }: HeroCalorieProps) {
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         />
         <defs>
-          <linearGradient id="nourishRing" x1="0%" y1="0%" x2="100%" y2="100%">
+          <linearGradient id="calorieRing" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="hsl(158 48% 42%)" />
             <stop offset="55%" stopColor="hsl(168 45% 36%)" />
             <stop offset="100%" stopColor="hsl(198 60% 48%)" />

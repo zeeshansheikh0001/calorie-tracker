@@ -1,16 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Apple,
-  Bell,
-  ChevronRight,
-  Flame,
-  Pencil,
-  Sparkles,
-  Target,
-  UserRound,
-} from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -20,6 +11,7 @@ import {
 } from "recharts";
 import { format, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
+import { Icon3D, type Icon3DName } from "@/components/icons/icon-3d";
 import { PageContainer } from "@/components/layout/page-container";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { Button } from "@/components/ui/button";
@@ -35,38 +27,43 @@ import {
 import { wellnessService } from "@/services/wellness/wellness.service";
 import type { SavedDietChart } from "@/types/domain";
 
-const links = [
+const links: {
+  href: string;
+  label: string;
+  description: string;
+  icon: Icon3DName;
+}[] = [
   {
     href: "/goals",
     label: "Daily calorie goal",
     description: "Calories & macros",
-    icon: Target,
+    icon: "goals",
   },
   {
     href: "/profile/edit",
     label: "Preferences",
     description: "Body metrics & units",
-    icon: Pencil,
+    icon: "gear",
   },
   {
     href: "/ai-features",
     label: "AI coach",
     description: "Schedules & summaries",
-    icon: Sparkles,
+    icon: "ai",
   },
   {
     href: "/diet-chart",
     label: "Diet preference",
     description: "Personalized plans",
-    icon: Apple,
+    icon: "apple",
   },
   {
     href: "/reminders",
     label: "Reminders",
     description: "Meal & water preferences",
-    icon: Bell,
+    icon: "bell",
   },
-] as const;
+];
 
 function calcBmi(weightKg?: number, heightCm?: number) {
   if (!weightKg || !heightCm || heightCm <= 0) return null;
@@ -119,8 +116,8 @@ export function ProfileScreen() {
   return (
     <PageContainer className="space-y-5">
       <SurfaceCard elevated className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-[var(--shadow-sm)]">
-          <UserRound className="h-7 w-7" strokeWidth={1.5} />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 shadow-[var(--shadow-sm)]">
+          <Icon3D name="profile" size={36} alt="" />
         </div>
         <div className="min-w-0 flex-1">
           {isLoading ? (
@@ -188,7 +185,7 @@ export function ProfileScreen() {
             Streak
           </p>
           <p className="mt-1 flex items-center gap-1.5 text-2xl font-bold tabular-nums">
-            <Flame className="h-5 w-5 text-primary" /> {streak}
+            <Icon3D name="streak" size={22} alt="" /> {streak}
           </p>
         </SurfaceCard>
       </div>
@@ -310,15 +307,14 @@ export function ProfileScreen() {
       <SurfaceCard padded={false} className="overflow-hidden">
         <ul className="divide-y divide-border/50">
           {links.map((item) => {
-            const Icon = item.icon;
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className="group flex items-center gap-3 px-4 py-4 transition-colors hover:bg-muted/40"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary text-primary">
-                    <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary">
+                    <Icon3D name={item.icon} size={22} alt="" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold tracking-tight">

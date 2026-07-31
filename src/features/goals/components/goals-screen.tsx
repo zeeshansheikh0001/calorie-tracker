@@ -84,7 +84,7 @@ export function GoalsScreen() {
     <PageContainer>
       <div className="mb-7">
         <p className="font-display text-sm font-medium tracking-[0.08em] text-primary">
-          nourish
+          Calorie Tracker AI
         </p>
         <h1 className="font-display mt-2 text-[2rem] font-medium tracking-tight">
           Goals

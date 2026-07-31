@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Calorie Tracker',
-  description: 'Learn how Calorie Tracker protects your privacy and handles your data in compliance with Indian privacy laws.',
-  keywords: 'privacy policy, data protection, user privacy, PDPA India, calorie tracker privacy',
+  title: "Privacy Policy",
+  description:
+    "Learn how Calorie Tracker AI protects your privacy and handles your data.",
   alternates: {
-    canonical: 'https://calorietracker.in/privacy',
+    canonical: "https://calorietracker.in/privacy",
   },
 };
 

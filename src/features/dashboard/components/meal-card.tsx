@@ -11,83 +11,113 @@ type MealCardProps = {
   entry: FoodEntry;
   onDelete: (id: string) => void;
   isDeleting?: boolean;
+  isLast?: boolean;
 };
 
-function mealHue(name: string) {
-  let hash = 0;
-  for (let i = 0; i < name.length; i += 1) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash) % 360;
+function MacroChip({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
+      <span className={cn("h-1.5 w-1.5 rounded-full", tone)} aria-hidden />
+      <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">
+        {label}
+      </span>
+      {Math.round(value)}g
+    </span>
+  );
 }
 
-export function MealCard({ entry, onDelete, isDeleting }: MealCardProps) {
-  const hue = mealHue(entry.name);
+export function MealCard({
+  entry,
+  onDelete,
+  isDeleting,
+  isLast,
+}: MealCardProps) {
   const healthy =
     entry.protein >= 15 ||
     entry.calories < 450 ||
     entry.name.toLowerCase().includes("salad");
 
   return (
-    <article
-      className={cn(
-        "group flex gap-3 rounded-[1.35rem] border border-border/50 bg-card p-3 shadow-[var(--shadow-sm)] transition-all duration-200",
-        "hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
-      )}
-    >
-      <div
-        className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl"
-        style={{
-          background: `linear-gradient(145deg, hsl(${hue} 55% 78%), hsl(${(hue + 40) % 360} 45% 62%))`,
-        }}
-        aria-hidden
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-lg font-bold text-white/90 tabular-nums drop-shadow-sm">
+    <article className="relative flex gap-3.5">
+      {/* Timeline rail */}
+      <div className="relative flex w-10 shrink-0 flex-col items-center pt-1">
+        <div className="z-[1] flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/15">
+          <span className="text-[13px] font-bold tabular-nums tracking-tight text-primary">
             {Math.round(entry.calories)}
           </span>
         </div>
+        {!isLast ? (
+          <span
+            aria-hidden
+            className="absolute top-12 bottom-[-0.75rem] w-px bg-gradient-to-b from-border to-transparent"
+          />
+        ) : null}
       </div>
 
-      <div className="min-w-0 flex-1 py-0.5">
+      <div className="min-w-0 flex-1 rounded-[1.35rem] bg-muted/35 px-3.5 py-3 ring-1 ring-border/40 transition-colors hover:bg-muted/55 hover:ring-border/70">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold tracking-tight">
-              {entry.name}
-            </p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              {mealTimeLabel(entry.timestamp)} ·{" "}
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-[15px] font-semibold tracking-tight">
+                {entry.name}
+              </p>
+              {healthy ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  <Leaf className="h-3 w-3" aria-hidden />
+                  Smart
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+              <span className="text-foreground/70">
+                {mealTimeLabel(entry.timestamp)}
+              </span>
+              <span className="mx-1.5 text-border">·</span>
               {format(entry.timestamp, "h:mm a")}
             </p>
           </div>
+
           <Button
             type="button"
             size="icon"
             variant="ghost"
-            className="h-8 w-8 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:text-destructive"
+            className="h-8 w-8 shrink-0 rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             aria-label={`Delete ${entry.name}`}
             disabled={isDeleting}
             onClick={() => onDelete(entry.id)}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            P {Math.round(entry.protein)}g
+        <div className="mt-3 flex flex-wrap items-center gap-x-3.5 gap-y-1.5 border-t border-border/40 pt-2.5">
+          <MacroChip
+            label="P"
+            value={entry.protein}
+            tone="bg-[hsl(var(--text-protein-raw))]"
+          />
+          <MacroChip
+            label="C"
+            value={entry.carbs}
+            tone="bg-[hsl(var(--text-carbs-raw))]"
+          />
+          <MacroChip
+            label="F"
+            value={entry.fat}
+            tone="bg-[hsl(var(--text-fat-raw))]"
+          />
+          <span className="ml-auto text-[11px] font-bold tabular-nums text-foreground/80">
+            {Math.round(entry.calories)}{" "}
+            <span className="font-semibold text-muted-foreground">kcal</span>
           </span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            C {Math.round(entry.carbs)}g
-          </span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
-            F {Math.round(entry.fat)}g
-          </span>
-          {healthy ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-              <Leaf className="h-3 w-3" /> Smart pick
-            </span>
-          ) : null}
         </div>
       </div>
     </article>

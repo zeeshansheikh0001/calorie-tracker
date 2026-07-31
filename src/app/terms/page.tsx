@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Calorie Tracker',
-  description: 'Read the Terms of Service for Calorie Tracker, explaining the rules and guidelines for using our nutrition tracking application.',
-  keywords: 'terms of service, terms and conditions, user agreement, legal terms, calorie tracker terms',
+  title: "Terms of Service",
+  description:
+    "Terms of Service for Calorie Tracker AI — rules and guidelines for using the nutrition tracking app.",
   alternates: {
-    canonical: 'https://calorietracker.in/terms',
+    canonical: "https://calorietracker.in/terms",
   },
 };
 

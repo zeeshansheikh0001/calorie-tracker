@@ -1,45 +1,38 @@
-import { MetadataRoute } from 'next';
-import { blogData } from '@/data/blog-content';
+import type { MetadataRoute } from "next";
+import { blogData } from "@/data/blog-content";
+import { SITE_URL } from "@/lib/seo/site";
 
-// Main pages of the application
-const routes = [
-  '',
-  '/progress',
-  '/ai-features',
-  '/goals',
-  '/profile',
-  '/log-food/manual',
-  '/log-food/photo',
-  '/onboarding',
-  '/welcome',
-  '/reminders',
-  '/about',
-  '/privacy',
-  '/terms',
-  '/blog',
+/** Indexable marketing routes only — app/private screens stay out. */
+const marketingRoutes: {
+  path: string;
+  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+  priority: number;
+}[] = [
+  { path: "", changeFrequency: "weekly", priority: 1 },
+  { path: "/welcome", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/about", changeFrequency: "monthly", priority: 0.8 },
+  { path: "/blog", changeFrequency: "weekly", priority: 0.9 },
+  { path: "/diet-chart", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://calorietracker.in';
-  
-  // Generate entries for all static routes
-  const routeEntries = routes.map(route => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1.0 : 0.8,
+  const routes = marketingRoutes.map((route) => ({
+    url: `${SITE_URL}${route.path}`,
+    lastModified: new Date("2026-08-01"),
+    changeFrequency: route.changeFrequency,
+    priority: route.priority,
   }));
 
-  // Generate entries for all blog posts
-  const blogEntries = blogData.map(post => ({
-    url: `${baseUrl}${post.readMoreLink}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
+  const posts = blogData.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: post.publishDate
+      ? new Date(post.publishDate)
+      : new Date("2026-08-01"),
+    changeFrequency: "monthly" as const,
     priority: 0.7,
   }));
 
-  return [
-    ...routeEntries,
-    ...blogEntries,
-  ];
-} 
+  return [...routes, ...posts];
+}

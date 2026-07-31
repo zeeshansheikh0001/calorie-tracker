@@ -61,6 +61,8 @@ export interface UserProfile {
 
 export interface BlogPost {
   id: string;
+  /** SEO-friendly URL segment, e.g. calorie-deficit-weight-loss */
+  slug: string;
   title: string;
   excerpt: string;
   imageUrl: string;

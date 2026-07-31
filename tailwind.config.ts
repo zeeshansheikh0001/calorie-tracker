@@ -11,8 +11,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        sans: ["var(--font-lato)", "system-ui", "sans-serif"],
+        display: ["var(--font-lato)", "system-ui", "sans-serif"],
+        poppins: ["var(--font-lato)", "system-ui", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
       },
       colors: {
